@@ -203,7 +203,7 @@ namespace Nabo
 				{
 					// enqueue offside ?
 					if (offset2 < bestDist && nodes[childLeft(n)].dim != -2)
-						queue.push(SearchElement(childLeft(n), offset2));
+						queue.push(SearchElement(childLeft(n), dist));
 					// continue onside
 					if (nodes[childRight(n)].dim != -2)
 						n = childRight(n);
@@ -214,7 +214,7 @@ namespace Nabo
 				{
 					// enqueue offside ?
 					if (offset2 < bestDist && nodes[childRight(n)].dim != -2)
-						queue.push(SearchElement(childRight(n), offset2));
+						queue.push(SearchElement(childRight(n), dist));
 					// continue onside
 					if (nodes[childLeft(n)].dim != -2)
 						n = childLeft(n);
