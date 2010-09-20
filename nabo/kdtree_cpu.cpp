@@ -31,7 +31,7 @@ namespace Nabo
 	size_t KDTree<T>::argMax(const Vector& v) const
 	{
 		T maxVal(0);
-		size_t maxIdx;
+		size_t maxIdx(0);
 		for (size_t i = 0; i < this->dim; ++i)
 		{
 			if (v[i] > maxVal)
