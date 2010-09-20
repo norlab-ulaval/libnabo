@@ -12,7 +12,7 @@ using namespace std;
 template<typename T>
 T dist2(const typename Eigen::Matrix<T, Eigen::Dynamic, 1> v0, const typename Eigen::Matrix<T, Eigen::Dynamic, 1> v1)
 {
-	return (v0 - v1).dot(v0 - v1);
+	return (v0 - v1).squaredNorm();
 }
 	
 
@@ -295,7 +295,7 @@ typename KDTree<T>::Vector bfnn(const typename KDTree<T>::Vector& query, const t
 		}
 	}
 	
-	cerr << "visit count kdtree: " << data.cols() << endl;
+	cerr << "visit count bf: " << data.cols() << endl;
 	
 	return data.col(bestIndex);
 }
@@ -357,7 +357,7 @@ int main(int argc, char* argv[])
 	
 	for (int i = 0; i < 10; ++i)
 	{
-		Vector q(kdtree.minBound + Vector::Random(2).cwise() * (kdtree.maxBound - kdtree.minBound));
+		Vector q(kdtree.minBound + Vector::Random(kdtree.minBound.size()).cwise() * (kdtree.maxBound - kdtree.minBound));
 		Vector v_bf(bfnn<float>(q, d));
 		Vector v_kdtree(kdtree.nn(q));
 		cout << "query:\n" << q << "\nbf:\n" << v_bf << "\nkdtree:\n" << v_kdtree << "\n\n";
