@@ -46,7 +46,8 @@ protected:
 		T minDist;
 		
 		SearchElement(const size_t index, const T minDist): index(index), minDist(minDist) {}
-		friend bool operator<(const SearchElement& e0, const SearchElement& e1) { return e0.minDist < e1.minDist; }
+		// invert test as std::priority_queue shows biggest element at top
+		friend bool operator<(const SearchElement& e0, const SearchElement& e1) { return e0.minDist > e1.minDist; }
 	};
 	
 	// TODO: add index
@@ -219,6 +220,8 @@ KDTree<T>::KDTree(const typename KDTree<T>::Matrix& cloud):
 	//dump(minBound, maxBound, 0);
 }
 
+static int totKDTreeVisitCount = 0;
+
 template<typename T>
 typename KDTree<T>::Vector KDTree<T>::nn(const Vector& query)
 {
@@ -239,38 +242,50 @@ typename KDTree<T>::Vector KDTree<T>::nn(const Vector& query)
 		if (el.minDist > bestDist)
 			break;
 		
-		const Node& node(nodes[el.index]);
-		// TODO: optimise, do not push these in first place
-		if (node.dim == -2)
-			continue;
-		
-		const T dist(dist2(node.pos, query));
-		if (dist < bestDist)
+		size_t n(el.index);
+		while (1)
 		{
-			bestIndex = el.index;
-			bestDist = dist;
+			const Node& node(nodes[n]);
+			assert (node.dim != -2);
+			
+			const T dist(dist2(node.pos, query));
+			if (dist < bestDist)
+			{
+				bestIndex = n;
+				bestDist = dist;
+			}
+			
+			// if we are at leaf, stope
+			if (node.dim < 0)
+				break;
+			
+			const T offset(query[node.dim] - node.pos[node.dim]);
+			const T offset2(offset * offset);
+			if (offset > 0)
+			{
+				// enqueue offside ?
+				if (offset2 < bestDist && nodes[childLeft(n)].dim != -2)
+					queue.push(SearchElement(childLeft(n), offset2));
+				// continue onside
+				if (nodes[childRight(n)].dim != -2)
+					n = childRight(n);
+				else
+					break;
+			}
+			else
+			{
+				// enqueue offside ?
+				if (offset2 < bestDist && nodes[childRight(n)].dim != -2)
+					queue.push(SearchElement(childRight(n), offset2));
+				// continue onside
+				if (nodes[childLeft(n)].dim != -2)
+					n = childLeft(n);
+				else
+					break;
+			}
+			++visitCount;
+			++totKDTreeVisitCount;
 		}
-		
-		if (node.dim < 0)
-			continue;
-		
-		const T offset(query[node.dim] - node.pos[node.dim]);
-		const T offset2(offset * offset);
-		if (offset > 0)
-		{
-			if (offset2 < bestDist)
-				queue.push(SearchElement(childLeft(el.index), offset2));
-			queue.push(SearchElement(childRight(el.index), 0));
-		}
-		else
-		{
-			queue.push(SearchElement(childLeft(el.index), 0));
-			if (offset2 < bestDist)
-				queue.push(SearchElement(childRight(el.index), offset2));
-		}
-		// TODO: optimise using loop there to relieve queue use
-		
-		++visitCount;
 	}
 	cerr << "visit count kdtree: " << visitCount << endl;
 	return nodes[bestIndex].pos;
@@ -355,15 +370,19 @@ int main(int argc, char* argv[])
 	KDTree<float> kdtree(d);
 	typedef KDTree<float>::Vector Vector;
 	
-	for (int i = 0; i < 10; ++i)
+	const int itCount(10);
+	for (int i = 0; i < itCount; ++i)
 	{
 		Vector q(kdtree.minBound + Vector::Random(kdtree.minBound.size()).cwise() * (kdtree.maxBound - kdtree.minBound));
+		//Vector q(d.col(rand() % d.cols()));
+		q.cwise() += 0.01;
 		Vector v_bf(bfnn<float>(q, d));
 		Vector v_kdtree(kdtree.nn(q));
 		cout << "query:\n" << q << "\nbf:\n" << v_bf << "\nkdtree:\n" << v_kdtree << "\n\n";
 		assert(dist2(v_bf, v_kdtree) < numeric_limits<float>::epsilon());
 	}
-		
+	
+	cout << "Average KDTree visit count: " << double(totKDTreeVisitCount) * 100. / double(itCount * d.cols()) << " %" << endl;
 	//cout << "</svg>" << endl;
 	
 	return 0;
