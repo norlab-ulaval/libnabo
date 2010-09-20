@@ -4,9 +4,17 @@
 #include <stdexcept>
 #include <limits>
 #include <vector>
+#include <queue>
 #include <algorithm>
 
 using namespace std;
+
+template<typename T>
+T dist2(const typename Eigen::Matrix<T, Eigen::Dynamic, 1> v0, const typename Eigen::Matrix<T, Eigen::Dynamic, 1> v1)
+{
+	return (v0 - v1).dot(v0 - v1);
+}
+	
 
 template<typename T>
 struct KDTree
@@ -51,8 +59,10 @@ protected:
 	typedef vector<Node> Nodes;
 	
 	const size_t dim;
+public:
 	Vector minBound;
 	Vector maxBound;
+protected:
 	Nodes nodes;
 	
 	inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
@@ -212,20 +222,24 @@ KDTree<T>::KDTree(const typename KDTree<T>::Matrix& cloud):
 template<typename T>
 typename KDTree<T>::Vector KDTree<T>::nn(const Vector& query)
 {
-	// priority queue<SearchElement>
-	/*
+	typedef priority_queue<SearchElement> Queue;
+	Queue queue;
+	
+	queue.push(SearchElement(0, 0));
+	
 	T bestDist(numeric_limits<T>::max()); 
 	size_t bestIndex(0);
 	size_t visitCount(0);
 	while (!queue.empty())
 	{
-		SearchElement el(queue.pop())
+		SearchElement el(queue.top());
+		queue.pop();
 		
 		// nothing is closer, we found best
 		if (el.minDist > bestDist)
-			return nodes[bestIndex].pos;
+			break;
 		
-		const Node& node(el.index);
+		const Node& node(nodes[el.index]);
 		// TODO: optimise, do not push these in first place
 		if (node.dim == -2)
 			continue;
@@ -245,21 +259,24 @@ typename KDTree<T>::Vector KDTree<T>::nn(const Vector& query)
 		if (offset > 0)
 		{
 			if (offset2 < bestDist)
-				queue.push(childLeft(el.index), offset2);
-			queue.push(childRight(el.index), 0);
+				queue.push(SearchElement(childLeft(el.index), offset2));
+			queue.push(SearchElement(childRight(el.index), 0));
 		}
 		else
 		{
-			queue.push(childLeft(el.index), 0);
+			queue.push(SearchElement(childLeft(el.index), 0));
 			if (offset2 < bestDist)
-				queue.push(childRight(el.index), offset2);
+				queue.push(SearchElement(childRight(el.index), offset2));
 		}
-		// TODO: optimise using loop there to relieve stack use
+		// TODO: optimise using loop there to relieve queue use
 		
 		++visitCount;
 	}
-	*/
+	cerr << "visit count kdtree: " << visitCount << endl;
+	return nodes[bestIndex].pos;
 }
+
+
 
 // brute force nearest neighbor for comparison
 template<typename T>
@@ -270,13 +287,15 @@ typename KDTree<T>::Vector bfnn(const typename KDTree<T>::Vector& query, const t
 	
 	for (size_t i = 0; i < data.cols(); ++i)
 	{
-		const T dist(dist2(data.col(i), query));
+		const T dist(dist2<float>(data.col(i), query));
 		if (dist < bestDist)
 		{
 			bestIndex = i;
 			bestDist = dist;
 		}
 	}
+	
+	cerr << "visit count kdtree: " << data.cols() << endl;
 	
 	return data.col(bestIndex);
 }
@@ -334,6 +353,16 @@ int main(int argc, char* argv[])
 	KDTree<float>::Matrix d(load<float>(argv[1]));
 	//cerr << d.rows() << " " << d.cols() << endl;
 	KDTree<float> kdtree(d);
+	typedef KDTree<float>::Vector Vector;
+	
+	for (int i = 0; i < 10; ++i)
+	{
+		Vector q(kdtree.minBound + Vector::Random(2).cwise() * (kdtree.maxBound - kdtree.minBound));
+		Vector v_bf(bfnn<float>(q, d));
+		Vector v_kdtree(kdtree.nn(q));
+		cout << "query:\n" << q << "\nbf:\n" << v_bf << "\nkdtree:\n" << v_kdtree << "\n\n";
+		assert(dist2(v_bf, v_kdtree) < numeric_limits<float>::epsilon());
+	}
 		
 	//cout << "</svg>" << endl;
 	
