@@ -1,4 +1,4 @@
-#include "nabo.h"
+#include "nabo/nabo.h"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>

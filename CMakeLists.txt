@@ -12,8 +12,14 @@ find_path(EIGEN2_INCLUDE_DIR Eigen/Core
 include_directories(${EIGEN2_INCLUDE_DIR})
 
 # our lib
-add_library(nabo nabo.cpp brute_force_cpu.cpp kdtree_cpu.cpp)
+add_library(nabo 
+	nabo/nabo.cpp
+	nabo/brute_force_cpu.cpp
+	nabo/kdtree_cpu.cpp
+)
+install(TARGETS nabo ARCHIVE DESTINATION lib)
+install(FILES nabo/nabo.h DESTINATION include/nabo)
 
-# our test program
-add_executable(knn knn.cpp)
-target_link_libraries(knn nabo)
+add_subdirectory(benchmarks)
+add_subdirectory(tests)
+

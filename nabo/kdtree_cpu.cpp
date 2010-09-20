@@ -186,6 +186,7 @@ namespace Nabo
 				const Node& node(nodes[n]);
 				assert (node.dim != -2);
 				
+				// TODO: optimise dist while going down
 				const T dist(dist2(node.pos, query));
 				if ((dist < heap.head().value) &&
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
