@@ -1,7 +1,8 @@
 #ifndef __NABO_H
 #define __NABO_H
 
-#include "Eigen/Eigen"
+#include "Eigen/Core"
+#include "Eigen/Array"
 #include <vector>
 
 namespace Nabo
