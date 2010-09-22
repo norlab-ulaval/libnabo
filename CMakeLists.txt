@@ -20,6 +20,6 @@ add_library(nabo
 install(TARGETS nabo ARCHIVE DESTINATION lib)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
 
-add_subdirectory(benchmarks)
+enable_testing()
 add_subdirectory(tests)
 
