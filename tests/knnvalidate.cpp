@@ -53,29 +53,40 @@ int main(int argc, char* argv[])
 	
 	if (argc != 4)
 	{
-		cerr << "Usage " << argv[0] << " DATA K IT_COUNT" << endl;
+		cerr << "Usage " << argv[0] << " DATA K METHOD" << endl;
 		return 1;
 	}
 	
 	const Matrix d(load<float>(argv[1]));
 	const Index K(atoi(argv[2]));
-	const int itCount(atoi(argv[3]));
+	const int method(atoi(argv[3]));
 	BFSF bfs(d);
 	KDTF kdt(d);
 	
 	// compare KDTree with brute force search
-	if (K >= d.size())
+	if (K >= d.cols())
 	{
 		cerr << "Requested more nearest neighbor than points in the data set" << endl;
 		return 2;
 	}
+	
+	const int itCount(method != -1 ? method : d.cols() * 2);
 	for (int i = 0; i < itCount; ++i)
 	{
-		//Vector q(bfs.minBound.size());
-		//for (int i = 0; i < q.size(); ++i)
-		//	q(i) = bfs.minBound(i) + float(rand()) * (bfs.maxBound(i) - bfs.minBound(i)) / float(RAND_MAX);
-		Vector q(d.col(rand() % d.cols()));
-		q.cwise() += 0.01;
+		Vector q(bfs.minBound.size());
+		if (method == -1)
+		{
+			q = d.col(i % d.cols());
+			if (i < itCount / 2)
+				q.cwise() += 0.01;
+			else
+				q.cwise() -= 0.01;
+		}
+		else
+		{
+			for (int j = 0; j < q.size(); ++j)
+				q(j) = bfs.minBound(j) + float(rand()) * (bfs.maxBound(j) - bfs.minBound(j)) / float(RAND_MAX);
+		}
 		Indexes indexes_bf(bfs.knn(q, K, false));
 		Indexes indexes_kdtree(kdt.knn(q, K, false));
 		if (indexes_bf.size() != indexes_kdtree.size())
@@ -92,16 +103,16 @@ int main(int argc, char* argv[])
 		{
 			Vector pbf(d.col(indexes_bf[j]));
 			Vector pkdtree(d.col(indexes_kdtree[j]));
-			if (dist2(pbf, pkdtree) >= numeric_limits<float>::epsilon())
+			if (fabsf(dist2(pbf, q) - dist2(pkdtree, q)) >= numeric_limits<float>::epsilon())
 			{
-				cerr << "Point " << j << " of " << K << " is different between bf and kdtree:\n";
+				cerr << "Point " << j << " of " << K << " is different between bf and kdtree (dist " << dist2(pbf, pkdtree) << ")\n";
 				cerr << "* query:\n";
 				cerr << q << "\n";
 				cerr << "* indexes " << indexes_bf[j] << " (bf) vs " <<  indexes_kdtree[j] << " (kdtree)\n";
 				cerr << "* coordinates:\n";
-				cerr << "bf:\n";
+				cerr << "bf: (dist " << dist2(pbf, q) << ")\n";
 				cerr << pbf << "\n";
-				cerr << "kdtree:\n";
+				cerr << "kdtree (dist " << dist2(pkdtree, q) << ")\n";
 				cerr << pkdtree << endl;
 				return 4;
 			}
