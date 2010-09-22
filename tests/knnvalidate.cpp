@@ -118,6 +118,11 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+	cout << "stats kdtree: "
+		<< kdt.getStatistics().totalVisitCount << " on "
+		<< itCount * d.cols() << " ("
+		<< double(100 * kdt.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< ")" << endl;
 	
 	return 0;
 }
