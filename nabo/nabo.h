@@ -65,9 +65,9 @@ namespace Nabo
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
-	// Classic KDTree
+	// KDTree, points in nodes
 	template<typename T>
-	struct KDTree: public NearestNeighborSearch<T>
+	struct KDTreePtInNodes:public NearestNeighborSearch<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
@@ -92,6 +92,46 @@ namespace Nabo
 			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
 		};
 		
+		struct Node
+		{
+			Vector pos;
+			int dim; // -1 == leaf, -2 == invalid
+			Index index;
+			Node(const Vector& pos = Vector(), const int dim = -2, const Index index = 0):pos(pos), dim(dim), index(index) {}
+		};
+		typedef std::vector<Node> Nodes;
+		
+		Nodes nodes;
+		
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
+		inline size_t parent(size_t pos) const { return (pos-1)/2; }
+		size_t getTreeSize(size_t size) const;
+		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
+		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
+		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
+		
+	protected:
+		KDTreePtInNodes(const Matrix& cloud);
+	};
+	
+	// KDTree, points in nodes, priority queue
+	template<typename T>
+	struct KDTreePtInNodesPQ: public KDTreePtInNodes<T>
+	{
+		typedef typename NearestNeighborSearch<T>::Vector Vector;
+		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighborSearch<T>::Index Index;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename KDTreePtInNodes<T>::Node Node;
+		typedef typename KDTreePtInNodes<T>::Nodes Nodes;
+		
+		using NearestNeighborSearch<T>::statistics;
+		using KDTreePtInNodes<T>::nodes;
+		using KDTreePtInNodes<T>::childLeft;
+		using KDTreePtInNodes<T>::childRight;
+		
+	protected:
 		struct SearchElement
 		{
 			size_t index;
@@ -102,82 +142,34 @@ namespace Nabo
 			friend bool operator<(const SearchElement& e0, const SearchElement& e1) { return e0.minDist > e1.minDist; }
 		};
 		
-		struct Node
-		{
-			Vector pos;
-			int dim; // -1 == leaf, -2 == invalid
-			Index index;
-			Node(const Vector& pos = Vector(), const int dim = -2, const Index index = 0):pos(pos), dim(dim), index(index) {}
-		};
-		typedef std::vector<Node> Nodes;
-		
-		Nodes nodes;
-		
-		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
-		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
-		inline size_t parent(size_t pos) const { return (pos-1)/2; }
-		size_t getTreeSize(size_t size) const;
-		size_t argMax(const Vector& v) const;
-		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
-		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
-		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
-		
 	public:
-		KDTree(const Matrix& cloud);
+		KDTreePtInNodesPQ(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
+	// KDTree, points in nodes, stack
 	template<typename T>
-	struct ANNKDTree: public NearestNeighborSearch<T>
+	struct KDTreePtInNodesStack: public KDTreePtInNodes<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighborSearch<T>::Index Index;
 		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename KDTreePtInNodes<T>::Node Node;
+		typedef typename KDTreePtInNodes<T>::Nodes Nodes;
 		
-	protected:
-		struct BuildPoint
-		{
-			Vector pos;
-			size_t index;
-			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
-		};
-		typedef std::vector<BuildPoint> BuildPoints;
-		typedef typename BuildPoints::iterator BuildPointsIt;
-		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
-		
-		struct CompareDim
-		{
-			size_t dim;
-			CompareDim(const size_t dim):dim(dim){}
-			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
-		};
-		
-		struct Node
-		{
-			Vector pos;
-			int dim; // -1 == leaf, -2 == invalid
-			Index index;
-			Node(const Vector& pos = Vector(), const int dim = -2, const Index index = 0):pos(pos), dim(dim), index(index) {}
-		};
-		typedef std::vector<Node> Nodes;
-		
-		Nodes nodes;
+		using NearestNeighborSearch<T>::statistics;
+		using KDTreePtInNodes<T>::nodes;
+		using KDTreePtInNodes<T>::childLeft;
+		using KDTreePtInNodes<T>::childRight;
 		
 		typedef IndexHeap<Index, T> Heap;
 		
-		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
-		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
-		inline size_t parent(size_t pos) const { return (pos-1)/2; }
-		size_t getTreeSize(size_t size) const;
-		size_t argMax(const Vector& v) const;
-		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
-		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
-		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
+	protected:
 		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
 		
 	public:
-		ANNKDTree(const Matrix& cloud);
+		KDTreePtInNodesStack(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	

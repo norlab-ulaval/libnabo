@@ -50,8 +50,9 @@ typedef Nabo::NearestNeighborSearch<double>::Index Index;
 typedef Nabo::NearestNeighborSearch<double>::IndexVector IndexVector;
 typedef Nabo::NearestNeighborSearch<float> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
-typedef Nabo::KDTree<double> KDTD1;
-typedef Nabo::ANNKDTree<double> KDTD2;
+typedef Nabo::KDTreePtInNodesPQ<double> KDTD1;
+typedef Nabo::KDTreePtInNodesStack<double> KDTD2;
+typedef Nabo::KDTreePtInNodesStack<double> KDTD3;
 
 inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
@@ -114,11 +115,11 @@ int main(int argc, char* argv[])
 	t = new boost::progress_timer;
 	kdt1.knnM(q, K, 0);
 	delete t;
-	cerr << "\tstats kdtree: "
+	cout << "\tstats kdtree: "
 		<< kdt1.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
 		<< double(100 * kdt1.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
-		<< ")" << endl;
+		<< ")\n" << endl;
 	
 	// KDTD2
 	cout << "Nabo stack" << endl;
@@ -132,15 +133,33 @@ int main(int argc, char* argv[])
 	t = new boost::progress_timer;
 	kdt2.knnM(q, K, 0);
 	delete t;
-	cerr << "\tstats kdtree: "
+	cout << "\tstats kdtree: "
 		<< kdt2.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
 		<< double(100 * kdt2.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
-		<< ")" << endl;
+		<< ")\n" << endl;
+	
+	// KDTD3
+	cout << "Nabo stack pt in leaves only" << endl;
+	cout << "\tconstruction: ";
+	t = new boost::progress_timer;
+	KDTD3 kdt3(d);
+	delete t;
+	
+	srand(0);
+	cout << "\texecution: ";
+	t = new boost::progress_timer;
+	kdt3.knnM(q, K, 0);
+	delete t;
+	cout << "\tstats kdtree: "
+		<< kdt3.getStatistics().totalVisitCount << " on "
+		<< itCount * d.cols() << " ("
+		<< double(100 * kdt3.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< ")\n" << endl;
 	
 	
 	// ANN stuff
-	cout << "\nANN" << endl;
+	cout << "maANN" << endl;
 	cout << "\tconstruction: ";
 	t = new boost::progress_timer;
 	const int ptCount(d.cols());
