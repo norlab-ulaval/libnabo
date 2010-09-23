@@ -24,6 +24,19 @@ namespace Nabo
 		}*/
 	}
 	
+	template<typename T>
+	typename NearestNeighborSearch<T>::IndexMatrix NearestNeighborSearch<T>::knn(const Matrix& query, const Index k, const unsigned optionFlags) 
+	{
+		IndexMatrix result(query.rows(), query.cols());
+		for (int i = 0; i < query.cols(); ++i)
+		{
+			const Vector& q(query.col(i));
+			result.col(i) = knn(q, k, optionFlags);
+		}
+		return result;
+	}
+	
+	
 	template struct NearestNeighborSearch<float>;
 	template struct NearestNeighborSearch<double>;
 }

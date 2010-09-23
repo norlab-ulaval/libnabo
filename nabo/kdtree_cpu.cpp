@@ -44,12 +44,11 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTree<T>::Indexes KDTree<T>::cloudIndexesFromNodesIndexes(const Indexes& indexes) const
+	typename KDTree<T>::IndexVector KDTree<T>::cloudIndexesFromNodesIndexes(const IndexVector& indexes) const
 	{
-		Indexes cloudIndexes;
-		cloudIndexes.reserve(indexes.size());
-		for (typename Indexes::const_iterator it(indexes.begin()); it != indexes.end(); ++it)
-			cloudIndexes.push_back(nodes[*it].index);
+		IndexVector cloudIndexes(indexes.size());
+		for (size_t i = 0; i < indexes.size(); ++i)
+			cloudIndexes.coeffRef(i) = nodes[indexes[i]].index;
 		return cloudIndexes;
 	}
 
@@ -162,9 +161,11 @@ namespace Nabo
 	static int totKDTreeVisitCount = 0;
 
 	template<typename T>
-	typename KDTree<T>::Indexes KDTree<T>::knn(const Vector& query, const Index k, const bool allowSelfMatch)
+	typename KDTree<T>::IndexVector KDTree<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
 	{
 		typedef priority_queue<SearchElement> Queue;
+		
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
 		Queue queue;
 		queue.push(SearchElement(0, 0));
@@ -196,7 +197,7 @@ namespace Nabo
 				if (node.dim < 0)
 					break;
 				
-				const T offset(query[node.dim] - node.pos[node.dim]);
+				const T offset(query.coeff(node.dim) - node.pos.coeff(node.dim));
 				const T offset2(offset * offset);
 				const T bestDist(heap.head().value);
 				if (offset > 0)
@@ -226,8 +227,8 @@ namespace Nabo
 		}
 		this->statistics.totalVisitCount += this->statistics.lastQueryVisitCount;
 		
-		// TODO: add flag
-		heap.sort();
+		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			heap.sort();
 		
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}

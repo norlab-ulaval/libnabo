@@ -47,7 +47,8 @@ int main(int argc, char* argv[])
 	typedef Nabo::NearestNeighborSearch<float>::Matrix Matrix;
 	typedef Nabo::NearestNeighborSearch<float>::Vector Vector;
 	typedef Nabo::NearestNeighborSearch<float>::Index Index;
-	typedef Nabo::NearestNeighborSearch<float>::Indexes Indexes;
+	typedef Nabo::NearestNeighborSearch<float>::IndexVector IndexVector;
+	typedef Nabo::NearestNeighborSearch<float> NNS;
 	typedef Nabo::BruteForceSearch<float> BFSF;
 	typedef Nabo::KDTree<float> KDTF;
 	
@@ -87,8 +88,8 @@ int main(int argc, char* argv[])
 			for (int j = 0; j < q.size(); ++j)
 				q(j) = bfs.minBound(j) + float(rand()) * (bfs.maxBound(j) - bfs.minBound(j)) / float(RAND_MAX);
 		}
-		Indexes indexes_bf(bfs.knn(q, K, false));
-		Indexes indexes_kdtree(kdt.knn(q, K, false));
+		IndexVector indexes_bf(bfs.knn(q, K, NNS::SORT_RESULTS));
+		IndexVector indexes_kdtree(kdt.knn(q, K, NNS::SORT_RESULTS));
 		if (indexes_bf.size() != indexes_kdtree.size())
 		{
 			cerr << "Different number of points found between search methods" << endl;

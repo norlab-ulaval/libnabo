@@ -1,6 +1,8 @@
 #ifndef __INDEX_HEAP_H
 #define __INDEX_HEAP_H
 
+#include "Eigen/Core"
+#include "Eigen/Array"
 #include <vector>
 #include <algorithm>
 #include <limits>
@@ -22,7 +24,7 @@ namespace Nabo
 			friend bool operator<(const Entry& e0, const Entry& e1) { return e0.value < e1.value; }
 		};
 		typedef std::vector<Entry> Entries;
-		typedef std::vector<Index> Indexes;
+		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
 		
 		Entries data;
 		
@@ -46,12 +48,11 @@ namespace Nabo
 			sort_heap (data.begin(), data.end());
 		}
 		
-		Indexes getIndexes() const
+		IndexVector getIndexes() const
 		{
-			Indexes indexes;
-			indexes.reserve(data.size());
-			for (typename Entries::const_iterator it(data.begin()); it != data.end(); ++it)
-				indexes.push_back(it->index);
+			IndexVector indexes(data.size());
+			for (size_t i = 0; i < data.size(); ++i)
+				indexes.coeffRef(i) = data[i].index;
 			return indexes;
 		}
 	};

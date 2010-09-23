@@ -20,8 +20,10 @@ namespace Nabo
 	
 
 	template<typename T>
-	typename NearestNeighborSearch<T>::Indexes BruteForceSearch<T>::knn(const Vector& query, const Index k, const bool allowSelfMatch)
+	typename NearestNeighborSearch<T>::IndexVector BruteForceSearch<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
 	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		
 		IndexHeap<Index, T> heap(k);
 		
 		for (size_t i = 0; i < this->cloud.cols(); ++i)
@@ -35,12 +37,11 @@ namespace Nabo
 		this->statistics.lastQueryVisitCount = this->cloud.cols();
 		this->statistics.totalVisitCount += this->statistics.lastQueryVisitCount;
 		
-		// TODO: add flag
-		heap.sort();
+		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			heap.sort();
 		
 		return heap.getIndexes();
 	}
-	
 	
 	template struct BruteForceSearch<float>;
 	template struct BruteForceSearch<double>;

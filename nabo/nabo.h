@@ -21,7 +21,8 @@ namespace Nabo
 		typedef typename Eigen::Matrix<T, Eigen::Dynamic, 1> Vector;
 		typedef typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Matrix; // each entry is a col, matrix has dim rows
 		typedef int Index;
-		typedef std::vector<Index> Indexes;
+		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
+		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic> IndexMatrix;
 		
 		const Matrix& cloud;
 		const size_t dim;
@@ -35,8 +36,15 @@ namespace Nabo
 			int totalVisitCount;
 		};
 		
+		enum SearchOptionFlags
+		{
+			ALLOW_SELF_MATCH = 1,
+			SORT_RESULTS = 2
+		};
+		
 		NearestNeighborSearch(const Matrix& cloud);
-		virtual Indexes knn(const Vector& query, const Index k = 1, const bool allowSelfMatch = false) = 0;
+		virtual IndexVector knn(const Vector& query, const Index k = 1, const unsigned optionFlags = 0) = 0;
+		virtual IndexMatrix knn(const Matrix& query, const Index k = 1, const unsigned optionFlags = 0);
 		const Statistics getStatistics() const { return statistics; }
 		
 	protected:
@@ -50,19 +58,20 @@ namespace Nabo
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::Indexes Indexes;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
 
 		BruteForceSearch(const Matrix& cloud);
-		virtual Indexes knn(const Vector& query, const Index k, const bool allowSelfMatch);
+		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
+	// Classic KDTree
 	template<typename T>
 	struct KDTree: public NearestNeighborSearch<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::Indexes Indexes;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
 		
 	protected:
 		struct BuildPoint
@@ -108,13 +117,13 @@ namespace Nabo
 		inline size_t parent(size_t pos) const { return (pos-1)/2; }
 		size_t getTreeSize(size_t size) const;
 		size_t argMax(const Vector& v) const;
-		Indexes cloudIndexesFromNodesIndexes(const Indexes& indexes) const;
+		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
 		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
 		
 	public:
 		KDTree(const Matrix& cloud);
-		virtual Indexes knn(const Vector& query, const Index k, const bool allowSelfMatch);
+		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 }
 

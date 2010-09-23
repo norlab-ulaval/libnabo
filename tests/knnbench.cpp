@@ -47,7 +47,8 @@ typename NearestNeighborSearch<T>::Matrix load(const char *fileName)
 typedef Nabo::NearestNeighborSearch<double>::Matrix Matrix;
 typedef Nabo::NearestNeighborSearch<double>::Vector Vector;
 typedef Nabo::NearestNeighborSearch<double>::Index Index;
-typedef Nabo::NearestNeighborSearch<double>::Indexes Indexes;
+typedef Nabo::NearestNeighborSearch<double>::IndexVector IndexVector;
+typedef Nabo::NearestNeighborSearch<float> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
 typedef Nabo::KDTree<double> KDTD;
 
@@ -111,7 +112,7 @@ int main(int argc, char* argv[])
 		boost::progress_timer t;
 		for (int i = 0; i < itCount; ++i)
 		{
-			Indexes indexes_kdtree(kdt.knn(q.col(i), K, false));
+			IndexVector indexes_kdtree(kdt.knn(q.col(i), K, 0));
 		}
 		
 	}
