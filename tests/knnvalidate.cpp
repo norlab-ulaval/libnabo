@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
 	const Matrix d(load<float>(argv[1]));
 	const Index K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
+	const int itCount(method != -1 ? method : d.cols() * 2);
 	BFSF bfs(d);
 	KDTF kdt(d);
 	
@@ -70,7 +71,6 @@ int main(int argc, char* argv[])
 		return 2;
 	}
 	
-	const int itCount(method != -1 ? method : d.cols() * 2);
 	for (int i = 0; i < itCount; ++i)
 	{
 		Vector q(bfs.minBound.size());
