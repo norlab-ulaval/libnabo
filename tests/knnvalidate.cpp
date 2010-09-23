@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	typedef Nabo::NearestNeighborSearch<float>::IndexVector IndexVector;
 	typedef Nabo::NearestNeighborSearch<float> NNS;
 	typedef Nabo::BruteForceSearch<float> BFSF;
-	typedef Nabo::KDTree<float> KDTF;
+	typedef Nabo::ANNKDTree<float> KDTF;
 	
 	if (argc != 4)
 	{

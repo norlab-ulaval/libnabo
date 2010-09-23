@@ -50,9 +50,10 @@ typedef Nabo::NearestNeighborSearch<double>::Index Index;
 typedef Nabo::NearestNeighborSearch<double>::IndexVector IndexVector;
 typedef Nabo::NearestNeighborSearch<float> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
-typedef Nabo::KDTree<double> KDTD;
+typedef Nabo::KDTree<double> KDTD1;
+typedef Nabo::ANNKDTree<double> KDTD2;
 
-inline Vector createQuery(const Matrix& d, const KDTD& kdt, const int i, const int method)
+inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
 	if (method == -1)
 	{
@@ -92,35 +93,51 @@ int main(int argc, char* argv[])
 		return 2;
 	}
 	
-	cout << "Nabo" << endl;
+	boost::progress_timer* t;
+	
+	// KDTD1
+	cout << "Nabo priority" << endl;
 	cout << "\tconstruction: ";
-	boost::progress_timer* t = new boost::progress_timer;
-	KDTD kdt(d);
+	t = new boost::progress_timer;
+	KDTD1 kdt1(d);
 	delete t;
 	
 	// create queries
 	Matrix q(d.rows(), itCount);
 	for (int i = 0; i < itCount; ++i)
 	{
-		q.col(i) = createQuery(d, kdt, i, method);
+		q.col(i) = createQuery(d, kdt1, i, method);
 	}
 	
-	// KDTree
 	srand(0);
 	cout << "\texecution: ";
-	{
-		boost::progress_timer t;
-		for (int i = 0; i < itCount; ++i)
-		{
-			IndexVector indexes_kdtree(kdt.knn(q.col(i), K, 0));
-		}
-		
-	}
+	t = new boost::progress_timer;
+	kdt1.knnM(q, K, 0);
+	delete t;
 	cerr << "\tstats kdtree: "
-		<< kdt.getStatistics().totalVisitCount << " on "
+		<< kdt1.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
-		<< double(100 * kdt.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< double(100 * kdt1.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
 		<< ")" << endl;
+	
+	// KDTD2
+	cout << "Nabo stack" << endl;
+	cout << "\tconstruction: ";
+	t = new boost::progress_timer;
+	KDTD2 kdt2(d);
+	delete t;
+	
+	srand(0);
+	cout << "\texecution: ";
+	t = new boost::progress_timer;
+	kdt2.knnM(q, K, 0);
+	delete t;
+	cerr << "\tstats kdtree: "
+		<< kdt2.getStatistics().totalVisitCount << " on "
+		<< itCount * d.cols() << " ("
+		<< double(100 * kdt2.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< ")" << endl;
+	
 	
 	// ANN stuff
 	cout << "\nANN" << endl;

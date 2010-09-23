@@ -3,6 +3,7 @@
 
 #include "Eigen/Core"
 #include "Eigen/Array"
+#include "index_heap.h"
 #include <vector>
 
 namespace Nabo
@@ -44,7 +45,7 @@ namespace Nabo
 		
 		NearestNeighborSearch(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k = 1, const unsigned optionFlags = 0) = 0;
-		virtual IndexMatrix knn(const Matrix& query, const Index k = 1, const unsigned optionFlags = 0);
+		virtual IndexMatrix knnM(const Matrix& query, const Index k = 1, const unsigned optionFlags = 0);
 		const Statistics getStatistics() const { return statistics; }
 		
 	protected:
@@ -125,6 +126,125 @@ namespace Nabo
 		KDTree(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
+	
+	template<typename T>
+	struct ANNKDTree: public NearestNeighborSearch<T>
+	{
+		typedef typename NearestNeighborSearch<T>::Vector Vector;
+		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighborSearch<T>::Index Index;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		
+	protected:
+		struct BuildPoint
+		{
+			Vector pos;
+			size_t index;
+			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
+		};
+		typedef std::vector<BuildPoint> BuildPoints;
+		typedef typename BuildPoints::iterator BuildPointsIt;
+		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
+		
+		struct CompareDim
+		{
+			size_t dim;
+			CompareDim(const size_t dim):dim(dim){}
+			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
+		};
+		
+		struct Node
+		{
+			Vector pos;
+			int dim; // -1 == leaf, -2 == invalid
+			Index index;
+			Node(const Vector& pos = Vector(), const int dim = -2, const Index index = 0):pos(pos), dim(dim), index(index) {}
+		};
+		typedef std::vector<Node> Nodes;
+		
+		Nodes nodes;
+		
+		typedef IndexHeap<Index, T> Heap;
+		
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
+		inline size_t parent(size_t pos) const { return (pos-1)/2; }
+		size_t getTreeSize(size_t size) const;
+		size_t argMax(const Vector& v) const;
+		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
+		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
+		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
+		
+	public:
+		ANNKDTree(const Matrix& cloud);
+		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+	};
+	
+	/*// Classic KDTree
+	template<typename T>
+	struct ANNKDTree: public NearestNeighborSearch<T>
+	{
+		typedef typename NearestNeighborSearch<T>::Vector Vector;
+		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighborSearch<T>::Index Index;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		
+	protected:
+		struct BuildPoint
+		{
+			Vector pos;
+			size_t index;
+			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
+		};
+		typedef std::vector<BuildPoint> BuildPoints;
+		typedef typename BuildPoints::iterator BuildPointsIt;
+		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
+		
+		struct CompareDim
+		{
+			size_t dim;
+			CompareDim(const size_t dim):dim(dim){}
+			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
+		};
+		
+		struct SearchElement
+		{
+			size_t index;
+			T minDist;
+			
+			SearchElement(const size_t index, const T minDist): index(index), minDist(minDist) {}
+			// invert test as std::priority_queue shows biggest element at top
+			friend bool operator<(const SearchElement& e0, const SearchElement& e1) { return e0.minDist > e1.minDist; }
+		};
+		
+		struct Node
+		{
+			int dim; // -1 == leaf, -2 == invalid
+			T cutVal;
+			T lowBound;
+			T highBound;
+			Node(const Vector& pos = Vector(), const int dim = -2, const Index index = 0):pos(pos), dim(dim), index(index) {}
+		};
+		typedef std::vector<Node> Nodes;
+		typedef std::vector<int> Leaves;
+		
+		Nodes nodes;
+		Leaves leaves;
+		
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
+		inline size_t parent(size_t pos) const { return (pos-1)/2; }
+		size_t getTreeSize(size_t size) const;
+		size_t argMax(const Vector& v) const;
+		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
+		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
+		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
+		
+	public:
+		ANNKDTree(const Matrix& cloud);
+		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+	};*/
 }
 
 #endif // __NABO_H
