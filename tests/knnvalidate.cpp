@@ -77,11 +77,15 @@ int main(int argc, char* argv[])
 		Vector q(bfs.minBound.size());
 		if (method == -1)
 		{
+			float absBound = 0;
+			for (int j = 0; j < q.size(); ++j)
+				absBound += bfs.maxBound(j) - bfs.minBound(j);
+			absBound /= 3 * 100; // 1 % difference
 			q = d.col(i % d.cols());
 			if (i < itCount / 2)
-				q.cwise() += 0.01;
+				q.cwise() += absBound;
 			else
-				q.cwise() -= 0.01;
+				q.cwise() -= absBound;
 		}
 		else
 		{

@@ -56,13 +56,17 @@ typedef Nabo::KDTreeItInLeavesStack<double> KDTD3;
 
 inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
-	if (method == -1)
+	if (method < 0)
 	{
 		Vector q = d.col(i % d.cols());
+		float absBound = 0;
+		for (int j = 0; j < q.size(); ++j)
+			absBound += kdt.maxBound(j) - kdt.minBound(j);
+		absBound /= 3 * (-method); // divided by -method
 		if (i < d.cols())
-			q.cwise() += 0.01;
+			q.cwise() += absBound;
 		else
-			q.cwise() -= 0.01;
+			q.cwise() -= absBound;
 		return q;
 	}
 	else
@@ -85,7 +89,7 @@ int main(int argc, char* argv[])
 	const Matrix d(load<double>(argv[1]));
 	const Index K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
-	const int itCount(method != -1 ? method : d.cols() * 2);
+	const int itCount(method >= 0 ? method : d.cols() * 2);
 	
 	// compare KDTree with brute force search
 	if (K >= d.cols())
