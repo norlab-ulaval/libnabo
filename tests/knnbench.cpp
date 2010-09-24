@@ -52,7 +52,18 @@ typedef Nabo::NearestNeighborSearch<float> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
 typedef Nabo::KDTreePtInNodesPQ<double> KDTD1;
 typedef Nabo::KDTreePtInNodesStack<double> KDTD2;
-typedef Nabo::KDTreeItInLeavesStack<double> KDTD3;
+struct KDTD3: public Nabo::KDTreeItInLeavesStack<double>
+{
+	KDTD3(const Matrix& cloud):
+		Nabo::KDTreeItInLeavesStack<double>(cloud, true)
+	{}
+};
+struct KDTD4: public Nabo::KDTreeItInLeavesStack<double>
+{
+	KDTD4(const Matrix& cloud):
+		Nabo::KDTreeItInLeavesStack<double>(cloud, false)
+	{}
+};
 
 inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
@@ -76,6 +87,30 @@ inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const 
 			q(j) = kdt.minBound(j) + double(rand()) * (kdt.maxBound(j) - kdt.minBound(j)) / double(RAND_MAX);
 		return q;
 	}
+}
+
+template<typename T>
+void doBench(const char* title, const Matrix& d, const Matrix& q, const Index K, const int itCount)
+{
+	boost::progress_timer* t;
+	
+	cout << title << endl;
+	
+	cout << "\tconstruction: ";
+	t = new boost::progress_timer;
+	T nns(d);
+	delete t;
+	
+	srand(0);
+	cout << "\texecution: ";
+	t = new boost::progress_timer;
+	nns.knnM(q, K, 0);
+	delete t;
+	cout << "\tstats kdtree: "
+		<< nns.getStatistics().totalVisitCount << " on "
+		<< itCount * d.cols() << " ("
+		<< (100. * double(nns.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+		<< ")\n" << endl;
 }
 
 int main(int argc, char* argv[])
@@ -109,93 +144,15 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	boost::progress_timer* t;
-	
-	// KDTD1
-	{
-		cout << "Nabo priority" << endl;
-		cout << "\tconstruction: ";
-		t = new boost::progress_timer;
-		KDTD1 kdt1(d);
-		delete t;
-		
-		
-		srand(0);
-		cout << "\texecution: ";
-		t = new boost::progress_timer;
-		kdt1.knnM(q, K, 0);
-		delete t;
-		cout << "\tstats kdtree: "
-			<< kdt1.getStatistics().totalVisitCount << " on "
-			<< itCount * d.cols() << " ("
-			<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-			<< ")\n" << endl;
-	}
-	
-	// KDTD2
-	{
-		cout << "Nabo stack" << endl;
-		cout << "\tconstruction: ";
-		t = new boost::progress_timer;
-		KDTD2 kdt2(d);
-		delete t;
-		
-		srand(0);
-		cout << "\texecution: ";
-		t = new boost::progress_timer;
-		kdt2.knnM(q, K, 0);
-		delete t;
-		cout << "\tstats kdtree: "
-			<< kdt2.getStatistics().totalVisitCount << " on "
-			<< itCount * d.cols() << " ("
-			<< (100. * double(kdt2.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-			<< ")\n" << endl;
-	}
-	
-	// KDTD3
-	{
-		cout << "Nabo, balanced, stack, pt in leaves only, balance variance" << endl;
-		cout << "\tconstruction: ";
-		t = new boost::progress_timer;
-		KDTD3 kdt3(d, true);
-		delete t;
-		
-		srand(0);
-		cout << "\texecution: ";
-		t = new boost::progress_timer;
-		kdt3.knnM(q, K, 0);
-		delete t;
-		cout << "\tstats kdtree: "
-			<< kdt3.getStatistics().totalVisitCount << " on "
-			<< itCount * d.cols() << " ("
-			<< (100. * double(kdt3.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-			<< ")\n" << endl;
-	}
-	
-	// KDTD4
-	{
-		cout << "Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio" << endl;
-		cout << "\tconstruction: ";
-		t = new boost::progress_timer;
-		KDTD3 kdt4(d, false);
-		delete t;
-		
-		srand(0);
-		cout << "\texecution: ";
-		t = new boost::progress_timer;
-		kdt4.knnM(q, K, 0);
-		delete t;
-		cout << "\tstats kdtree: "
-			<< kdt4.getStatistics().totalVisitCount << " on "
-			<< itCount * d.cols() << " ("
-			<< (100. * double(kdt4.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-			<< ")\n" << endl;
-	}
+	doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance", d, q, K, itCount);
+	doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance", d, q, K, itCount);
+	doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance", d, q, K, itCount);
+	doBench<KDTD4>("Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio", d, q, K, itCount);
 	
 	// ANN stuff
 	cout << "ANN" << endl;
 	cout << "\tconstruction: ";
-	t = new boost::progress_timer;
+	boost::progress_timer* t = new boost::progress_timer;
 	const int ptCount(d.cols());
 	const double **pa = new const double *[d.cols()];
 	for (int i = 0; i < ptCount; ++i)
