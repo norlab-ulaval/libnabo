@@ -52,7 +52,7 @@ typedef Nabo::NearestNeighborSearch<float> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
 typedef Nabo::KDTreePtInNodesPQ<double> KDTD1;
 typedef Nabo::KDTreePtInNodesStack<double> KDTD2;
-typedef Nabo::KDTreePtInNodesStack<double> KDTD3;
+typedef Nabo::KDTreeItInLeavesStack<double> KDTD3;
 
 inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
