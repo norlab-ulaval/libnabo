@@ -101,7 +101,6 @@ void doBench(const char* title, const Matrix& d, const Matrix& q, const Index K,
 	T nns(d);
 	delete t;
 	
-	srand(0);
 	cout << "\texecution: ";
 	t = new boost::progress_timer;
 	nns.knnM(q, K, 0);
@@ -160,8 +159,25 @@ int main(int argc, char* argv[])
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
 	delete t;
 	
-	srand(0);
-	cout << "\texecution: ";
+	cout << "\texecution search: ";
+	{
+		boost::progress_timer t;
+		ANNidx nnIdx[K];
+		ANNdist dists[K];
+		
+		for (int i = 0; i < itCount; ++i)
+		{
+			const Vector& tq(q.col(i));
+			ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
+			ann_kdt->annkSearch(		// search
+							queryPt,	// query point
+							K,			// number of near neighbors
+							nnIdx,		// nearest neighbors (returned)
+							dists,		// distance (returned)
+							0);			// error bound
+		}
+	}
+	cout << "\texecution pri-search: ";
 	{
 		boost::progress_timer t;
 		ANNidx nnIdx[K];
