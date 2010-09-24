@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 	
 	
 	// ANN stuff
-	cout << "maANN" << endl;
+	cout << "ANN" << endl;
 	cout << "\tconstruction: ";
 	t = new boost::progress_timer;
 	const int ptCount(d.cols());
