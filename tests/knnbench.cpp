@@ -64,7 +64,9 @@ struct KDTD4: public Nabo::KDTreeBalancedPtInLeavesStack<double>
 		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, false)
 	{}
 };
-typedef Nabo::KDTreeUnbalancedPtInLeavesStack<double> KDTD5;
+typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double> KDTD5;
+typedef Nabo::KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double> KDTD6;
+
 
 inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
@@ -148,7 +150,8 @@ int main(int argc, char* argv[])
 	doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance", d, q, K, itCount);
 	doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance", d, q, K, itCount);
 	doBench<KDTD4>("Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio", d, q, K, itCount);
-	doBench<KDTD5>("Nabo, unbalanced, stack, pt in leaves only, ANN_KD_SL_MIDPT", d, q, K, itCount);
+	doBench<KDTD5>("Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT", d, q, K, itCount);
+	doBench<KDTD6>("Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT", d, q, K, itCount);
 	
 	// ANN stuff
 	cout << "ANN" << endl;

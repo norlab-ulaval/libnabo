@@ -231,9 +231,9 @@ namespace Nabo
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
-	//  KDTree, unbalanced, points in leaves, stack
+	//  KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT
 	template<typename T>
-	struct KDTreeUnbalancedPtInLeavesStack: public NearestNeighborSearch<T>
+	struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack: public NearestNeighborSearch<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
@@ -281,7 +281,63 @@ namespace Nabo
 		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
 		
 	public:
-		KDTreeUnbalancedPtInLeavesStack(const Matrix& cloud);
+		KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud);
+		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+	};
+	
+	//  KDTree, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT
+	template<typename T>
+	struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack: public NearestNeighborSearch<T>
+	{
+		typedef typename NearestNeighborSearch<T>::Vector Vector;
+		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighborSearch<T>::Index Index;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		
+		using NearestNeighborSearch<T>::statistics;
+		using NearestNeighborSearch<T>::cloud;
+		using NearestNeighborSearch<T>::minBound;
+		using NearestNeighborSearch<T>::maxBound;
+		
+	protected:
+		struct BuildPoint
+		{
+			Vector pos;
+			size_t index;
+			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
+		};
+		typedef std::vector<BuildPoint> BuildPoints;
+		typedef typename BuildPoints::iterator BuildPointsIt;
+		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
+		
+		struct CompareDim
+		{
+			size_t dim;
+			CompareDim(const size_t dim):dim(dim){}
+			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
+		};
+		
+		typedef IndexHeap<Index, T> Heap;
+		
+		struct Node
+		{
+			int dim; // -1 == invalid, <= -2 = index of pt
+			unsigned rightChild;
+			T cutVal;
+			T lowBound;
+			T highBound;
+			Node(const int dim = -1, const T cutVal = 0, const T lowBound = 0, const T highBound = 0, unsigned rightChild = 0):
+				dim(dim), cutVal(cutVal), lowBound(lowBound), highBound(highBound), rightChild(rightChild) {}
+		};
+		typedef std::vector<Node> Nodes;
+		
+		Nodes nodes;
+		
+		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const bool allowSelfMatch);
+		
+	public:
+		KDTreeUnbalancedPtInLeavesExplicitBoundsStack(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 }

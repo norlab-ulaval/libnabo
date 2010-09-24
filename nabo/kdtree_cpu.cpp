@@ -504,8 +504,9 @@ namespace Nabo
 	template struct KDTreeBalancedPtInLeavesStack<double>;
 	
 	
+	
 	template<typename T>
-	unsigned KDTreeUnbalancedPtInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
 	{
 		const size_t count(last - first);
 		const unsigned pos(nodes.size());
@@ -568,7 +569,7 @@ namespace Nabo
 	}
 
 	template<typename T>
-	KDTreeUnbalancedPtInLeavesStack<T>::KDTreeUnbalancedPtInLeavesStack(const Matrix& cloud):
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud):
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// build point vector and compute bounds
@@ -590,7 +591,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreeUnbalancedPtInLeavesStack<T>::IndexVector KDTreeUnbalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -612,7 +613,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void KDTreeUnbalancedPtInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -657,6 +658,169 @@ namespace Nabo
 		}
 	}
 	
-	template struct KDTreeUnbalancedPtInLeavesStack<float>;
-	template struct KDTreeUnbalancedPtInLeavesStack<double>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double>;
+	
+	
+	// NEW
+	
+	template<typename T>
+	unsigned KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	{
+		const size_t count(last - first);
+		const unsigned pos(nodes.size());
+		
+		//cerr << count << endl;
+		if (count == 1)
+		{
+			const int dim = -2-(first->index);
+			nodes.push_back(Node(dim));
+			return pos;
+		}
+		
+		// find the largest dimension of the box
+		const int cutDim = argMax<T>(maxValues - minValues);
+		T cutVal((maxValues(cutDim) + minValues(cutDim))/2);
+		
+		// TODO: do only sort once
+		// sort
+		sort(first, last, CompareDim(cutDim));
+		
+		// TODO: optimise using binary search
+		size_t rightStart(0);
+		while (rightStart < count && (first+rightStart)->pos.coeff(cutDim) < cutVal)
+			++rightStart;
+		
+		// prevent trivial splits
+		if (rightStart == 0)
+		{
+			cutVal = first->pos.coeff(cutDim);
+			rightStart = 1;
+		}
+		else if (rightStart == count)
+		{
+			rightStart = count - 1;
+			cutVal = (first + rightStart)->pos.coeff(cutDim);
+		}
+		
+		// update bounds for left
+		Vector leftMaxValues(maxValues);
+		leftMaxValues[cutDim] = cutVal;
+		// update bounds for right
+		Vector rightMinValues(minValues);
+		rightMinValues[cutDim] = cutVal;
+		
+		// count for recursion
+		const size_t rightCount(count - rightStart);
+		const size_t leftCount(count - rightCount);
+		
+		// add this
+		nodes.push_back(Node(cutDim, cutVal, minValues.coeff(cutDim), maxValues.coeff(cutDim)));
+		
+		// recurse
+		const unsigned leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
+		assert(leftChild == pos + 1);
+		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
+		
+		// write right child index and return
+		nodes[pos].rightChild = rightChild;
+		return pos;
+	}
+
+	template<typename T>
+	KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::KDTreeUnbalancedPtInLeavesExplicitBoundsStack(const Matrix& cloud):
+		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+	{
+		// build point vector and compute bounds
+		BuildPoints buildPoints;
+		buildPoints.reserve(cloud.cols());
+		for (size_t i = 0; i < cloud.cols(); ++i)
+		{
+			const Vector& v(cloud.col(i));
+			buildPoints.push_back(BuildPoint(v, i));
+			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
+			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+		}
+		
+		// create nodes
+		//nodes.resize(getTreeSize(cloud.cols()));
+		buildNodes(buildPoints.begin(), buildPoints.end(), minBound, maxBound);
+		//for (size_t i = 0; i < nodes.size(); ++i)
+		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
+	}
+	
+	template<typename T>
+	typename KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		Vector off(Vector::Zero(query.size()));
+		
+		statistics.lastQueryVisitCount = 0;
+		
+		recurseKnn(query, 0, 0, heap, allowSelfMatch);
+		
+		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			heap.sort();
+		
+		statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		// FIXME: statistics is not theard-safe
+		
+		return heap.getIndexes();
+	}
+	
+	template<typename T>
+	void KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const bool allowSelfMatch)
+	{
+		const Node& node(nodes[n]);
+		const int cd(node.dim);
+		
+		++statistics.lastQueryVisitCount;
+		
+		if (cd < 0)
+		{
+			const int index(-(cd + 2));
+			const T dist(dist2<T>(query, cloud.col(index)));
+			if ((dist < heap.head().value) &&
+				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
+			)
+				heap.replaceHead(index, dist);
+		}
+		else
+		{
+			const T q_val(query.coeff(cd));
+			const T cut_diff(q_val - node.cutVal);
+			if (cut_diff < 0)
+			{
+				recurseKnn(query, n+1, rd, heap, allowSelfMatch);
+				
+				T box_diff = node.lowBound - q_val;
+				if (box_diff < 0)
+					box_diff = 0;
+				
+				rd += box_diff*box_diff - cut_diff*cut_diff;
+				
+				if (rd < heap.head().value)
+					recurseKnn(query, node.rightChild, rd, heap, allowSelfMatch);
+			}
+			else
+			{
+				recurseKnn(query, node.rightChild, rd, heap, allowSelfMatch);
+				
+				T box_diff = q_val - node.highBound;
+				if (box_diff < 0)
+					box_diff = 0;
+				
+				rd += box_diff*box_diff - cut_diff*cut_diff;
+				
+				if (rd < heap.head().value)
+					recurseKnn(query, n + 1, rd, heap, allowSelfMatch);
+			}
+		}
+	}
+	
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<float>;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double>;
 }
