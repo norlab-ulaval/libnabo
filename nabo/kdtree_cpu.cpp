@@ -141,7 +141,8 @@ namespace Nabo
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// build point vector and compute bounds
-		vector<BuildPoint> buildPoints;
+		BuildPoints buildPoints;
+		buildPoints.reserve(cloud.cols());
 		for (size_t i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
@@ -194,7 +195,7 @@ namespace Nabo
 				assert (node.dim != -2);
 				
 				// TODO: optimise dist while going down
-				const T dist(dist2(node.pos, query));
+				const T dist(dist2<T>(node.pos, query));
 				if ((dist < heap.head().value) &&
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
 					heap.replaceHead(n, dist);
@@ -268,6 +269,7 @@ namespace Nabo
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		// FIXME: statistics is not theard-safe
 		
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}
@@ -283,7 +285,7 @@ namespace Nabo
 		if (cd == -2)
 			return;
 		
-		const T dist(dist2(node.pos, query));
+		const T dist(dist2<T>(node.pos, query));
 		if ((dist < heap.head().value) &&
 			(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 		)
@@ -320,4 +322,167 @@ namespace Nabo
 	
 	template struct KDTreePtInNodesStack<float>;
 	template struct KDTreePtInNodesStack<double>;
+	
+	
+	
+	
+	// NEW:
+	
+	template<typename T>
+	size_t KDTreeItInLeavesStack<T>::getTreeSize(size_t elCount) const
+	{
+		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
+		assert(elCount > 0);
+		elCount --;
+		size_t count = 0;
+		int i = 31;
+		for (; i >= 0; --i)
+		{
+			if (elCount & (1 << i))
+				break;
+		}
+		for (int j = 0; j <= i; ++j)
+			count |= (1 << j);
+		count <<= 1;
+		count |= 1;
+		return count;
+	}
+
+	template<typename T>
+	void KDTreeItInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos)
+	{
+		const size_t count(last - first);
+		//cerr << count << endl;
+		if (count == 1)
+		{
+			const int dim = -2-(first->index);
+			assert(pos < nodes.size());
+			nodes[pos] = Node(dim);
+			return;
+		}
+		
+		// estimate variance
+		// get mean
+		Vector mean(Vector::Zero(this->dim));
+		for (BuildPointsCstIt it(first); it != last; ++it)
+			mean += it->pos;
+		mean /= last - first;
+		// get sum of variance
+		Vector var(Vector::Zero(this->dim));
+		for (BuildPointsCstIt it(first); it != last; ++it)
+			var += (it->pos - mean).cwise() * (it->pos - mean);
+		// get dimension of maxmial variance
+		const size_t cutDim = argMax<T>(var);
+		
+		// sort
+		sort(first, last, CompareDim(cutDim));
+		
+		// set node
+		const size_t rightCount(count/2);
+		const size_t leftCount(count - rightCount);
+		assert(last - rightCount == first + leftCount);
+		
+		nodes[pos] = Node(cutDim, (first+leftCount)->pos.coeff(cutDim));
+		
+		//cerr << pos << " cutting on " << cutDim << " at " << (first+leftCount)->pos[cutDim] << endl;
+		
+		// recurse
+		buildNodes(first, first + leftCount, childLeft(pos));
+		buildNodes(first + leftCount, last, childRight(pos));
+	}
+
+	template<typename T>
+	KDTreeItInLeavesStack<T>::KDTreeItInLeavesStack(const Matrix& cloud):
+		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+	{
+		// build point vector and compute bounds
+		BuildPoints buildPoints;
+		buildPoints.reserve(cloud.cols());
+		for (size_t i = 0; i < cloud.cols(); ++i)
+		{
+			const Vector& v(cloud.col(i));
+			buildPoints.push_back(BuildPoint(v, i));
+			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
+			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
+		}
+		
+		// create nodes
+		nodes.resize(getTreeSize(cloud.cols()));
+		buildNodes(buildPoints.begin(), buildPoints.end(), 0);
+		//for (size_t i = 0; i < nodes.size(); ++i)
+		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal << endl;
+	}
+	
+	template<typename T>
+	typename KDTreeItInLeavesStack<T>::IndexVector KDTreeItInLeavesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		Vector off(Vector::Zero(query.size()));
+		
+		statistics.lastQueryVisitCount = 0;
+		
+		recurseKnn(query, 0, 0, heap, off, allowSelfMatch);
+		
+		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			heap.sort();
+		
+		statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		// FIXME: statistics is not theard-safe
+		
+		return heap.getIndexes();
+	}
+	
+	template<typename T>
+	void KDTreeItInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	{
+		const Node& node(nodes[n]);
+		const int cd(node.dim);
+		
+		++statistics.lastQueryVisitCount;
+		
+		if (cd < 0)
+		{
+			if (cd == -1)
+				return;
+			const int index(-(cd + 2));
+			const T dist(dist2<T>(query, cloud.col(index)));
+			if ((dist < heap.head().value) &&
+				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
+			)
+				heap.replaceHead(index, dist);
+		}
+		else
+		{
+			const T old_off(off.coeff(cd));
+			const T new_off(query.coeff(cd) - node.cutVal);
+			if (new_off > 0)
+			{
+				recurseKnn(query, childRight(n), rd, heap, off, allowSelfMatch);
+				rd += - old_off*old_off + new_off*new_off;
+				if (rd < heap.head().value)
+				{
+					off.coeffRef(cd) = new_off;
+					recurseKnn(query, childLeft(n), rd, heap, off, allowSelfMatch);
+					off.coeffRef(cd) = old_off;
+				}
+			}
+			else
+			{
+				recurseKnn(query, childLeft(n), rd, heap, off, allowSelfMatch);
+				rd += - old_off*old_off + new_off*new_off;
+				if (rd < heap.head().value)
+				{
+					off.coeffRef(cd) = new_off;
+					recurseKnn(query, childRight(n), rd, heap, off, allowSelfMatch);
+					off.coeffRef(cd) = old_off;
+				}
+			}
+		}
+	}
+	
+	template struct KDTreeItInLeavesStack<float>;
+	template struct KDTreeItInLeavesStack<double>;
 }

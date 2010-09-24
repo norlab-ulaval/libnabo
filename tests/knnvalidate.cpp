@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	typedef Nabo::NearestNeighborSearch<float>::IndexVector IndexVector;
 	typedef Nabo::NearestNeighborSearch<float> NNS;
 	typedef Nabo::BruteForceSearch<float> BFSF;
-	typedef Nabo::KDTreePtInNodesStack<float> KDTF;
+	typedef Nabo::KDTreeItInLeavesStack<float> KDTF;
 	
 	if (argc != 4)
 	{
@@ -103,17 +103,18 @@ int main(int argc, char* argv[])
 		for (size_t j = 0; j < K; ++j)
 		{
 			Vector pbf(d.col(indexes_bf[j]));
+			//cerr << indexes_kdtree[j] << endl;
 			Vector pkdtree(d.col(indexes_kdtree[j]));
-			if (fabsf(dist2(pbf, q) - dist2(pkdtree, q)) >= numeric_limits<float>::epsilon())
+			if (fabsf(dist2<float>(pbf, q) - dist2<float>(pkdtree, q)) >= numeric_limits<float>::epsilon())
 			{
-				cerr << "Point " << j << " of " << K << " is different between bf and kdtree (dist " << dist2(pbf, pkdtree) << ")\n";
+				cerr << "Step " << i << ", point " << j << " of " << K << " is different between bf and kdtree (dist " << dist2<float>(pbf, pkdtree) << ")\n";
 				cerr << "* query:\n";
 				cerr << q << "\n";
 				cerr << "* indexes " << indexes_bf[j] << " (bf) vs " <<  indexes_kdtree[j] << " (kdtree)\n";
 				cerr << "* coordinates:\n";
-				cerr << "bf: (dist " << dist2(pbf, q) << ")\n";
+				cerr << "bf: (dist " << dist2<float>(pbf, q) << ")\n";
 				cerr << pbf << "\n";
-				cerr << "kdtree (dist " << dist2(pkdtree, q) << ")\n";
+				cerr << "kdtree (dist " << dist2<float>(pkdtree, q) << ")\n";
 				cerr << pkdtree << endl;
 				return 4;
 			}

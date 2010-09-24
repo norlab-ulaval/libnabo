@@ -9,8 +9,8 @@
 namespace Nabo
 {
 	// Euclidean distance
-	template<typename T>
-	T dist2(const typename Eigen::Matrix<T, Eigen::Dynamic, 1> v0, const typename Eigen::Matrix<T, Eigen::Dynamic, 1> v1)
+	template<typename T, typename A, typename B>
+	T dist2(const A v0, const B v1)
 	{
 		return (v0 - v1).squaredNorm();
 	}
@@ -173,14 +173,17 @@ namespace Nabo
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
-	/*// Classic KDTree
+	//  KDTree, points in leaves, stack
 	template<typename T>
-	struct ANNKDTree: public NearestNeighborSearch<T>
+	struct KDTreeItInLeavesStack: public NearestNeighborSearch<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighborSearch<T>::Index Index;
 		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		
+		using NearestNeighborSearch<T>::statistics;
+		using NearestNeighborSearch<T>::cloud;
 		
 	protected:
 		struct BuildPoint
@@ -200,43 +203,30 @@ namespace Nabo
 			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
 		};
 		
-		struct SearchElement
-		{
-			size_t index;
-			T minDist;
-			
-			SearchElement(const size_t index, const T minDist): index(index), minDist(minDist) {}
-			// invert test as std::priority_queue shows biggest element at top
-			friend bool operator<(const SearchElement& e0, const SearchElement& e1) { return e0.minDist > e1.minDist; }
-		};
+		typedef IndexHeap<Index, T> Heap;
 		
 		struct Node
 		{
-			int dim; // -1 == leaf, -2 == invalid
+			int dim; // -1 == invalid, <= -2 = index of pt
 			T cutVal;
-			T lowBound;
-			T highBound;
-			Node(const Vector& pos = Vector(), const int dim = -2, const Index index = 0):pos(pos), dim(dim), index(index) {}
+			Node(const int dim = -1, const T cutVal = 0):
+				dim(dim), cutVal(cutVal) {}
 		};
 		typedef std::vector<Node> Nodes;
-		typedef std::vector<int> Leaves;
 		
 		Nodes nodes;
-		Leaves leaves;
 		
 		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
 		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
 		inline size_t parent(size_t pos) const { return (pos-1)/2; }
 		size_t getTreeSize(size_t size) const;
-		size_t argMax(const Vector& v) const;
-		IndexVector cloudIndexesFromNodesIndexes(const IndexVector& indexes) const;
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
-		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
 		
 	public:
-		ANNKDTree(const Matrix& cloud);
+		KDTreeItInLeavesStack(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
-	};*/
+	};
 }
 
 #endif // __NABO_H
