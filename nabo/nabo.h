@@ -65,9 +65,9 @@ namespace Nabo
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
-	// KDTree, points in nodes
+	// KDTree, balanced, points in nodes
 	template<typename T>
-	struct KDTreePtInNodes:public NearestNeighborSearch<T>
+	struct KDTreeBalancedPtInNodes:public NearestNeighborSearch<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
@@ -112,24 +112,24 @@ namespace Nabo
 		void dump(const Vector minValues, const Vector maxValues, const size_t pos) const;
 		
 	protected:
-		KDTreePtInNodes(const Matrix& cloud);
+		KDTreeBalancedPtInNodes(const Matrix& cloud);
 	};
 	
-	// KDTree, points in nodes, priority queue
+	// KDTree, balanced, points in nodes, priority queue
 	template<typename T>
-	struct KDTreePtInNodesPQ: public KDTreePtInNodes<T>
+	struct KDTreeBalancedPtInNodesPQ: public KDTreeBalancedPtInNodes<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighborSearch<T>::Index Index;
 		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
-		typedef typename KDTreePtInNodes<T>::Node Node;
-		typedef typename KDTreePtInNodes<T>::Nodes Nodes;
+		typedef typename KDTreeBalancedPtInNodes<T>::Node Node;
+		typedef typename KDTreeBalancedPtInNodes<T>::Nodes Nodes;
 		
 		using NearestNeighborSearch<T>::statistics;
-		using KDTreePtInNodes<T>::nodes;
-		using KDTreePtInNodes<T>::childLeft;
-		using KDTreePtInNodes<T>::childRight;
+		using KDTreeBalancedPtInNodes<T>::nodes;
+		using KDTreeBalancedPtInNodes<T>::childLeft;
+		using KDTreeBalancedPtInNodes<T>::childRight;
 		
 	protected:
 		struct SearchElement
@@ -143,25 +143,25 @@ namespace Nabo
 		};
 		
 	public:
-		KDTreePtInNodesPQ(const Matrix& cloud);
+		KDTreeBalancedPtInNodesPQ(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
-	// KDTree, points in nodes, stack
+	// KDTree, balanced, points in nodes, stack
 	template<typename T>
-	struct KDTreePtInNodesStack: public KDTreePtInNodes<T>
+	struct KDTreeBalancedPtInNodesStack: public KDTreeBalancedPtInNodes<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighborSearch<T>::Index Index;
 		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
-		typedef typename KDTreePtInNodes<T>::Node Node;
-		typedef typename KDTreePtInNodes<T>::Nodes Nodes;
+		typedef typename KDTreeBalancedPtInNodes<T>::Node Node;
+		typedef typename KDTreeBalancedPtInNodes<T>::Nodes Nodes;
 		
 		using NearestNeighborSearch<T>::statistics;
-		using KDTreePtInNodes<T>::nodes;
-		using KDTreePtInNodes<T>::childLeft;
-		using KDTreePtInNodes<T>::childRight;
+		using KDTreeBalancedPtInNodes<T>::nodes;
+		using KDTreeBalancedPtInNodes<T>::childLeft;
+		using KDTreeBalancedPtInNodes<T>::childRight;
 		
 		typedef IndexHeap<Index, T> Heap;
 		
@@ -169,13 +169,14 @@ namespace Nabo
 		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
 		
 	public:
-		KDTreePtInNodesStack(const Matrix& cloud);
+		KDTreeBalancedPtInNodesStack(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 	
-	//  KDTree, points in leaves, stack
+	
+	//  KDTree, balanced, points in leaves, stack
 	template<typename T>
-	struct KDTreeItInLeavesStack: public NearestNeighborSearch<T>
+	struct KDTreeBalancedPtInLeavesStack: public NearestNeighborSearch<T>
 	{
 		typedef typename NearestNeighborSearch<T>::Vector Vector;
 		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
@@ -226,7 +227,61 @@ namespace Nabo
 		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
 		
 	public:
-		KDTreeItInLeavesStack(const Matrix& cloud, const bool balanceVariance);
+		KDTreeBalancedPtInLeavesStack(const Matrix& cloud, const bool balanceVariance);
+		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+	};
+	
+	//  KDTree, unbalanced, points in leaves, stack
+	template<typename T>
+	struct KDTreeUnbalancedPtInLeavesStack: public NearestNeighborSearch<T>
+	{
+		typedef typename NearestNeighborSearch<T>::Vector Vector;
+		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighborSearch<T>::Index Index;
+		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		
+		using NearestNeighborSearch<T>::statistics;
+		using NearestNeighborSearch<T>::cloud;
+		using NearestNeighborSearch<T>::minBound;
+		using NearestNeighborSearch<T>::maxBound;
+		
+	protected:
+		struct BuildPoint
+		{
+			Vector pos;
+			size_t index;
+			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
+		};
+		typedef std::vector<BuildPoint> BuildPoints;
+		typedef typename BuildPoints::iterator BuildPointsIt;
+		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
+		
+		struct CompareDim
+		{
+			size_t dim;
+			CompareDim(const size_t dim):dim(dim){}
+			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
+		};
+		
+		typedef IndexHeap<Index, T> Heap;
+		
+		struct Node
+		{
+			int dim; // -1 == invalid, <= -2 = index of pt
+			unsigned rightChild;
+			T cutVal;
+			Node(const int dim = -1, const T cutVal = 0, unsigned rightChild = 0):
+				dim(dim), cutVal(cutVal), rightChild(rightChild) {}
+		};
+		typedef std::vector<Node> Nodes;
+		
+		Nodes nodes;
+		
+		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
+		
+	public:
+		KDTreeUnbalancedPtInLeavesStack(const Matrix& cloud);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 }

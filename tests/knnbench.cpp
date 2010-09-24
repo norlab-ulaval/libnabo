@@ -50,20 +50,21 @@ typedef Nabo::NearestNeighborSearch<double>::Index Index;
 typedef Nabo::NearestNeighborSearch<double>::IndexVector IndexVector;
 typedef Nabo::NearestNeighborSearch<float> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
-typedef Nabo::KDTreePtInNodesPQ<double> KDTD1;
-typedef Nabo::KDTreePtInNodesStack<double> KDTD2;
-struct KDTD3: public Nabo::KDTreeItInLeavesStack<double>
+typedef Nabo::KDTreeBalancedPtInNodesPQ<double> KDTD1;
+typedef Nabo::KDTreeBalancedPtInNodesStack<double> KDTD2;
+struct KDTD3: public Nabo::KDTreeBalancedPtInLeavesStack<double>
 {
 	KDTD3(const Matrix& cloud):
-		Nabo::KDTreeItInLeavesStack<double>(cloud, true)
+		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, true)
 	{}
 };
-struct KDTD4: public Nabo::KDTreeItInLeavesStack<double>
+struct KDTD4: public Nabo::KDTreeBalancedPtInLeavesStack<double>
 {
 	KDTD4(const Matrix& cloud):
-		Nabo::KDTreeItInLeavesStack<double>(cloud, false)
+		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, false)
 	{}
 };
+typedef Nabo::KDTreeUnbalancedPtInLeavesStack<double> KDTD5;
 
 inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
 {
@@ -107,7 +108,7 @@ void doBench(const char* title, const Matrix& d, const Matrix& q, const Index K,
 	delete t;
 	cout << "\tstats kdtree: "
 		<< nns.getStatistics().totalVisitCount << " on "
-		<< itCount * d.cols() << " ("
+		<< (long long)(itCount) * (long long)(d.cols()) << " ("
 		<< (100. * double(nns.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
 		<< ")\n" << endl;
 }
@@ -147,6 +148,7 @@ int main(int argc, char* argv[])
 	doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance", d, q, K, itCount);
 	doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance", d, q, K, itCount);
 	doBench<KDTD4>("Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio", d, q, K, itCount);
+	doBench<KDTD5>("Nabo, unbalanced, stack, pt in leaves only, ANN_KD_SL_MIDPT", d, q, K, itCount);
 	
 	// ANN stuff
 	cout << "ANN" << endl;

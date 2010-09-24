@@ -27,7 +27,7 @@ namespace Nabo
 	}
 
 	template<typename T>
-	size_t KDTreePtInNodes<T>::getTreeSize(size_t elCount) const
+	size_t KDTreeBalancedPtInNodes<T>::getTreeSize(size_t elCount) const
 	{
 		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
 		size_t count = 0;
@@ -44,7 +44,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreePtInNodes<T>::IndexVector KDTreePtInNodes<T>::cloudIndexesFromNodesIndexes(const IndexVector& indexes) const
+	typename KDTreeBalancedPtInNodes<T>::IndexVector KDTreeBalancedPtInNodes<T>::cloudIndexesFromNodesIndexes(const IndexVector& indexes) const
 	{
 		IndexVector cloudIndexes(indexes.size());
 		for (size_t i = 0; i < indexes.size(); ++i)
@@ -53,7 +53,7 @@ namespace Nabo
 	}
 
 	template<typename T>
-	void KDTreePtInNodes<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos)
+	void KDTreeBalancedPtInNodes<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos)
 	{
 		const size_t count(last - first);
 		//cerr << count << endl;
@@ -103,7 +103,7 @@ namespace Nabo
 	}
 
 	template<typename T>
-	void KDTreePtInNodes<T>::dump(const Vector minValues, const Vector maxValues, const size_t pos) const
+	void KDTreeBalancedPtInNodes<T>::dump(const Vector minValues, const Vector maxValues, const size_t pos) const
 	{
 		const Node& node(nodes[pos]);
 		
@@ -137,7 +137,7 @@ namespace Nabo
 	}
 
 	template<typename T>
-	KDTreePtInNodes<T>::KDTreePtInNodes(const Matrix& cloud):
+	KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(const Matrix& cloud):
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// build point vector and compute bounds
@@ -162,13 +162,13 @@ namespace Nabo
 	// points in nodes, priority queue
 	
 	template<typename T>
-	KDTreePtInNodesPQ<T>::KDTreePtInNodesPQ(const Matrix& cloud):
-		KDTreePtInNodes<T>::KDTreePtInNodes(cloud)
+	KDTreeBalancedPtInNodesPQ<T>::KDTreeBalancedPtInNodesPQ(const Matrix& cloud):
+		KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(cloud)
 	{
 	}
 
 	template<typename T>
-	typename KDTreePtInNodesPQ<T>::IndexVector KDTreePtInNodesPQ<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeBalancedPtInNodesPQ<T>::IndexVector KDTreeBalancedPtInNodesPQ<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
 	{
 		typedef priority_queue<SearchElement> Queue;
 		
@@ -240,19 +240,19 @@ namespace Nabo
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}
 	
-	template struct KDTreePtInNodesPQ<float>;
-	template struct KDTreePtInNodesPQ<double>;
+	template struct KDTreeBalancedPtInNodesPQ<float>;
+	template struct KDTreeBalancedPtInNodesPQ<double>;
 	
 	// points in nodes, stack
 	
 	template<typename T>
-	KDTreePtInNodesStack<T>::KDTreePtInNodesStack(const Matrix& cloud):
-		KDTreePtInNodes<T>::KDTreePtInNodes(cloud)
+	KDTreeBalancedPtInNodesStack<T>::KDTreeBalancedPtInNodesStack(const Matrix& cloud):
+		KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(cloud)
 	{
 	}
 	
 	template<typename T>
-	typename KDTreePtInNodesStack<T>::IndexVector KDTreePtInNodesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeBalancedPtInNodesStack<T>::IndexVector KDTreeBalancedPtInNodesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -275,7 +275,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void KDTreePtInNodesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	void KDTreeBalancedPtInNodesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -320,8 +320,8 @@ namespace Nabo
 		}
 	}
 	
-	template struct KDTreePtInNodesStack<float>;
-	template struct KDTreePtInNodesStack<double>;
+	template struct KDTreeBalancedPtInNodesStack<float>;
+	template struct KDTreeBalancedPtInNodesStack<double>;
 	
 	
 	
@@ -329,7 +329,7 @@ namespace Nabo
 	// NEW:
 	
 	template<typename T>
-	size_t KDTreeItInLeavesStack<T>::getTreeSize(size_t elCount) const
+	size_t KDTreeBalancedPtInLeavesStack<T>::getTreeSize(size_t elCount) const
 	{
 		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
 		assert(elCount > 0);
@@ -349,7 +349,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void KDTreeItInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance)
+	void KDTreeBalancedPtInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance)
 	{
 		const size_t count(last - first);
 		//cerr << count << endl;
@@ -409,7 +409,7 @@ namespace Nabo
 	}
 
 	template<typename T>
-	KDTreeItInLeavesStack<T>::KDTreeItInLeavesStack(const Matrix& cloud, const bool balanceVariance):
+	KDTreeBalancedPtInLeavesStack<T>::KDTreeBalancedPtInLeavesStack(const Matrix& cloud, const bool balanceVariance):
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// build point vector and compute bounds
@@ -431,7 +431,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreeItInLeavesStack<T>::IndexVector KDTreeItInLeavesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeBalancedPtInLeavesStack<T>::IndexVector KDTreeBalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -453,7 +453,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void KDTreeItInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	void KDTreeBalancedPtInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -500,6 +500,163 @@ namespace Nabo
 		}
 	}
 	
-	template struct KDTreeItInLeavesStack<float>;
-	template struct KDTreeItInLeavesStack<double>;
+	template struct KDTreeBalancedPtInLeavesStack<float>;
+	template struct KDTreeBalancedPtInLeavesStack<double>;
+	
+	
+	template<typename T>
+	unsigned KDTreeUnbalancedPtInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	{
+		const size_t count(last - first);
+		const unsigned pos(nodes.size());
+		
+		//cerr << count << endl;
+		if (count == 1)
+		{
+			const int dim = -2-(first->index);
+			nodes.push_back(Node(dim));
+			return pos;
+		}
+		
+		// find the largest dimension of the box
+		const int cutDim = argMax<T>(maxValues - minValues);
+		T cutVal((maxValues(cutDim) + minValues(cutDim))/2);
+		
+		// TODO: do only sort once
+		// sort
+		sort(first, last, CompareDim(cutDim));
+		
+		// TODO: optimise using binary search
+		size_t rightStart(0);
+		while (rightStart < count && (first+rightStart)->pos.coeff(cutDim) < cutVal)
+			++rightStart;
+		
+		// prevent trivial splits
+		if (rightStart == 0)
+		{
+			cutVal = first->pos.coeff(cutDim);
+			rightStart = 1;
+		}
+		else if (rightStart == count)
+		{
+			rightStart = count - 1;
+			cutVal = (first + rightStart)->pos.coeff(cutDim);
+		}
+		
+		// update bounds for left
+		Vector leftMaxValues(maxValues);
+		leftMaxValues[cutDim] = cutVal;
+		// update bounds for right
+		Vector rightMinValues(minValues);
+		rightMinValues[cutDim] = cutVal;
+		
+		// count for recursion
+		const size_t rightCount(count - rightStart);
+		const size_t leftCount(count - rightCount);
+		
+		// add this
+		nodes.push_back(Node(cutDim, cutVal));
+		
+		// recurse
+		const unsigned leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
+		assert(leftChild == pos + 1);
+		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
+		
+		// write right child index and return
+		nodes[pos].rightChild = rightChild;
+		return pos;
+	}
+
+	template<typename T>
+	KDTreeUnbalancedPtInLeavesStack<T>::KDTreeUnbalancedPtInLeavesStack(const Matrix& cloud):
+		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+	{
+		// build point vector and compute bounds
+		BuildPoints buildPoints;
+		buildPoints.reserve(cloud.cols());
+		for (size_t i = 0; i < cloud.cols(); ++i)
+		{
+			const Vector& v(cloud.col(i));
+			buildPoints.push_back(BuildPoint(v, i));
+			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
+			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+		}
+		
+		// create nodes
+		//nodes.resize(getTreeSize(cloud.cols()));
+		buildNodes(buildPoints.begin(), buildPoints.end(), minBound, maxBound);
+		//for (size_t i = 0; i < nodes.size(); ++i)
+		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
+	}
+	
+	template<typename T>
+	typename KDTreeUnbalancedPtInLeavesStack<T>::IndexVector KDTreeUnbalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		Vector off(Vector::Zero(query.size()));
+		
+		statistics.lastQueryVisitCount = 0;
+		
+		recurseKnn(query, 0, 0, heap, off, allowSelfMatch);
+		
+		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			heap.sort();
+		
+		statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		// FIXME: statistics is not theard-safe
+		
+		return heap.getIndexes();
+	}
+	
+	template<typename T>
+	void KDTreeUnbalancedPtInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	{
+		const Node& node(nodes[n]);
+		const int cd(node.dim);
+		
+		++statistics.lastQueryVisitCount;
+		
+		if (cd < 0)
+		{
+			const int index(-(cd + 2));
+			const T dist(dist2<T>(query, cloud.col(index)));
+			if ((dist < heap.head().value) &&
+				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
+			)
+				heap.replaceHead(index, dist);
+		}
+		else
+		{
+			const T old_off(off.coeff(cd));
+			const T new_off(query.coeff(cd) - node.cutVal);
+			if (new_off > 0)
+			{
+				recurseKnn(query, node.rightChild, rd, heap, off, allowSelfMatch);
+				rd += - old_off*old_off + new_off*new_off;
+				if (rd < heap.head().value)
+				{
+					off.coeffRef(cd) = new_off;
+					recurseKnn(query, n + 1, rd, heap, off, allowSelfMatch);
+					off.coeffRef(cd) = old_off;
+				}
+			}
+			else
+			{
+				recurseKnn(query, n+1, rd, heap, off, allowSelfMatch);
+				rd += - old_off*old_off + new_off*new_off;
+				if (rd < heap.head().value)
+				{
+					off.coeffRef(cd) = new_off;
+					recurseKnn(query, node.rightChild, rd, heap, off, allowSelfMatch);
+					off.coeffRef(cd) = old_off;
+				}
+			}
+		}
+	}
+	
+	template struct KDTreeUnbalancedPtInLeavesStack<float>;
+	template struct KDTreeUnbalancedPtInLeavesStack<double>;
 }

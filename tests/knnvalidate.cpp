@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	typedef Nabo::NearestNeighborSearch<float>::IndexVector IndexVector;
 	typedef Nabo::NearestNeighborSearch<float> NNS;
 	typedef Nabo::BruteForceSearch<float> BFSF;
-	typedef Nabo::KDTreeItInLeavesStack<float> KDTF;
+	typedef Nabo::KDTreeUnbalancedPtInLeavesStack<float> KDTF;
 	
 	if (argc != 4)
 	{
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 	const int method(atoi(argv[3]));
 	const int itCount(method != -1 ? method : d.cols() * 2);
 	BFSF bfs(d);
-	KDTF kdt(d, false);
+	KDTF kdt(d);
 	
 	// compare KDTree with brute force search
 	if (K >= d.cols())
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 	}
 	cout << "\tstats kdtree: "
 		<< kdt.getStatistics().totalVisitCount << " on "
-		<< itCount * d.cols() << " ("
+		<< (long long)(itCount) * (long long)(d.cols()) << " ("
 		<< (100. * double(kdt.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
 		<< ")\n" << endl;
 	
