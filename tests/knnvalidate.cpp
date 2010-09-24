@@ -124,11 +124,11 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	cout << "stats kdtree: "
+	cout << "\tstats kdtree: "
 		<< kdt.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
-		<< double(100 * kdt.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
-		<< ")" << endl;
+		<< (100. * double(kdt.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+		<< ")\n" << endl;
 	
 	return 0;
 }

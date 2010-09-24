@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 	cout << "\tstats kdtree: "
 		<< kdt1.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
-		<< double(100 * kdt1.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
 		<< ")\n" << endl;
 	
 	// KDTD2
@@ -138,9 +138,9 @@ int main(int argc, char* argv[])
 	kdt2.knnM(q, K, 0);
 	delete t;
 	cout << "\tstats kdtree: "
-		<< kdt2.getStatistics().totalVisitCount << " on "
+		<< kdt1.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
-		<< double(100 * kdt2.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
 		<< ")\n" << endl;
 	
 	// KDTD3
@@ -156,9 +156,9 @@ int main(int argc, char* argv[])
 	kdt3.knnM(q, K, 0);
 	delete t;
 	cout << "\tstats kdtree: "
-		<< kdt3.getStatistics().totalVisitCount << " on "
+		<< kdt1.getStatistics().totalVisitCount << " on "
 		<< itCount * d.cols() << " ("
-		<< double(100 * kdt3.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
+		<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
 		<< ")\n" << endl;
 	
 	
