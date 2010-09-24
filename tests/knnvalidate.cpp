@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 	const int method(atoi(argv[3]));
 	const int itCount(method != -1 ? method : d.cols() * 2);
 	BFSF bfs(d);
-	KDTF kdt(d);
+	KDTF kdt(d, false);
 	
 	// compare KDTree with brute force search
 	if (K >= d.cols())

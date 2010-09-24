@@ -347,9 +347,9 @@ namespace Nabo
 		count |= 1;
 		return count;
 	}
-
+	
 	template<typename T>
-	void KDTreeItInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos)
+	void KDTreeItInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance)
 	{
 		const size_t count(last - first);
 		//cerr << count << endl;
@@ -361,18 +361,27 @@ namespace Nabo
 			return;
 		}
 		
-		// estimate variance
-		// get mean
-		Vector mean(Vector::Zero(this->dim));
-		for (BuildPointsCstIt it(first); it != last; ++it)
-			mean += it->pos;
-		mean /= last - first;
-		// get sum of variance
-		Vector var(Vector::Zero(this->dim));
-		for (BuildPointsCstIt it(first); it != last; ++it)
-			var += (it->pos - mean).cwise() * (it->pos - mean);
-		// get dimension of maxmial variance
-		const size_t cutDim = argMax<T>(var);
+		size_t cutDim;
+		if (balanceVariance)
+		{
+			// estimate variance
+			// get mean
+			Vector mean(Vector::Zero(this->dim));
+			for (BuildPointsCstIt it(first); it != last; ++it)
+				mean += it->pos;
+			mean /= last - first;
+			// get sum of variance
+			Vector var(Vector::Zero(this->dim));
+			for (BuildPointsCstIt it(first); it != last; ++it)
+				var += (it->pos - mean).cwise() * (it->pos - mean);
+			// get dimension of maxmial variance
+			cutDim = argMax<T>(var);
+		}
+		else
+		{
+			// find the largest dimension of the box
+			cutDim = argMax<T>(maxValues - minValues);
+		}
 		
 		// sort
 		sort(first, last, CompareDim(cutDim));
@@ -382,17 +391,25 @@ namespace Nabo
 		const size_t leftCount(count - rightCount);
 		assert(last - rightCount == first + leftCount);
 		
-		nodes[pos] = Node(cutDim, (first+leftCount)->pos.coeff(cutDim));
+		const T cutVal((first+leftCount)->pos.coeff(cutDim));
+		nodes[pos] = Node(cutDim, cutVal);
 		
 		//cerr << pos << " cutting on " << cutDim << " at " << (first+leftCount)->pos[cutDim] << endl;
 		
+		// update bounds for left
+		Vector leftMaxValues(maxValues);
+		leftMaxValues[cutDim] = cutVal;
+		// update bounds for right
+		Vector rightMinValues(minValues);
+		rightMinValues[cutDim] = cutVal;
+		
 		// recurse
-		buildNodes(first, first + leftCount, childLeft(pos));
-		buildNodes(first + leftCount, last, childRight(pos));
+		buildNodes(first, first + leftCount, childLeft(pos), minValues, leftMaxValues, balanceVariance);
+		buildNodes(first + leftCount, last, childRight(pos), rightMinValues, maxValues, balanceVariance);
 	}
 
 	template<typename T>
-	KDTreeItInLeavesStack<T>::KDTreeItInLeavesStack(const Matrix& cloud):
+	KDTreeItInLeavesStack<T>::KDTreeItInLeavesStack(const Matrix& cloud, const bool balanceVariance):
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// build point vector and compute bounds
@@ -402,13 +419,13 @@ namespace Nabo
 		{
 			const Vector& v(cloud.col(i));
 			buildPoints.push_back(BuildPoint(v, i));
-			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
-			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
+			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
+			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
 		}
 		
 		// create nodes
 		nodes.resize(getTreeSize(cloud.cols()));
-		buildNodes(buildPoints.begin(), buildPoints.end(), 0);
+		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound, balanceVariance);
 		//for (size_t i = 0; i < nodes.size(); ++i)
 		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal << endl;
 	}

@@ -184,6 +184,8 @@ namespace Nabo
 		
 		using NearestNeighborSearch<T>::statistics;
 		using NearestNeighborSearch<T>::cloud;
+		using NearestNeighborSearch<T>::minBound;
+		using NearestNeighborSearch<T>::maxBound;
 		
 	protected:
 		struct BuildPoint
@@ -220,11 +222,11 @@ namespace Nabo
 		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
 		inline size_t parent(size_t pos) const { return (pos-1)/2; }
 		size_t getTreeSize(size_t size) const;
-		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos);
+		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance);
 		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
 		
 	public:
-		KDTreeItInLeavesStack(const Matrix& cloud);
+		KDTreeItInLeavesStack(const Matrix& cloud, const bool balanceVariance);
 		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
 	};
 }

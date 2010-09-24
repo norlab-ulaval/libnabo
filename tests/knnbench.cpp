@@ -98,69 +98,99 @@ int main(int argc, char* argv[])
 		return 2;
 	}
 	
+	// create queries
+	Matrix q(d.rows(), itCount);
+	{
+		// temp kdtree to get bounds
+		KDTD1 kdtt(d);
+		for (int i = 0; i < itCount; ++i)
+		{
+			q.col(i) = createQuery(d, kdtt, i, method);
+		}
+	}
+	
 	boost::progress_timer* t;
 	
 	// KDTD1
-	cout << "Nabo priority" << endl;
-	cout << "\tconstruction: ";
-	t = new boost::progress_timer;
-	KDTD1 kdt1(d);
-	delete t;
-	
-	// create queries
-	Matrix q(d.rows(), itCount);
-	for (int i = 0; i < itCount; ++i)
 	{
-		q.col(i) = createQuery(d, kdt1, i, method);
+		cout << "Nabo priority" << endl;
+		cout << "\tconstruction: ";
+		t = new boost::progress_timer;
+		KDTD1 kdt1(d);
+		delete t;
+		
+		
+		srand(0);
+		cout << "\texecution: ";
+		t = new boost::progress_timer;
+		kdt1.knnM(q, K, 0);
+		delete t;
+		cout << "\tstats kdtree: "
+			<< kdt1.getStatistics().totalVisitCount << " on "
+			<< itCount * d.cols() << " ("
+			<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+			<< ")\n" << endl;
 	}
 	
-	srand(0);
-	cout << "\texecution: ";
-	t = new boost::progress_timer;
-	kdt1.knnM(q, K, 0);
-	delete t;
-	cout << "\tstats kdtree: "
-		<< kdt1.getStatistics().totalVisitCount << " on "
-		<< itCount * d.cols() << " ("
-		<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-		<< ")\n" << endl;
-	
 	// KDTD2
-	cout << "Nabo stack" << endl;
-	cout << "\tconstruction: ";
-	t = new boost::progress_timer;
-	KDTD2 kdt2(d);
-	delete t;
-	
-	srand(0);
-	cout << "\texecution: ";
-	t = new boost::progress_timer;
-	kdt2.knnM(q, K, 0);
-	delete t;
-	cout << "\tstats kdtree: "
-		<< kdt1.getStatistics().totalVisitCount << " on "
-		<< itCount * d.cols() << " ("
-		<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-		<< ")\n" << endl;
+	{
+		cout << "Nabo stack" << endl;
+		cout << "\tconstruction: ";
+		t = new boost::progress_timer;
+		KDTD2 kdt2(d);
+		delete t;
+		
+		srand(0);
+		cout << "\texecution: ";
+		t = new boost::progress_timer;
+		kdt2.knnM(q, K, 0);
+		delete t;
+		cout << "\tstats kdtree: "
+			<< kdt2.getStatistics().totalVisitCount << " on "
+			<< itCount * d.cols() << " ("
+			<< (100. * double(kdt2.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+			<< ")\n" << endl;
+	}
 	
 	// KDTD3
-	cout << "Nabo stack pt in leaves only" << endl;
-	cout << "\tconstruction: ";
-	t = new boost::progress_timer;
-	KDTD3 kdt3(d);
-	delete t;
+	{
+		cout << "Nabo, balanced, stack, pt in leaves only, balance variance" << endl;
+		cout << "\tconstruction: ";
+		t = new boost::progress_timer;
+		KDTD3 kdt3(d, true);
+		delete t;
+		
+		srand(0);
+		cout << "\texecution: ";
+		t = new boost::progress_timer;
+		kdt3.knnM(q, K, 0);
+		delete t;
+		cout << "\tstats kdtree: "
+			<< kdt3.getStatistics().totalVisitCount << " on "
+			<< itCount * d.cols() << " ("
+			<< (100. * double(kdt3.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+			<< ")\n" << endl;
+	}
 	
-	srand(0);
-	cout << "\texecution: ";
-	t = new boost::progress_timer;
-	kdt3.knnM(q, K, 0);
-	delete t;
-	cout << "\tstats kdtree: "
-		<< kdt1.getStatistics().totalVisitCount << " on "
-		<< itCount * d.cols() << " ("
-		<< (100. * double(kdt1.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-		<< ")\n" << endl;
-	
+	// KDTD4
+	{
+		cout << "Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio" << endl;
+		cout << "\tconstruction: ";
+		t = new boost::progress_timer;
+		KDTD3 kdt4(d, false);
+		delete t;
+		
+		srand(0);
+		cout << "\texecution: ";
+		t = new boost::progress_timer;
+		kdt4.knnM(q, K, 0);
+		delete t;
+		cout << "\tstats kdtree: "
+			<< kdt4.getStatistics().totalVisitCount << " on "
+			<< itCount * d.cols() << " ("
+			<< (100. * double(kdt4.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+			<< ")\n" << endl;
+	}
 	
 	// ANN stuff
 	cout << "ANN" << endl;
