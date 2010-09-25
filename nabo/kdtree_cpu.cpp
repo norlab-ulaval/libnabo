@@ -673,7 +673,7 @@ namespace Nabo
 		//cerr << count << endl;
 		if (count == 1)
 		{
-			const int dim = -2-(first->index);
+			const int dim = -1-(first->index);
 			nodes.push_back(Node(dim));
 			return pos;
 		}
@@ -756,7 +756,6 @@ namespace Nabo
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
-		Vector off(Vector::Zero(query.size()));
 		
 		statistics.lastQueryVisitCount = 0;
 		
@@ -781,7 +780,7 @@ namespace Nabo
 		
 		if (cd < 0)
 		{
-			const int index(-(cd + 2));
+			const int index(-(cd + 1));
 			const T dist(dist2<T>(query, cloud.col(index)));
 			if ((dist < heap.head().value) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
@@ -800,7 +799,7 @@ namespace Nabo
 				if (box_diff < 0)
 					box_diff = 0;
 				
-				rd += box_diff*box_diff - cut_diff*cut_diff;
+				rd += cut_diff*cut_diff - box_diff*box_diff;
 				
 				if (rd < heap.head().value)
 					recurseKnn(query, node.rightChild, rd, heap, allowSelfMatch);
@@ -813,7 +812,7 @@ namespace Nabo
 				if (box_diff < 0)
 					box_diff = 0;
 				
-				rd += box_diff*box_diff - cut_diff*cut_diff;
+				rd += cut_diff*cut_diff - box_diff*box_diff;
 				
 				if (rd < heap.head().value)
 					recurseKnn(query, n + 1, rd, heap, allowSelfMatch);

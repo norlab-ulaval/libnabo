@@ -321,7 +321,7 @@ namespace Nabo
 		
 		struct Node
 		{
-			int dim; // -1 == invalid, <= -2 = index of pt
+			int dim; // <= -1 = index of pt
 			unsigned rightChild;
 			T cutVal;
 			T lowBound;
