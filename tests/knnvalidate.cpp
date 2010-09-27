@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
 			for (int j = 0; j < q.size(); ++j)
 				q(j) = bfs.minBound(j) + float(rand()) * (bfs.maxBound(j) - bfs.minBound(j)) / float(RAND_MAX);
 		}
-		IndexVector indexes_bf(bfs.knn(q, K, NNS::SORT_RESULTS));
-		IndexVector indexes_kdtree(kdt.knn(q, K, NNS::SORT_RESULTS));
+		IndexVector indexes_bf(bfs.knn(q, K, 0, NNS::SORT_RESULTS));
+		IndexVector indexes_kdtree(kdt.knn(q, K, 0, NNS::SORT_RESULTS));
 		if (indexes_bf.size() != indexes_kdtree.size())
 		{
 			cerr << "Different number of points found between search methods" << endl;

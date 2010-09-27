@@ -168,10 +168,11 @@ namespace Nabo
 	}
 
 	template<typename T>
-	typename KDTreeBalancedPtInNodesPQ<T>::IndexVector KDTreeBalancedPtInNodesPQ<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeBalancedPtInNodesPQ<T>::IndexVector KDTreeBalancedPtInNodesPQ<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		typedef priority_queue<SearchElement> Queue;
 		
+		const T maxError(1 + epsilon);
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
 		Queue queue;
@@ -185,7 +186,7 @@ namespace Nabo
 			queue.pop();
 			
 			// nothing is closer, we found best
-			if (el.minDist > heap.head().value)
+			if (el.minDist * maxError > heap.head().value)
 				break;
 			
 			size_t n(el.index);
@@ -252,7 +253,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreeBalancedPtInNodesStack<T>::IndexVector KDTreeBalancedPtInNodesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeBalancedPtInNodesStack<T>::IndexVector KDTreeBalancedPtInNodesStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -263,19 +264,18 @@ namespace Nabo
 		
 		statistics.lastQueryVisitCount = 0;
 		
-		recurseKnn(query, 0, 0, heap, off, allowSelfMatch);
+		recurseKnn(query, 0, 0, heap, off, 1 + epsilon, allowSelfMatch);
 		
 		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
-		// FIXME: statistics is not theard-safe
 		
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}
 	
 	template<typename T>
-	void KDTreeBalancedPtInNodesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	void KDTreeBalancedPtInNodesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -297,23 +297,23 @@ namespace Nabo
 			const T new_off(query.coeff(cd) - node.pos.coeff(cd));
 			if (new_off > 0)
 			{
-				recurseKnn(query, childRight(n), rd, heap, off, allowSelfMatch);
+				recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd < heap.head().value)
+				if (rd * maxError < heap.head().value)
 				{
 					off.coeffRef(cd) = new_off;
-					recurseKnn(query, childLeft(n), rd, heap, off, allowSelfMatch);
+					recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
 					off.coeffRef(cd) = old_off;
 				}
 			}
 			else
 			{
-				recurseKnn(query, childLeft(n), rd, heap, off, allowSelfMatch);
+				recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd < heap.head().value)
+				if (rd * maxError < heap.head().value)
 				{
 					off.coeffRef(cd) = new_off;
-					recurseKnn(query, childRight(n), rd, heap, off, allowSelfMatch);
+					recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
 					off.coeffRef(cd) = old_off;
 				}
 			}
@@ -431,7 +431,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreeBalancedPtInLeavesStack<T>::IndexVector KDTreeBalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeBalancedPtInLeavesStack<T>::IndexVector KDTreeBalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -441,19 +441,18 @@ namespace Nabo
 		
 		statistics.lastQueryVisitCount = 0;
 		
-		recurseKnn(query, 0, 0, heap, off, allowSelfMatch);
+		recurseKnn(query, 0, 0, heap, off, 1 + epsilon, allowSelfMatch);
 		
 		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
-		// FIXME: statistics is not theard-safe
 		
 		return heap.getIndexes();
 	}
 	
 	template<typename T>
-	void KDTreeBalancedPtInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	void KDTreeBalancedPtInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -477,23 +476,23 @@ namespace Nabo
 			const T new_off(query.coeff(cd) - node.cutVal);
 			if (new_off > 0)
 			{
-				recurseKnn(query, childRight(n), rd, heap, off, allowSelfMatch);
+				recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd < heap.head().value)
+				if (rd * maxError < heap.head().value)
 				{
 					off.coeffRef(cd) = new_off;
-					recurseKnn(query, childLeft(n), rd, heap, off, allowSelfMatch);
+					recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
 					off.coeffRef(cd) = old_off;
 				}
 			}
 			else
 			{
-				recurseKnn(query, childLeft(n), rd, heap, off, allowSelfMatch);
+				recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd < heap.head().value)
+				if (rd * maxError < heap.head().value)
 				{
 					off.coeffRef(cd) = new_off;
-					recurseKnn(query, childRight(n), rd, heap, off, allowSelfMatch);
+					recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
 					off.coeffRef(cd) = old_off;
 				}
 			}
@@ -520,7 +519,7 @@ namespace Nabo
 		}
 		
 		// find the largest dimension of the box
-		const int cutDim = argMax<T>(maxValues - minValues);
+		int cutDim = argMax<T>(maxValues - minValues);
 		T cutVal((maxValues(cutDim) + minValues(cutDim))/2);
 		
 		// TODO: do only sort once
@@ -591,7 +590,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -601,19 +600,18 @@ namespace Nabo
 		
 		statistics.lastQueryVisitCount = 0;
 		
-		recurseKnn(query, 0, 0, heap, off, allowSelfMatch);
+		recurseKnn(query, 0, 0, heap, off, 1+epsilon, allowSelfMatch);
 		
 		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
-		// FIXME: statistics is not theard-safe
 		
 		return heap.getIndexes();
 	}
 	
 	template<typename T>
-	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch)
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -635,23 +633,23 @@ namespace Nabo
 			const T new_off(query.coeff(cd) - node.cutVal);
 			if (new_off > 0)
 			{
-				recurseKnn(query, node.rightChild, rd, heap, off, allowSelfMatch);
+				recurseKnn(query, node.rightChild, rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd < heap.head().value)
+				if (rd * maxError < heap.head().value)
 				{
 					off.coeffRef(cd) = new_off;
-					recurseKnn(query, n + 1, rd, heap, off, allowSelfMatch);
+					recurseKnn(query, n + 1, rd, heap, off, maxError, allowSelfMatch);
 					off.coeffRef(cd) = old_off;
 				}
 			}
 			else
 			{
-				recurseKnn(query, n+1, rd, heap, off, allowSelfMatch);
+				recurseKnn(query, n+1, rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd < heap.head().value)
+				if (rd * maxError < heap.head().value)
 				{
 					off.coeffRef(cd) = new_off;
-					recurseKnn(query, node.rightChild, rd, heap, off, allowSelfMatch);
+					recurseKnn(query, node.rightChild, rd, heap, off, maxError, allowSelfMatch);
 					off.coeffRef(cd) = old_off;
 				}
 			}
@@ -750,7 +748,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -759,19 +757,18 @@ namespace Nabo
 		
 		statistics.lastQueryVisitCount = 0;
 		
-		recurseKnn(query, 0, 0, heap, allowSelfMatch);
+		recurseKnn(query, 0, 0, heap, 1+epsilon, allowSelfMatch);
 		
 		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
-		// FIXME: statistics is not theard-safe
 		
 		return heap.getIndexes();
 	}
 	
 	template<typename T>
-	void KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const bool allowSelfMatch)
+	void KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -793,7 +790,7 @@ namespace Nabo
 			const T cut_diff(q_val - node.cutVal);
 			if (cut_diff < 0)
 			{
-				recurseKnn(query, n+1, rd, heap, allowSelfMatch);
+				recurseKnn(query, n+1, rd, heap, maxError, allowSelfMatch);
 				
 				T box_diff = node.lowBound - q_val;
 				if (box_diff < 0)
@@ -801,12 +798,12 @@ namespace Nabo
 				
 				rd += cut_diff*cut_diff - box_diff*box_diff;
 				
-				if (rd < heap.head().value)
-					recurseKnn(query, node.rightChild, rd, heap, allowSelfMatch);
+				if (rd * maxError < heap.head().value)
+					recurseKnn(query, node.rightChild, rd, heap, maxError, allowSelfMatch);
 			}
 			else
 			{
-				recurseKnn(query, node.rightChild, rd, heap, allowSelfMatch);
+				recurseKnn(query, node.rightChild, rd, heap, maxError, allowSelfMatch);
 				
 				T box_diff = q_val - node.highBound;
 				if (box_diff < 0)
@@ -814,8 +811,8 @@ namespace Nabo
 				
 				rd += cut_diff*cut_diff - box_diff*box_diff;
 				
-				if (rd < heap.head().value)
-					recurseKnn(query, n + 1, rd, heap, allowSelfMatch);
+				if (rd * maxError < heap.head().value)
+					recurseKnn(query, n + 1, rd, heap, maxError, allowSelfMatch);
 			}
 		}
 	}

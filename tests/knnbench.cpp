@@ -146,10 +146,10 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	/*doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance", d, q, K, itCount);
-	doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance", d, q, K, itCount);
+/*	doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance", d, q, K, itCount);
+	doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance", d, q, K, itCount);*/
 	doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance", d, q, K, itCount);
-	doBench<KDTD4>("Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio", d, q, K, itCount);*/
+	doBench<KDTD4>("Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio", d, q, K, itCount);
 	doBench<KDTD5>("Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT", d, q, K, itCount);
 	doBench<KDTD6>("Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT", d, q, K, itCount);
 	

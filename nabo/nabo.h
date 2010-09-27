@@ -5,6 +5,7 @@
 #include "Eigen/Array"
 #include "index_heap.h"
 #include <vector>
+#include <cstdatomic>
 
 namespace Nabo
 {
@@ -32,9 +33,9 @@ namespace Nabo
 		
 		struct Statistics
 		{
-			Statistics(): lastQueryVisitCount(0), totalVisitCount(0) {}
-			int lastQueryVisitCount;
-			int totalVisitCount;
+			Statistics():lastQueryVisitCount(0),totalVisitCount(0) {}
+			std::atomic_uint lastQueryVisitCount;
+			std::atomic_uint totalVisitCount;
 		};
 		
 		enum SearchOptionFlags
@@ -44,9 +45,9 @@ namespace Nabo
 		};
 		
 		NearestNeighborSearch(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k = 1, const unsigned optionFlags = 0) = 0;
-		virtual IndexMatrix knnM(const Matrix& query, const Index k = 1, const unsigned optionFlags = 0);
-		const Statistics getStatistics() const { return statistics; }
+		virtual IndexVector knn(const Vector& query, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
+		virtual IndexMatrix knnM(const Matrix& query, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
+		const Statistics& getStatistics() const { return statistics; }
 		
 	protected:
 		Statistics statistics;
@@ -62,7 +63,7 @@ namespace Nabo
 		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
 
 		BruteForceSearch(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	// KDTree, balanced, points in nodes
@@ -144,7 +145,7 @@ namespace Nabo
 		
 	public:
 		KDTreeBalancedPtInNodesPQ(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	// KDTree, balanced, points in nodes, stack
@@ -166,11 +167,11 @@ namespace Nabo
 		typedef IndexHeap<Index, T> Heap;
 		
 	protected:
-		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch);
 		
 	public:
 		KDTreeBalancedPtInNodesStack(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	
@@ -224,11 +225,11 @@ namespace Nabo
 		inline size_t parent(size_t pos) const { return (pos-1)/2; }
 		size_t getTreeSize(size_t size) const;
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance);
-		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch);
 		
 	public:
 		KDTreeBalancedPtInLeavesStack(const Matrix& cloud, const bool balanceVariance);
-		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	//  KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT
@@ -278,11 +279,11 @@ namespace Nabo
 		Nodes nodes;
 		
 		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
-		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const bool allowSelfMatch);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch);
 		
 	public:
 		KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	//  KDTree, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT
@@ -334,11 +335,11 @@ namespace Nabo
 		Nodes nodes;
 		
 		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
-		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const bool allowSelfMatch);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const T maxError, const bool allowSelfMatch);
 		
 	public:
 		KDTreeUnbalancedPtInLeavesExplicitBoundsStack(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 }
 

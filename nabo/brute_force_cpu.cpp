@@ -20,7 +20,7 @@ namespace Nabo
 	
 
 	template<typename T>
-	typename NearestNeighborSearch<T>::IndexVector BruteForceSearch<T>::knn(const Vector& query, const Index k, const unsigned optionFlags)
+	typename NearestNeighborSearch<T>::IndexVector BruteForceSearch<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		

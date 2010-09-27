@@ -25,14 +25,17 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename NearestNeighborSearch<T>::IndexMatrix NearestNeighborSearch<T>::knnM(const Matrix& query, const Index k, const unsigned optionFlags) 
+	typename NearestNeighborSearch<T>::IndexMatrix NearestNeighborSearch<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
 		IndexMatrix result(query.rows(), query.cols());
-		for (int i = 0; i < query.cols(); ++i)
+		const int colCount(query.cols());
+		
+		for (int i = 0; i < colCount; ++i)
 		{
 			const Vector& q(query.col(i));
-			result.col(i) = knn(q, k, optionFlags);
+			result.col(i) = knn(q, k, epsilon, optionFlags);
 		}
+		
 		return result;
 	}
 	
