@@ -10,7 +10,7 @@ namespace Nabo
 {
 	// Euclidean distance
 	template<typename T, typename A, typename B>
-	T dist2(const A v0, const B v1)
+	inline T dist2(const A& v0, const B& v1)
 	{
 		return (v0 - v1).squaredNorm();
 	}
