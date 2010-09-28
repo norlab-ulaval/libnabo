@@ -30,11 +30,13 @@ namespace Nabo
 		IndexMatrix result(query.rows(), query.cols());
 		const int colCount(query.cols());
 		
+		//#pragma omp parallel for
 		for (int i = 0; i < colCount; ++i)
 		{
 			const Vector& q(query.col(i));
 			result.col(i) = knn(q, k, epsilon, optionFlags);
 		}
+		//#pragma omp barrier
 		
 		return result;
 	}

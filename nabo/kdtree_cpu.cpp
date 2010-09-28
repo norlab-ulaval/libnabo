@@ -513,13 +513,12 @@ namespace Nabo
 		//cerr << count << endl;
 		if (count == 1)
 		{
-			const int dim = -2-(first->index);
-			nodes.push_back(Node(dim));
+			nodes.push_back(Node(first->index));
 			return pos;
 		}
 		
 		// find the largest dimension of the box
-		int cutDim = argMax<T>(maxValues - minValues);
+		const unsigned cutDim = argMax<T>(maxValues - minValues);
 		T cutVal((maxValues(cutDim) + minValues(cutDim))/2);
 		
 		// TODO: do only sort once
@@ -555,7 +554,7 @@ namespace Nabo
 		const size_t leftCount(count - rightCount);
 		
 		// add this
-		nodes.push_back(Node(cutDim, cutVal));
+		nodes.push_back(Node(cutDim, cutVal, 0));
 		
 		// recurse
 		const unsigned leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
@@ -611,16 +610,49 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		assert(nodes.size() > 0);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		Vector off(query.rows());
+		
+		IndexMatrix result(query.rows(), query.cols());
+		const int colCount(query.cols());
+		
+		for (int i = 0; i < colCount; ++i)
+		{
+			const Vector& q(query.col(i));
+			
+			off.setZero();
+			heap.reset();
+			
+			statistics.lastQueryVisitCount = 0;
+			
+			recurseKnn(q, 0, 0, heap, off, 1+epsilon, allowSelfMatch);
+			
+			if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+				heap.sort();
+			
+			result.col(i) = heap.getIndexes();
+			
+			statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		}
+		
+		return result;
+	}
+	
+	template<typename T>
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::recurseKnn(const Vector& query, const unsigned n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
-		const int cd(node.dim);
-		
 		++statistics.lastQueryVisitCount;
 		
-		if (cd < 0)
+		if (node.rightChild == Node::INVALID_CHILD)
 		{
-			const int index(-(cd + 2));
+			const unsigned index(node.ptIndex);
 			const T dist(dist2<T>(query, cloud.col(index)));
 			if ((dist < heap.head().value) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
@@ -629,6 +661,7 @@ namespace Nabo
 		}
 		else
 		{
+			const unsigned cd(node.dim);
 			const T old_off(off.coeff(cd));
 			const T new_off(query.coeff(cd) - node.cutVal);
 			if (new_off > 0)

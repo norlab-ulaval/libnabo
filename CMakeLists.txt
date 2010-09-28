@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 
 project(nabo)
 
+add_definitions(-Wall)
+
 # C++0x 
 if(CMAKE_COMPILER_IS_GNUCXX) #Maybe "OR MINGW"
 	add_definitions(-std=c++0x) #Enable C++0x mode

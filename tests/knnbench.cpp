@@ -1,6 +1,6 @@
 #include "nabo/nabo.h"
 #include "ANN.h"
-#include <boost/progress.hpp> 
+#include <boost/timer.hpp>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -48,7 +48,7 @@ typedef Nabo::NearestNeighborSearch<double>::Matrix Matrix;
 typedef Nabo::NearestNeighborSearch<double>::Vector Vector;
 typedef Nabo::NearestNeighborSearch<double>::Index Index;
 typedef Nabo::NearestNeighborSearch<double>::IndexVector IndexVector;
-typedef Nabo::NearestNeighborSearch<float> NNS;
+typedef Nabo::NearestNeighborSearch<double> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
 typedef Nabo::KDTreeBalancedPtInNodesPQ<double> KDTD1;
 typedef Nabo::KDTreeBalancedPtInNodesStack<double> KDTD2;
@@ -73,7 +73,7 @@ inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const 
 	if (method < 0)
 	{
 		Vector q = d.col(i % d.cols());
-		float absBound = 0;
+		double absBound = 0;
 		for (int j = 0; j < q.size(); ++j)
 			absBound += kdt.maxBound(j) - kdt.minBound(j);
 		absBound /= 3 * (-method); // divided by -method
@@ -92,34 +92,122 @@ inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const 
 	}
 }
 
-template<typename T>
-void doBench(const char* title, const Matrix& d, const Matrix& q, const Index K, const int itCount)
+struct BenchResult
 {
-	boost::progress_timer* t;
+	double creationDuration;
+	double executionDuration;
+	double visitCount;
+	double totalCount;
 	
-	cout << title << endl;
+	BenchResult():
+		creationDuration(0),
+		executionDuration(0),
+		visitCount(0),
+		totalCount(0)
+	{}
 	
-	cout << "\tconstruction: ";
-	t = new boost::progress_timer;
+	void operator +=(const BenchResult& that)
+	{
+		creationDuration += that.creationDuration;
+		executionDuration += that.executionDuration;
+		visitCount += that.visitCount;
+		totalCount += that.totalCount;
+	}
+	
+	void operator /=(const double factor)
+	{
+		creationDuration /= factor;
+		executionDuration /= factor;
+		visitCount /= factor;
+		totalCount /= factor;
+	}
+};
+typedef vector<BenchResult> BenchResults;
+
+template<typename T>
+BenchResult doBench(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+{
+	BenchResult result;
+	boost::timer t;
 	T nns(d);
-	delete t;
+	result.creationDuration = t.elapsed();
 	
-	cout << "\texecution: ";
-	t = new boost::progress_timer;
-	nns.knnM(q, K, 0);
-	delete t;
-	cout << "\tstats kdtree: "
-		<< nns.getStatistics().totalVisitCount << " on "
-		<< (long long)(itCount) * (long long)(d.cols()) << " ("
-		<< (100. * double(nns.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-		<< ")\n" << endl;
+	t.restart();
+	nns.knnM(q, K, 0, 0);
+	result.executionDuration = t.elapsed();
+	
+	result.visitCount = double(nns.getStatistics().totalVisitCount);
+	result.totalCount = double(itCount) * double(d.cols());
+	
+	return result;
 }
+
+BenchResult doBenchANNStack(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+{
+	BenchResult result;
+	boost::timer t;
+	const int ptCount(d.cols());
+	const double **pa = new const double *[d.cols()];
+	for (int i = 0; i < ptCount; ++i)
+		pa[i] = &d.coeff(0, i);
+	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
+	result.creationDuration = t.elapsed();
+	
+	t.restart();
+	ANNidx nnIdx[K];
+	ANNdist dists[K];
+	for (int i = 0; i < itCount; ++i)
+	{
+		const Vector& tq(q.col(i));
+		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
+		ann_kdt->annkSearch(		// search
+						queryPt,	// query point
+						K,			// number of near neighbors
+						nnIdx,		// nearest neighbors (returned)
+						dists,		// distance (returned)
+						0);			// error bound
+	}
+	result.executionDuration = t.elapsed();
+	
+	return result;
+}
+
+BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+{
+	BenchResult result;
+	boost::timer t;
+	const int ptCount(d.cols());
+	const double **pa = new const double *[d.cols()];
+	for (int i = 0; i < ptCount; ++i)
+		pa[i] = &d.coeff(0, i);
+	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
+	result.creationDuration = t.elapsed();
+	
+	t.restart();
+	ANNidx nnIdx[K];
+	ANNdist dists[K];
+	for (int i = 0; i < itCount; ++i)
+	{
+		const Vector& tq(q.col(i));
+		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
+		ann_kdt->annkPriSearch(		// search
+						queryPt,	// query point
+						K,			// number of near neighbors
+						nnIdx,		// nearest neighbors (returned)
+						dists,		// distance (returned)
+						0);			// error bound
+	}
+	result.executionDuration = t.elapsed();
+	
+	return result;
+}
+
 
 int main(int argc, char* argv[])
 {
-	if (argc != 4)
+	if (argc != 5)
 	{
-		cerr << "Usage " << argv[0] << " DATA K METHOD" << endl;
+		cerr << "Usage " << argv[0] << " DATA K METHOD RUN_COUNT" << endl;
 		return 1;
 	}
 	
@@ -127,6 +215,7 @@ int main(int argc, char* argv[])
 	const Index K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
 	const int itCount(method >= 0 ? method : d.cols() * 2);
+	const int runCount(atoi(argv[4]));
 	
 	// compare KDTree with brute force search
 	if (K >= d.cols())
@@ -146,59 +235,52 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-/*	doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance", d, q, K, itCount);
-	doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance", d, q, K, itCount);*/
-	doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance", d, q, K, itCount);
-	doBench<KDTD4>("Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio", d, q, K, itCount);
-	doBench<KDTD5>("Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT", d, q, K, itCount);
-	doBench<KDTD6>("Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT", d, q, K, itCount);
 	
-	// ANN stuff
-	cout << "ANN" << endl;
-	cout << "\tconstruction: ";
-	boost::progress_timer* t = new boost::progress_timer;
-	const int ptCount(d.cols());
-	const double **pa = new const double *[d.cols()];
-	for (int i = 0; i < ptCount; ++i)
-		pa[i] = &d.coeff(0, i);
-	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
-	delete t;
-	
-	cout << "\texecution search: ";
+	const size_t benchCount(5);
+	const char* benchLabels[benchCount] =
 	{
-		boost::progress_timer t;
-		ANNidx nnIdx[K];
-		ANNdist dists[K];
-		
-		for (int i = 0; i < itCount; ++i)
-		{
-			const Vector& tq(q.col(i));
-			ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
-			ann_kdt->annkSearch(		// search
-							queryPt,	// query point
-							K,			// number of near neighbors
-							nnIdx,		// nearest neighbors (returned)
-							dists,		// distance (returned)
-							0);			// error bound
-		}
+		//doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance",
+		//doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance",
+		//doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance",
+		"Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio",
+		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT",
+		"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
+		"ANN stack",
+		"ANN priority",
+	};
+	
+	// do bench themselves, accumulate over several times
+	BenchResults results(benchCount);
+	for (int run = 0; run < runCount; ++run)
+	{
+		size_t i = 0;
+		//results.at(i++) += doBench<KDTD1>(d, q, K, itCount);
+		//results.at(i++) += doBench<KDTD2>(d, q, K, itCount);
+		//results.at(i++) += doBench<KDTD3>(d, q, K, itCount);
+		results.at(i++) += doBench<KDTD4>(d, q, K, itCount);
+		results.at(i++) += doBench<KDTD5>(d, q, K, itCount);
+		results.at(i++) += doBench<KDTD6>(d, q, K, itCount);
+		results.at(i++) += doBenchANNStack(d, q, K, itCount);
+		results.at(i++) += doBenchANNPriority(d, q, K, itCount);
 	}
-	cout << "\texecution pri-search: ";
+	
+	// print results
+	cout << "Showing average over " << runCount << " runs\n\n";
+	for (size_t i = 0; i < benchCount; ++i)
 	{
-		boost::progress_timer t;
-		ANNidx nnIdx[K];
-		ANNdist dists[K];
-		
-		for (int i = 0; i < itCount; ++i)
+		results[i] /= double(runCount);
+		cout << "Method " << benchLabels[i] << ":\n";
+		cout << "  creation duration: " << results[i].creationDuration << "\n";
+		cout << "  execution duration: " << results[i].executionDuration << "\n";
+		if (results[i].totalCount != 0)
 		{
-			const Vector& tq(q.col(i));
-			ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
-			ann_kdt->annkPriSearch(		// search
-							queryPt,	// query point
-							K,			// number of near neighbors
-							nnIdx,		// nearest neighbors (returned)
-							dists,		// distance (returned)
-							0);			// error bound
+			cout << "  visit count: " << results[i].visitCount << "\n";
+			cout << "  total count: " << results[i].totalCount << "\n";
+			cout << "  precentage visit: " << (results[i].visitCount * 100.) / results[i].totalCount << "\n";
 		}
+		else
+			cout << "  no stats for visits\n";
+		cout << endl;
 	}
 	
 	return 0;
