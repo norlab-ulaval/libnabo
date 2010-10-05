@@ -1,6 +1,6 @@
 libnabo is a fast K Nearset Neighbor library for low-dimensional spaces.
 It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
-Its current CPU implementation is strongly inspired by ANN [1], but with more compact data types.
+Its current CPU implementation is strongly inspired by [ANN] [1], but with more compact data types.
 On the average, libnabo is 20% faster than ANN.
 
 Usage
@@ -11,8 +11,8 @@ TODO
 Compilation
 -----------
 
-libnabo uses CMake [2] as build system.
-Just create a directory, go inside it and do:
+libnabo uses [CMake] [2] as build system.
+Just create a directory, go inside it and type:
 
 	cmake LIBNABO_SRC_DIR
     
