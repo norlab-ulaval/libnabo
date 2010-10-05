@@ -5,6 +5,8 @@
 #include <limits>
 #include <queue>
 #include <algorithm>
+#include <boost/numeric/conversion/bounds.hpp>
+#include <boost/limits.hpp>
 
 namespace Nabo
 {
@@ -706,44 +708,95 @@ namespace Nabo
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>>;
 	
 	// OPT
+	template<typename T, typename Heap>
+	pair<T,T> KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::getBounds(const BuildPointsIt first, const BuildPointsIt last, const unsigned dim)
+	{
+		T minVal(boost::numeric::bounds<T>::highest());
+		T maxVal(boost::numeric::bounds<T>::lowest());
+		
+		for (BuildPointsCstIt it(first); it != last; ++it)
+		{
+			const T val(cloud.coeff(dim, *it));
+			minVal = min(val, minVal);
+			maxVal = max(val, maxVal);
+		}
+		
+		return make_pair<T>(minVal, maxVal);
+	}
 	
 	template<typename T, typename Heap>
 	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
 	{
-		const size_t count(last - first);
+		const int count(last - first);
 		const unsigned pos(nodes.size());
 		
 		//cerr << count << endl;
 		if (count == 1)
 		{
-			nodes.push_back(Node(first->index, &cloud.coeff(0, first->index)));
+			nodes.push_back(Node(*first, &cloud.coeff(0, *first)));
 			return pos;
 		}
 		
 		// find the largest dimension of the box
 		const unsigned cutDim = argMax<T>(maxValues - minValues);
-		T cutVal((maxValues(cutDim) + minValues(cutDim))/2);
+		const T idealCutVal((maxValues(cutDim) + minValues(cutDim))/2);
 		
-		// TODO: do only sort once
-		// sort
-		sort(first, last, CompareDim(cutDim));
+		// get bounds from actual points
+		const pair<T,T> minMaxVals(getBounds(first, last, cutDim));
 		
-		// TODO: optimise using binary search
-		size_t rightStart(0);
-		while (rightStart < count && (first+rightStart)->pos.coeff(cutDim) < cutVal)
-			++rightStart;
+		// correct cut following bounds
+		T cutVal;
+		if (idealCutVal < minMaxVals.first)
+			cutVal = minMaxVals.first;
+		else if (idealCutVal > minMaxVals.second)
+			cutVal = minMaxVals.second;
+		else
+			cutVal = idealCutVal;
 		
-		// prevent trivial splits
-		if (rightStart == 0)
+		int l(0);
+		int r(count-1);
+		// partition points around cutVal
+		while (1)
 		{
-			cutVal = first->pos.coeff(cutDim);
-			rightStart = 1;
+			while (l < count && cloud.coeff(cutDim, *(first+l)) < cutVal)
+				++l;
+			while (r >= 0 && cloud.coeff(cutDim, *(first+r)) >= cutVal)
+				--r;
+			if (l > r)
+				break;
+			swap(*(first+l), *(first+r));
+			++l; --r;
 		}
-		else if (rightStart == count)
+		const int br1 = l;	// now: points[0..br1-1] < cutVal <= points[br1..count-1]
+		r = count-1;
+		// partition points[br1..count-1] around cv
+		while (1)
 		{
-			rightStart = count - 1;
-			cutVal = (first + rightStart)->pos.coeff(cutDim);
+			while (l < count && cloud.coeff(cutDim, *(first+l)) <= cutVal)
+				++l;
+			while (r >= br1 && cloud.coeff(cutDim, *(first+r)) > cutVal)
+				--r;
+			if (l > r)
+				break;
+			swap(*(first+l), *(first+r));
+			++l; --r;
 		}
+		const int br2 = l; // now: points[br1..br2-1] == cv < points[br2..count-1]
+		
+		// find best split index
+		int leftCount;
+		if (idealCutVal < minMaxVals.first)
+			leftCount = 1;
+		else if (idealCutVal > minMaxVals.second)
+			leftCount = count-1;
+		else if (br1 > count / 2)
+			leftCount = br1;
+		else if (br2 < count / 2)
+			leftCount = br2;
+		else
+			leftCount = count / 2;
+		assert(leftCount > 0);
+		assert(leftCount < count);
 		
 		// update bounds for left
 		Vector leftMaxValues(maxValues);
@@ -751,10 +804,6 @@ namespace Nabo
 		// update bounds for right
 		Vector rightMinValues(minValues);
 		rightMinValues[cutDim] = cutVal;
-		
-		// count for recursion
-		const size_t rightCount(count - rightStart);
-		const size_t leftCount(count - rightCount);
 		
 		// add this
 		nodes.push_back(Node(cutDim, cutVal, 0));
@@ -780,7 +829,7 @@ namespace Nabo
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
-			buildPoints.push_back(BuildPoint(v, i));
+			buildPoints.push_back(i);
 			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
 		}
@@ -788,8 +837,10 @@ namespace Nabo
 		// create nodes
 		//nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), minBound, maxBound);
+		buildPoints.clear();
 		//for (size_t i = 0; i < nodes.size(); ++i)
 		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
+		
 	}
 	
 	template<typename T, typename Heap>
@@ -800,7 +851,6 @@ namespace Nabo
 		assert(nodes.size() > 0);
 		Heap heap(k);
 		std::vector<T> off(dimCount, 0);
-		//Vector off(Vector::Zero(query.size()));
 		
 		statistics.lastQueryVisitCount = 0;
 		
@@ -814,7 +864,6 @@ namespace Nabo
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
 		
-		// TODO: fixme
 		return heap.getIndexes();
 	}
 	
@@ -828,7 +877,6 @@ namespace Nabo
 		assert(nodes.size() > 0);
 		Heap heap(k);
 		
-		//Vector off(query.rows());
 		std::vector<T> off(dimCount, 0);
 		
 		IndexMatrix result(k, query.cols());
@@ -836,10 +884,10 @@ namespace Nabo
 		
 		for (int i = 0; i < colCount; ++i)
 		{
-			//off.setZero();
 			fill(off.begin(), off.end(), 0);
 			heap.reset();
 			
+			// FIXME: add define for statistics
 			statistics.lastQueryVisitCount = 0;
 			
 			if (allowSelfMatch)
@@ -850,7 +898,6 @@ namespace Nabo
 			if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
 				heap.sort();
 			
-			// TODO: fixme
 			result.col(i) = heap.getIndexes();
 			
 			statistics.totalVisitCount += statistics.lastQueryVisitCount;
@@ -860,7 +907,7 @@ namespace Nabo
 	}
 	
 	template<typename T, typename Heap> template<bool allowSelfMatch>
-	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off,/*Vector& off,*/ const T maxError)
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError)
 	{
 		const Node& node(nodes[n]);
 		//++statistics.lastQueryVisitCount;

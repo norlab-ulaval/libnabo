@@ -9,7 +9,6 @@ add_test(validation-3D-exhaustive ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_
 add_test(validation-3D-random ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.txt 10 10000)
 add_test(validation-3D-large-random ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 10 1000)
 
-find_package(Boost)
 find_path(ANN_INCLUDE_DIR ANN.h
 	/usr/local/include/ANN
 	/usr/include/ANN
@@ -20,7 +19,7 @@ find_library(ANN_LIBRARY
 	/usr/lib
 )
 
-if (Boost_FOUND AND ANN_INCLUDE_DIR AND ANN_LIBRARY)
+if (ANN_INCLUDE_DIR AND ANN_LIBRARY)
 	include_directories(.. ${Boost_INCLUDE_DIRS} ${ANN_INCLUDE_DIR})
 
 	add_executable(knnbench knnbench.cpp)
@@ -38,6 +37,6 @@ if (Boost_FOUND AND ANN_INCLUDE_DIR AND ANN_LIBRARY)
 	add_test(bench-3D-large-exhaustive-1000-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 100 -1000 3)
 	add_test(bench-3D-large-exhaustive-100-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 100 -100 3)
 	add_test(bench-3D-large-random-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 100 40000 3)
-else (Boost_FOUND AND ANN_INCLUDE_DIR AND ANN_LIBRARY)
-	message("Disabling performance benchmark because boost or Ann has not been found")
-endif (Boost_FOUND AND ANN_INCLUDE_DIR AND ANN_LIBRARY)
+else (ANN_INCLUDE_DIR AND ANN_LIBRARY)
+	message("Disabling performance benchmark because Ann has not been found")
+endif (ANN_INCLUDE_DIR AND ANN_LIBRARY)

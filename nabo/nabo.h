@@ -314,22 +314,9 @@ namespace Nabo
 		using NearestNeighborSearch<T>::maxBound;
 		
 	protected:
-		struct BuildPoint
-		{
-			Vector pos;
-			size_t index;
-			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
-		};
-		typedef std::vector<BuildPoint> BuildPoints;
+		typedef std::vector<Index> BuildPoints;
 		typedef typename BuildPoints::iterator BuildPointsIt;
 		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
-		
-		struct CompareDim
-		{
-			size_t dim;
-			CompareDim(const size_t dim):dim(dim){}
-			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
-		};
 		
 		struct Node
 		{
@@ -356,10 +343,11 @@ namespace Nabo
 		Nodes nodes;
 		const int dimCount;
 		
+		std::pair<T,T> getBounds(const BuildPointsIt first, const BuildPointsIt last, const unsigned dim);
 		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
 		
 		template<bool allowSelfMatch>
-		void recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off,/*Vector& off,*/ const T maxError);
+		void recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError);
 		
 	public:
 		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud);
