@@ -27,7 +27,7 @@ namespace Nabo
 	template<typename T>
 	typename NearestNeighborSearch<T>::IndexMatrix NearestNeighborSearch<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
-		IndexMatrix result(query.rows(), query.cols());
+		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
 		
 		//#pragma omp parallel for

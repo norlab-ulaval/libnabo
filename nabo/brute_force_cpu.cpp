@@ -10,7 +10,7 @@ namespace Nabo
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// compute bounds
-		for (size_t i = 0; i < cloud.cols(); ++i)
+		for (int i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
 			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
@@ -24,12 +24,12 @@ namespace Nabo
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
-		IndexHeap<Index, T> heap(k);
+		IndexHeapSTL<Index, T> heap(k);
 		
-		for (size_t i = 0; i < this->cloud.cols(); ++i)
+		for (int i = 0; i < this->cloud.cols(); ++i)
 		{
 			const T dist(dist2<T>(this->cloud.col(i), query));
-			if ((dist < heap.head().value) &&
+			if ((dist < heap.headValue()) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
 				heap.replaceHead(i, dist);
 		}

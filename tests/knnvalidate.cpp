@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	typedef Nabo::NearestNeighborSearch<float>::IndexVector IndexVector;
 	typedef Nabo::NearestNeighborSearch<float> NNS;
 	typedef Nabo::BruteForceSearch<float> BFSF;
-	typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float> KDTF;
+	typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float, IndexHeapBruteForceVector<int,float>> KDTF;
 	
 	if (argc != 4)
 	{
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 			cerr << "Different number of points found between brute force and request" << endl;
 			return 3;
 		}
-		for (size_t j = 0; j < K; ++j)
+		for (size_t j = 0; j < size_t(K); ++j)
 		{
 			Vector pbf(d.col(indexes_bf[j]));
 			//cerr << indexes_kdtree[j] << endl;

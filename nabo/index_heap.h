@@ -11,7 +11,7 @@ namespace Nabo
 {
 	// balanced-tree implementation of heap
 	template<typename IT, typename VT>
-	struct IndexHeap
+	struct IndexHeapSTL
 	{
 		typedef IT Index;
 		typedef VT Value;
@@ -28,10 +28,12 @@ namespace Nabo
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
 		
 		Entries data;
+		const VT& headValueRef;
 		const typename Entries::iterator insertIt;
 		
-		IndexHeap(const Index size):
+		IndexHeapSTL(const size_t size):
 			data(size, Entry(0, std::numeric_limits<VT>::infinity())),
+			headValueRef(data.begin()->value),
 			insertIt(data.end() - 1)
 		{
 			std::make_heap(data.begin(), data.end());
@@ -43,7 +45,7 @@ namespace Nabo
 			std::make_heap(data.begin(), data.end());
 		}
 		
-		inline const Entry& head() const { return data.front(); }
+		inline const VT& headValue() const { return headValueRef; }
 		
 		inline void replaceHead(const Index index, const Value value)
 		{
@@ -86,12 +88,12 @@ namespace Nabo
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
 		
 		Entries data;
-		const typename Entries::iterator headIt;
+		const VT& headValueRef;
 		const size_t sizeMinusOne;
 		
-		IndexHeapBruteForceVector(const Index size):
+		IndexHeapBruteForceVector(const size_t size):
 			data(size, Entry(0, std::numeric_limits<VT>::infinity())),
-			headIt(data.end() - 1),
+			headValueRef((data.end() - 1)->value),
 			sizeMinusOne(data.size() - 1)
 		{
 		}
@@ -102,7 +104,7 @@ namespace Nabo
 				it->value = std::numeric_limits<VT>::infinity();
 		}
 		
-		inline const Entry& head() const { return *headIt; }
+		inline const VT& headValue() const { return headValueRef; }
 		
 		inline void replaceHead(const Index index, const Value value)
 		{

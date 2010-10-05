@@ -64,7 +64,10 @@ struct KDTD4: public Nabo::KDTreeBalancedPtInLeavesStack<double>
 		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, false)
 	{}
 };
-typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double> KDTD5;
+typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>> KDTD5A;
+typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>> KDTD5B;
+typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>> KDTD5OB;
+typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>> KDTD5OA;
 typedef Nabo::KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double> KDTD6;
 
 
@@ -236,17 +239,20 @@ int main(int argc, char* argv[])
 	}
 	
 	
-	const size_t benchCount(5);
+	const size_t benchCount(4);
 	const char* benchLabels[benchCount] =
 	{
 		//doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance",
 		//doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance",
 		//doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance",
-		"Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio",
-		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT",
-		"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
+		//"Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio",
+		//"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap",
+		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap",
+		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
+		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
+		//"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
 		"ANN stack",
-		"ANN priority",
+		//"ANN priority",
 	};
 	
 	// do bench themselves, accumulate over several times
@@ -257,11 +263,14 @@ int main(int argc, char* argv[])
 		//results.at(i++) += doBench<KDTD1>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD2>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD3>(d, q, K, itCount);
-		results.at(i++) += doBench<KDTD4>(d, q, K, itCount);
-		results.at(i++) += doBench<KDTD5>(d, q, K, itCount);
-		results.at(i++) += doBench<KDTD6>(d, q, K, itCount);
+		//results.at(i++) += doBench<KDTD4>(d, q, K, itCount);
+		//results.at(i++) += doBench<KDTD5A>(d, q, K, itCount);
+		results.at(i++) += doBench<KDTD5B>(d, q, K, itCount);
+		results.at(i++) += doBench<KDTD5OB>(d, q, K, itCount);
+		results.at(i++) += doBench<KDTD5OA>(d, q, K, itCount);
+		//results.at(i++) += doBench<KDTD6>(d, q, K, itCount);
 		results.at(i++) += doBenchANNStack(d, q, K, itCount);
-		results.at(i++) += doBenchANNPriority(d, q, K, itCount);
+		//results.at(i++) += doBenchANNPriority(d, q, K, itCount);
 	}
 	
 	// print results

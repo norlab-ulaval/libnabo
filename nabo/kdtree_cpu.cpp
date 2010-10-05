@@ -15,7 +15,7 @@ namespace Nabo
 	{
 		T maxVal(0);
 		size_t maxIdx(0);
-		for (size_t i = 0; i < v.size(); ++i)
+		for (int i = 0; i < v.size(); ++i)
 		{
 			if (v[i] > maxVal)
 			{
@@ -47,7 +47,7 @@ namespace Nabo
 	typename KDTreeBalancedPtInNodes<T>::IndexVector KDTreeBalancedPtInNodes<T>::cloudIndexesFromNodesIndexes(const IndexVector& indexes) const
 	{
 		IndexVector cloudIndexes(indexes.size());
-		for (size_t i = 0; i < indexes.size(); ++i)
+		for (int i = 0; i < indexes.size(); ++i)
 			cloudIndexes.coeffRef(i) = nodes[indexes[i]].index;
 		return cloudIndexes;
 	}
@@ -143,7 +143,7 @@ namespace Nabo
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
-		for (size_t i = 0; i < cloud.cols(); ++i)
+		for (int i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
 			buildPoints.push_back(BuildPoint(v, i));
@@ -177,7 +177,7 @@ namespace Nabo
 		
 		Queue queue;
 		queue.push(SearchElement(0, 0));
-		IndexHeap<Index, T> heap(k);
+		IndexHeapSTL<Index, T> heap(k);
 		statistics.lastQueryVisitCount = 0;
 		
 		while (!queue.empty())
@@ -186,7 +186,7 @@ namespace Nabo
 			queue.pop();
 			
 			// nothing is closer, we found best
-			if (el.minDist * maxError > heap.head().value)
+			if (el.minDist * maxError > heap.headValue())
 				break;
 			
 			size_t n(el.index);
@@ -197,7 +197,7 @@ namespace Nabo
 				
 				// TODO: optimise dist while going down
 				const T dist(dist2<T>(node.pos, query));
-				if ((dist < heap.head().value) &&
+				if ((dist < heap.headValue()) &&
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
 					heap.replaceHead(n, dist);
 				
@@ -207,7 +207,7 @@ namespace Nabo
 				
 				const T offset(query.coeff(node.dim) - node.pos.coeff(node.dim));
 				const T offset2(offset * offset);
-				const T bestDist(heap.head().value);
+				const T bestDist(heap.headValue());
 				if (offset > 0)
 				{
 					// enqueue offside ?
@@ -286,7 +286,7 @@ namespace Nabo
 			return;
 		
 		const T dist(dist2<T>(node.pos, query));
-		if ((dist < heap.head().value) &&
+		if ((dist < heap.headValue()) &&
 			(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 		)
 			heap.replaceHead(n, dist);
@@ -299,7 +299,7 @@ namespace Nabo
 			{
 				recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 				{
 					off.coeffRef(cd) = new_off;
 					recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
@@ -310,7 +310,7 @@ namespace Nabo
 			{
 				recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 				{
 					off.coeffRef(cd) = new_off;
 					recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
@@ -415,7 +415,7 @@ namespace Nabo
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
-		for (size_t i = 0; i < cloud.cols(); ++i)
+		for (int i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
 			buildPoints.push_back(BuildPoint(v, i));
@@ -465,7 +465,7 @@ namespace Nabo
 				return;
 			const int index(-(cd + 2));
 			const T dist(dist2<T>(query, cloud.col(index)));
-			if ((dist < heap.head().value) &&
+			if ((dist < heap.headValue()) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 			)
 				heap.replaceHead(index, dist);
@@ -478,7 +478,7 @@ namespace Nabo
 			{
 				recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 				{
 					off.coeffRef(cd) = new_off;
 					recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
@@ -489,7 +489,7 @@ namespace Nabo
 			{
 				recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 				{
 					off.coeffRef(cd) = new_off;
 					recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
@@ -504,8 +504,8 @@ namespace Nabo
 	
 	
 	
-	template<typename T>
-	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	template<typename T, typename Heap>
+	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
 	{
 		const size_t count(last - first);
 		const unsigned pos(nodes.size());
@@ -557,7 +557,7 @@ namespace Nabo
 		nodes.push_back(Node(cutDim, cutVal, 0));
 		
 		// recurse
-		const unsigned leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
+		const unsigned __attribute__ ((unused)) leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
 		assert(leftChild == pos + 1);
 		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
 		
@@ -566,14 +566,14 @@ namespace Nabo
 		return pos;
 	}
 
-	template<typename T>
-	KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud):
+	template<typename T, typename Heap>
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud):
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
-		for (size_t i = 0; i < cloud.cols(); ++i)
+		for (int i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
 			buildPoints.push_back(BuildPoint(v, i));
@@ -588,8 +588,8 @@ namespace Nabo
 		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
 	}
 	
-	template<typename T>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	template<typename T, typename Heap>
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -609,8 +609,8 @@ namespace Nabo
 		return heap.getIndexes();
 	}
 	
-	template<typename T>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	template<typename T, typename Heap>
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
 		assert(nodes.size() > 0);
@@ -619,7 +619,7 @@ namespace Nabo
 		Heap heap(k);
 		Vector off(query.rows());
 		
-		IndexMatrix result(query.rows(), query.cols());
+		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
 		
 		for (int i = 0; i < colCount; ++i)
@@ -644,17 +644,28 @@ namespace Nabo
 		return result;
 	}
 	
-	template<typename T>
-	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T>::recurseKnn(const Vector& query, const unsigned n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
+	template<typename T, typename Heap>
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::recurseKnn(const Vector& query, const unsigned n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
-		++statistics.lastQueryVisitCount;
+		//++statistics.lastQueryVisitCount;
 		
 		if (node.rightChild == Node::INVALID_CHILD)
 		{
 			const unsigned index(node.ptIndex);
-			const T dist(dist2<T>(query, cloud.col(index)));
-			if ((dist < heap.head().value) &&
+			//const T dist(dist2<T>(query, cloud.col(index)));
+			//const T dist((query - cloud.col(index)).squaredNorm());
+			T dist(0);
+			const T* qPtr(&query.coeff(0));
+			const T* dPtr(&cloud.coeff(0, index));
+			const int dim(query.size());
+			for (int i = 0; i < dim; ++i)
+			{
+				const T diff(*qPtr - *dPtr);
+				dist += diff*diff;
+				qPtr++; dPtr++;
+			}
+			if ((dist < heap.headValue()) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 			)
 				heap.replaceHead(index, dist);
@@ -668,7 +679,7 @@ namespace Nabo
 			{
 				recurseKnn(query, node.rightChild, rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 				{
 					off.coeffRef(cd) = new_off;
 					recurseKnn(query, n + 1, rd, heap, off, maxError, allowSelfMatch);
@@ -679,7 +690,7 @@ namespace Nabo
 			{
 				recurseKnn(query, n+1, rd, heap, off, maxError, allowSelfMatch);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 				{
 					off.coeffRef(cd) = new_off;
 					recurseKnn(query, node.rightChild, rd, heap, off, maxError, allowSelfMatch);
@@ -689,8 +700,225 @@ namespace Nabo
 		}
 	}
 	
-	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float>;
-	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapSTL<int,float>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>>;
+	
+	// OPT
+	
+	template<typename T, typename Heap>
+	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	{
+		const size_t count(last - first);
+		const unsigned pos(nodes.size());
+		
+		//cerr << count << endl;
+		if (count == 1)
+		{
+			nodes.push_back(Node(first->index, &cloud.coeff(0, first->index)));
+			return pos;
+		}
+		
+		// find the largest dimension of the box
+		const unsigned cutDim = argMax<T>(maxValues - minValues);
+		T cutVal((maxValues(cutDim) + minValues(cutDim))/2);
+		
+		// TODO: do only sort once
+		// sort
+		sort(first, last, CompareDim(cutDim));
+		
+		// TODO: optimise using binary search
+		size_t rightStart(0);
+		while (rightStart < count && (first+rightStart)->pos.coeff(cutDim) < cutVal)
+			++rightStart;
+		
+		// prevent trivial splits
+		if (rightStart == 0)
+		{
+			cutVal = first->pos.coeff(cutDim);
+			rightStart = 1;
+		}
+		else if (rightStart == count)
+		{
+			rightStart = count - 1;
+			cutVal = (first + rightStart)->pos.coeff(cutDim);
+		}
+		
+		// update bounds for left
+		Vector leftMaxValues(maxValues);
+		leftMaxValues[cutDim] = cutVal;
+		// update bounds for right
+		Vector rightMinValues(minValues);
+		rightMinValues[cutDim] = cutVal;
+		
+		// count for recursion
+		const size_t rightCount(count - rightStart);
+		const size_t leftCount(count - rightCount);
+		
+		// add this
+		nodes.push_back(Node(cutDim, cutVal, 0));
+		
+		// recurse
+		const unsigned __attribute__ ((unused)) leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
+		assert(leftChild == pos + 1);
+		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
+		
+		// write right child index and return
+		nodes[pos].rightChild = rightChild;
+		return pos;
+	}
+
+	template<typename T, typename Heap>
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud):
+		NearestNeighborSearch<T>::NearestNeighborSearch(cloud),
+		dimCount(cloud.rows())
+	{
+		// build point vector and compute bounds
+		BuildPoints buildPoints;
+		buildPoints.reserve(cloud.cols());
+		for (int i = 0; i < cloud.cols(); ++i)
+		{
+			const Vector& v(cloud.col(i));
+			buildPoints.push_back(BuildPoint(v, i));
+			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
+			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+		}
+		
+		// create nodes
+		//nodes.resize(getTreeSize(cloud.cols()));
+		buildNodes(buildPoints.begin(), buildPoints.end(), minBound, maxBound);
+		//for (size_t i = 0; i < nodes.size(); ++i)
+		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
+	}
+	
+	template<typename T, typename Heap>
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		std::vector<T> off(dimCount, 0);
+		//Vector off(Vector::Zero(query.size()));
+		
+		statistics.lastQueryVisitCount = 0;
+		
+		if (allowSelfMatch)
+			recurseKnn<true>(&query.coeff(0), 0, 0, heap, off, 1+epsilon);
+		else
+			recurseKnn<false>(&query.coeff(0), 0, 0, heap, off, 1+epsilon);
+		
+		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			heap.sort();
+		
+		statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		
+		// TODO: fixme
+		return heap.getIndexes();
+	}
+	
+	
+	template<typename T, typename Heap>
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	{
+		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		assert(nodes.size() > 0);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		
+		//Vector off(query.rows());
+		std::vector<T> off(dimCount, 0);
+		
+		IndexMatrix result(k, query.cols());
+		const int colCount(query.cols());
+		
+		for (int i = 0; i < colCount; ++i)
+		{
+			//off.setZero();
+			fill(off.begin(), off.end(), 0);
+			heap.reset();
+			
+			statistics.lastQueryVisitCount = 0;
+			
+			if (allowSelfMatch)
+				recurseKnn<true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
+			else
+				recurseKnn<false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
+			
+			if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+				heap.sort();
+			
+			// TODO: fixme
+			result.col(i) = heap.getIndexes();
+			
+			statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		}
+		
+		return result;
+	}
+	
+	template<typename T, typename Heap> template<bool allowSelfMatch>
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off,/*Vector& off,*/ const T maxError)
+	{
+		const Node& node(nodes[n]);
+		//++statistics.lastQueryVisitCount;
+		
+		if (node.rightChild == Node::INVALID_CHILD)
+		{
+			//const T dist(dist2<T>(query, cloud.col(index)));
+			//const T dist((query - cloud.col(index)).squaredNorm());
+			T dist(0);
+			const T* qPtr(query);
+			const T* dPtr(node.pt);
+			for (int i = 0; i < dimCount; ++i)
+			{
+				const T diff(*qPtr - *dPtr);
+				dist += diff*diff;
+				qPtr++; dPtr++;
+			}
+			if ((dist < heap.headValue()) &&
+				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
+			)
+				heap.replaceHead(node.dim, dist);
+		}
+		else
+		{
+			const Index cd(node.dim);
+			T& offcd(off[cd]);
+			//const T old_off(off.coeff(cd));
+			const T old_off(offcd);
+			const T new_off(query[cd] - node.cutVal);
+			if (new_off > 0)
+			{
+				recurseKnn<allowSelfMatch>(query, node.rightChild, rd, heap, off, maxError);
+				rd += - old_off*old_off + new_off*new_off;
+				if (rd * maxError < heap.headValue())
+				{
+					offcd = new_off;
+					recurseKnn<allowSelfMatch>(query, n + 1, rd, heap, off, maxError);
+					offcd = old_off;
+				}
+			}
+			else
+			{
+				recurseKnn<allowSelfMatch>(query, n+1, rd, heap, off, maxError);
+				rd += - old_off*old_off + new_off*new_off;
+				if (rd * maxError < heap.headValue())
+				{
+					offcd = new_off;
+					recurseKnn<allowSelfMatch>(query, node.rightChild, rd, heap, off, maxError);
+					offcd = old_off;
+				}
+			}
+		}
+	}
+	
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapSTL<int,float>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapBruteForceVector<int,float>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>>;
 	
 	
 	// NEW
@@ -749,7 +977,7 @@ namespace Nabo
 		nodes.push_back(Node(cutDim, cutVal, minValues.coeff(cutDim), maxValues.coeff(cutDim)));
 		
 		// recurse
-		const unsigned leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
+		const unsigned __attribute__ ((unused)) leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
 		assert(leftChild == pos + 1);
 		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
 		
@@ -765,7 +993,7 @@ namespace Nabo
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
-		for (size_t i = 0; i < cloud.cols(); ++i)
+		for (int i = 0; i < cloud.cols(); ++i)
 		{
 			const Vector& v(cloud.col(i));
 			buildPoints.push_back(BuildPoint(v, i));
@@ -812,7 +1040,7 @@ namespace Nabo
 		{
 			const int index(-(cd + 1));
 			const T dist(dist2<T>(query, cloud.col(index)));
-			if ((dist < heap.head().value) &&
+			if ((dist < heap.headValue()) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 			)
 				heap.replaceHead(index, dist);
@@ -831,7 +1059,7 @@ namespace Nabo
 				
 				rd += cut_diff*cut_diff - box_diff*box_diff;
 				
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 					recurseKnn(query, node.rightChild, rd, heap, maxError, allowSelfMatch);
 			}
 			else
@@ -844,7 +1072,7 @@ namespace Nabo
 				
 				rd += cut_diff*cut_diff - box_diff*box_diff;
 				
-				if (rd * maxError < heap.head().value)
+				if (rd * maxError < heap.headValue())
 					recurseKnn(query, n + 1, rd, heap, maxError, allowSelfMatch);
 			}
 		}
