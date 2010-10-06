@@ -32,7 +32,7 @@ Their outputs are available in the `Testing` directory.
 Benchmarking
 ------------
 
-If ANN [1] is detected when compiling libnabo, benchmarking will be available
+If [ANN] [1] is detected when compiling libnabo, benchmarking will be available
 
 [1]: http://www.cs.umd.edu/~mount/ANN/
 [2]: http://www.cmake.org/
