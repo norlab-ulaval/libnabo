@@ -12,7 +12,7 @@ int main()
 	// 1 query points
 	VectorXf q = VectorXf::Random(3);
 	
-	// create a kd-tree for these points
+	// create a kd-tree for M, note that M must stay valid during the lifetime of the kd-tree
 	NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
 	// look for the 5 nearest neighbor
 	const int K = 5;

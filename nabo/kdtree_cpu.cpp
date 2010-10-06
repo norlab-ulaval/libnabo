@@ -233,7 +233,6 @@ namespace Nabo
 		
 		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
-		
 		for (int i = 0; i < colCount; ++i)
 		{
 			fill(off.begin(), off.end(), 0);

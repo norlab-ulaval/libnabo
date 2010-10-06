@@ -21,9 +21,7 @@ libnabo is easy to use. For example, assuming that you are working with floats a
 
 In this example, `M` is an [Eigen] matrix (column major, float) and `q` is an [Eigen] vector (float).
 The result `n` is an [Eigen] vector of indices refering to the columns of `M`.
-See `example/trivial.cpp` for a compilable version of this example.
-
-More information available soon.
+See `example/trivial.cpp` for a compilable version of this example, and `example/usage.cpp` for a slightly more complex example.
 
 
 Compilation
