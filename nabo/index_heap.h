@@ -55,12 +55,12 @@ namespace Nabo
 			push_heap(data.begin(), data.end());
 		}
 		
-		void sort()
+		inline void sort()
 		{
 			sort_heap (data.begin(), data.end());
 		}
 		
-		IndexVector getIndexes() const
+		inline IndexVector getIndexes() const
 		{
 			IndexVector indexes(data.size());
 			for (size_t i = 0; i < data.size(); ++i)
@@ -120,12 +120,12 @@ namespace Nabo
 			data[i].index = index;
 		}
 		
-		void sort()
+		inline void sort()
 		{
 			std::sort(data.begin(), data.end());
 		}
 		
-		IndexVector getIndexes() const
+		inline IndexVector getIndexes() const
 		{
 			IndexVector indexes(data.size());
 			for (size_t i = 0; i < data.size(); ++i)

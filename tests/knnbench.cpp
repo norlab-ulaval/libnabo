@@ -1,5 +1,8 @@
 #include "nabo/nabo.h"
-#include "ANN.h"
+#include "experimental/nabo_experimental.h"
+#ifdef HAVE_ANN
+	#include "ANN.h"
+#endif // HAVE_ANN
 #include <boost/timer.hpp>
 #include <iostream>
 #include <fstream>
@@ -145,6 +148,8 @@ BenchResult doBench(const Matrix& d, const Matrix& q, const Index K, const int i
 	return result;
 }
 
+#ifdef HAVE_ANN
+
 BenchResult doBenchANNStack(const Matrix& d, const Matrix& q, const Index K, const int itCount)
 {
 	BenchResult result;
@@ -205,6 +210,8 @@ BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, 
 	return result;
 }
 
+#endif // HAVE_ANN
+
 
 int main(int argc, char* argv[])
 {
@@ -238,8 +245,13 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	
-	const size_t benchCount(4);
+	#define SELF_BENCH_COUNT 2
+	#ifdef HAVE_ANN
+		#define BENCH_COUNT (SELF_BENCH_COUNT+1)
+	#else // HAVE_ANN
+		#define BENCH_COUNT SELF_BENCH_COUNT
+	#endif // HAVE_ANN
+	const size_t benchCount(BENCH_COUNT);
 	const char* benchLabels[benchCount] =
 	{
 		//doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance",
@@ -247,12 +259,14 @@ int main(int argc, char* argv[])
 		//doBench<KDTD3>("Nabo, balanced, stack, pt in leaves only, balance variance",
 		//"Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio",
 		//"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap",
-		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap",
+		//"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap",
 		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
 		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
 		//"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
+		#ifdef HAVE_ANN
 		"ANN stack",
 		//"ANN priority",
+		#endif // HAVE_ANN
 	};
 	
 	// do bench themselves, accumulate over several times
@@ -265,12 +279,14 @@ int main(int argc, char* argv[])
 		//results.at(i++) += doBench<KDTD3>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD4>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD5A>(d, q, K, itCount);
-		results.at(i++) += doBench<KDTD5B>(d, q, K, itCount);
+		//results.at(i++) += doBench<KDTD5B>(d, q, K, itCount);
 		results.at(i++) += doBench<KDTD5OB>(d, q, K, itCount);
 		results.at(i++) += doBench<KDTD5OA>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD6>(d, q, K, itCount);
+		#ifdef HAVE_ANN
 		results.at(i++) += doBenchANNStack(d, q, K, itCount);
 		//results.at(i++) += doBenchANNPriority(d, q, K, itCount);
+		#endif // HAVE_ANN
 	}
 	
 	// print results

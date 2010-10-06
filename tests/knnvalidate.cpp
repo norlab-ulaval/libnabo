@@ -42,93 +42,119 @@ typename NearestNeighborSearch<T>::Matrix load(const char *fileName)
 	return Matrix::Map(&data[0], dim, data.size() / dim);
 }
 
+template<typename T, typename NNS>
+typename Nabo::NearestNeighborSearch<T>::Vector createQuery(const typename Nabo::NearestNeighborSearch<T>::Matrix& d, const NNS& nns, const int i, const int method)
+{
+	if (method < 0)
+	{
+		typename Nabo::NearestNeighborSearch<T>::Vector q = d.col(i % d.cols());
+		double absBound = 0;
+		for (int j = 0; j < q.size(); ++j)
+			absBound += nns.maxBound(j) - nns.minBound(j);
+		absBound /= 3 * (-method); // divided by -method
+		if (i < d.cols())
+			q.cwise() += absBound;
+		else
+			q.cwise() -= absBound;
+		return q;
+	}
+	else
+	{
+		typename Nabo::NearestNeighborSearch<T>::Vector q(nns.minBound.size());
+		for (int j = 0; j < q.size(); ++j)
+			q(j) = nns.minBound(j) + double(rand()) * (nns.maxBound(j) - nns.minBound(j)) / double(RAND_MAX);
+		return q;
+	}
+}
+
+template<typename T>
+void validate(const char *fileName, const int K, const int method)
+{
+	typedef Nabo::NearestNeighborSearch<T> NNS;
+	typedef vector<NNS*> NNSV;
+	typedef typename NNS::Matrix Matrix;
+	typedef typename NNS::Vector Vector;
+	typedef typename NNS::Index Index;
+	typedef typename NNS::IndexVector IndexVector;
+	
+	// check if file is ok
+	const Matrix d(load<T>(fileName));
+	if (K >= d.cols())
+	{
+		cerr << "Requested more nearest neighbor than points in the data set" << endl;
+		exit(2);
+	}
+	
+	// create different methods
+	NNSV nnss;
+	for (unsigned i = 0; i < NNS::SEARCH_TYPE_COUNT; ++i)
+		nnss.push_back(NNS::create(d, typename NNS::SearchType(i)));
+	
+	// check methods together
+	const int itCount(method != -1 ? method : d.cols() * 2);
+	for (int i = 0; i < itCount; ++i)
+	{
+		const Vector q(createQuery<T>(d, *nnss[0], i, method));
+		const IndexVector indexes_bf(nnss[0]->knn(q, K, 0, NNS::SORT_RESULTS));
+		for (size_t j = 1; j < nnss.size(); ++j)
+		{
+			const IndexVector indexes_kdtree(nnss[j]->knn(q, K, 0, NNS::SORT_RESULTS));
+			if (indexes_bf.size() != K)
+			{
+				cerr << "Different number of points found between brute force and request" << endl;
+				exit(3);
+			}
+			if (indexes_bf.size() != indexes_kdtree.size())
+			{
+				cerr << "Different number of points found between brute force and NNS type "<< j  << endl;
+				exit(3);
+			}
+			for (size_t j = 0; j < size_t(K); ++j)
+			{
+				Vector pbf(d.col(indexes_bf[j]));
+				//cerr << indexes_kdtree[j] << endl;
+				Vector pkdtree(d.col(indexes_kdtree[j]));
+				if (fabsf((pbf-q).squaredNorm() - (pkdtree-q).squaredNorm()) >= numeric_limits<float>::epsilon())
+				{
+					cerr << "Step " << i << ", point " << j << " of " << K << " is different between bf and kdtree (dist " << (pbf-pkdtree).norm() << ")\n";
+					cerr << "* query:\n";
+					cerr << q << "\n";
+					cerr << "* indexes " << indexes_bf[j] << " (bf) vs " <<  indexes_kdtree[j] << " (kdtree)\n";
+					cerr << "* coordinates:\n";
+					cerr << "bf: (dist " << (pbf-q).norm() << ")\n";
+					cerr << pbf << "\n";
+					cerr << "kdtree (dist " << (pkdtree-q).norm() << ")\n";
+					cerr << pkdtree << endl;
+					exit(4);
+				}
+			}
+		}
+	}
+	
+// 	cout << "\tstats kdtree: "
+// 		<< kdt.getStatistics().totalVisitCount << " on "
+// 		<< (long long)(itCount) * (long long)(d.cols()) << " ("
+// 		<< (100. * double(kdt.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
+// 		<< ")\n" << endl;
+	
+	// delete searches
+	for (typename NNSV::iterator it(nnss.begin()); it != nnss.end(); ++it)
+		delete (*it);
+}
+
 int main(int argc, char* argv[])
 {
-	typedef Nabo::NearestNeighborSearch<float>::Matrix Matrix;
-	typedef Nabo::NearestNeighborSearch<float>::Vector Vector;
-	typedef Nabo::NearestNeighborSearch<float>::Index Index;
-	typedef Nabo::NearestNeighborSearch<float>::IndexVector IndexVector;
-	typedef Nabo::NearestNeighborSearch<float> NNS;
-	typedef Nabo::BruteForceSearch<float> BFSF;
-	typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float, IndexHeapBruteForceVector<int,float>> KDTF;
-	
 	if (argc != 4)
 	{
 		cerr << "Usage " << argv[0] << " DATA K METHOD" << endl;
 		return 1;
 	}
 	
-	const Matrix d(load<float>(argv[1]));
-	const Index K(atoi(argv[2]));
+	const int K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
-	const int itCount(method != -1 ? method : d.cols() * 2);
-	BFSF bfs(d);
-	KDTF kdt(d);
 	
-	// compare KDTree with brute force search
-	if (K >= d.cols())
-	{
-		cerr << "Requested more nearest neighbor than points in the data set" << endl;
-		return 2;
-	}
-	
-	for (int i = 0; i < itCount; ++i)
-	{
-		Vector q(bfs.minBound.size());
-		if (method == -1)
-		{
-			float absBound = 0;
-			for (int j = 0; j < q.size(); ++j)
-				absBound += bfs.maxBound(j) - bfs.minBound(j);
-			absBound /= 3 * 100; // 1 % difference
-			q = d.col(i % d.cols());
-			if (i < itCount / 2)
-				q.cwise() += absBound;
-			else
-				q.cwise() -= absBound;
-		}
-		else
-		{
-			for (int j = 0; j < q.size(); ++j)
-				q(j) = bfs.minBound(j) + float(rand()) * (bfs.maxBound(j) - bfs.minBound(j)) / float(RAND_MAX);
-		}
-		IndexVector indexes_bf(bfs.knn(q, K, 0, NNS::SORT_RESULTS));
-		IndexVector indexes_kdtree(kdt.knn(q, K, 0, NNS::SORT_RESULTS));
-		if (indexes_bf.size() != indexes_kdtree.size())
-		{
-			cerr << "Different number of points found between search methods" << endl;
-			return 3;
-		}
-		if (indexes_bf.size() != K)
-		{
-			cerr << "Different number of points found between brute force and request" << endl;
-			return 3;
-		}
-		for (size_t j = 0; j < size_t(K); ++j)
-		{
-			Vector pbf(d.col(indexes_bf[j]));
-			//cerr << indexes_kdtree[j] << endl;
-			Vector pkdtree(d.col(indexes_kdtree[j]));
-			if (fabsf(dist2<float>(pbf, q) - dist2<float>(pkdtree, q)) >= numeric_limits<float>::epsilon())
-			{
-				cerr << "Step " << i << ", point " << j << " of " << K << " is different between bf and kdtree (dist " << dist2<float>(pbf, pkdtree) << ")\n";
-				cerr << "* query:\n";
-				cerr << q << "\n";
-				cerr << "* indexes " << indexes_bf[j] << " (bf) vs " <<  indexes_kdtree[j] << " (kdtree)\n";
-				cerr << "* coordinates:\n";
-				cerr << "bf: (dist " << dist2<float>(pbf, q) << ")\n";
-				cerr << pbf << "\n";
-				cerr << "kdtree (dist " << dist2<float>(pkdtree, q) << ")\n";
-				cerr << pkdtree << endl;
-				return 4;
-			}
-		}
-	}
-	cout << "\tstats kdtree: "
-		<< kdt.getStatistics().totalVisitCount << " on "
-		<< (long long)(itCount) * (long long)(d.cols()) << " ("
-		<< (100. * double(kdt.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
-		<< ")\n" << endl;
+	validate<float>(argv[1], K, method);
+	validate<double>(argv[1], K, method);
 	
 	return 0;
 }

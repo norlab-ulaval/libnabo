@@ -23,9 +23,9 @@ find_path(EIGEN2_INCLUDE_DIR Eigen/Core
 )
 
 # include all libs so far
-include_directories(${EIGEN2_INCLUDE_DIR})
+include_directories(${EIGEN2_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
-# our lib
+# main nabo lib
 add_library(nabo 
 	nabo/nabo.cpp
 	nabo/brute_force_cpu.cpp
@@ -35,5 +35,6 @@ install(TARGETS nabo ARCHIVE DESTINATION lib)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
 
 enable_testing()
+add_subdirectory(experimental)
 add_subdirectory(tests)
 

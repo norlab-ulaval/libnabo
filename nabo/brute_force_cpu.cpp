@@ -1,4 +1,4 @@
-#include "nabo.h"
+#include "nabo_private.h"
 #include "index_heap.h"
 
 namespace Nabo
