@@ -46,6 +46,24 @@ namespace Nabo
 		}
 	}
 	
+	template<typename T>
+	NearestNeighborSearch<T>* NearestNeighborSearch<T>::createBruteForce(const Matrix& cloud)
+	{
+		return new BruteForceSearch<T>(cloud);;
+	}
+	
+	template<typename T>
+	NearestNeighborSearch<T>* NearestNeighborSearch<T>::createKDTreeLinearHeap(const Matrix& cloud)
+	{
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>>(cloud);
+	}
+	
+	template<typename T>
+	NearestNeighborSearch<T>* NearestNeighborSearch<T>::createKDTreeTreeHeap(const Matrix& cloud)
+	{
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud);
+	}
+	
 	template struct NearestNeighborSearch<float>;
 	template struct NearestNeighborSearch<double>;
 }

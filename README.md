@@ -1,17 +1,30 @@
 libnabo is a fast K Nearset Neighbor library for low-dimensional spaces.
 It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
-Its current CPU implementation is strongly inspired by [ANN] [1], but with more compact data types.
+Its current CPU implementation is strongly inspired by [ANN], but with more compact data types.
 On the average, libnabo is 20% faster than ANN.
 
 Usage
 -----
 
-TODO
+libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set `M` and a query point `q`, you can find the index `n` of the K nearest neighbors of `q` in `M`:
+
+	#include "nabo/nabo.h"
+	using namespace Nabo;
+	using namespace Eigen;
+	...
+	NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
+	const int K(5);
+	VectorXi n = nns->knn(q, K);
+
+In this example, `M` is an [Eigen] matrix (column major, float) and `q` is an Eigen vector (float).
+The result `n` is an Eigen vector of indices of columns of `M`.
+
+More information available soon.
 
 Compilation
 -----------
 
-libnabo uses [CMake] [2] as build system.
+libnabo uses [CMake] as build system.
 Just create a directory, go inside it and type:
 
 	cmake LIBNABO_SRC_DIR
@@ -28,12 +41,10 @@ Just type:
    
 ...in the build directory to run the tests.
 Their outputs are available in the `Testing` directory.
+These consist of validation and benchmarking tests.
+If [ANN] is detected when compiling libnabo, `make test` will also perform comparative benchmarking.
 
-Benchmarking
-------------
-
-If ANN [1] is detected when compiling libnabo, benchmarking will be available
-
-[1]: http://www.cs.umd.edu/~mount/ANN/
-[2]: http://www.cmake.org/
+[ANN]: http://www.cs.umd.edu/~mount/ANN
+[CMake]: http://www.cmake.org
+[Eigen]: http://eigen.tuxfamily.org
 

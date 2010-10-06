@@ -50,10 +50,17 @@ namespace Nabo
 		const Statistics& getStatistics() const { return statistics; }
 		
 		static NearestNeighborSearch* create(const Matrix& cloud, const SearchType preferedType);
+		static NearestNeighborSearch* createBruteForce(const Matrix& cloud);
+		static NearestNeighborSearch* createKDTreeLinearHeap(const Matrix& cloud);
+		static NearestNeighborSearch* createKDTreeTreeHeap(const Matrix& cloud);
 		
 	protected:
 		Statistics statistics;
 	};
+	
+	// Convenience typedefs
+	typedef NearestNeighborSearch<float> NNSearchF;
+	typedef NearestNeighborSearch<double> NNSearchD;
 }
 
 #endif // __NABO_H
