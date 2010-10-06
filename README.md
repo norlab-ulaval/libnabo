@@ -19,9 +19,9 @@ libnabo is easy to use. For example, assuming that you are working with floats a
 	const int K = 5;
 	VectorXi n = nns->knn(q, K);
 
-In this example, `M` is an [Eigen] matrix (column major, float) and `q` is an [Eigen] vector (float).
+In this example, `M` is an [Eigen] (refering to the software, not to the math) matrix (column major, float) and `q` is an [Eigen] vector (float).
 The result `n` is an [Eigen] vector of indices refering to the columns of `M`.
-See `example/trivial.cpp` for a compilable version of this example, and `example/usage.cpp` for a slightly more complex example.
+See `examples/trivial.cpp` for a compilable version of this example, and `examples/usage.cpp` for a slightly more complex example.
 
 
 Compilation
@@ -50,6 +50,11 @@ Their outputs are available in the `Testing` directory.
 These consist of validation and benchmarking tests.
 If [ANN] is detected when compiling libnabo, `make test` will also perform comparative benchmarks.
 
+
+Bug reporting
+-------------
+
+Please use [github's issue tracker](http://github.com/stephanemagnenat/libnabo/issues) to report bugs.
 
 License
 -------
