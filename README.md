@@ -1,12 +1,14 @@
-libnabo is a fast K Nearset Neighbor library for low-dimensional spaces.
+libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
 It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
 Its current CPU implementation is strongly inspired by [ANN], but with more compact data types.
 On the average, libnabo is 20% faster than ANN.
 
+libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
+
 Usage
 -----
 
-libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set `M` and a query point `q`, you can find the index `n` of the K nearest neighbors of `q` in `M`:
+libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set `M` and a query point `q`, you can find the indexes `n` of the K nearest neighbours of `q` in `M`:
 
 	#include "nabo/nabo.h"
 	using namespace Nabo;
@@ -16,8 +18,9 @@ libnabo is easy to use. For example, assuming that you are working with floats a
 	const int K(5);
 	VectorXi n = nns->knn(q, K);
 
-In this example, `M` is an [Eigen] matrix (column major, float) and `q` is an Eigen vector (float).
-The result `n` is an Eigen vector of indices of columns of `M`.
+In this example, `M` is an [Eigen] matrix (column major, float) and `q` is an [Eigen] vector (float).
+The result `n` is an [Eigen] vector of indices of columns of `M`.
+See `example/trivial.cpp` for a compilable version of this example.
 
 More information available soon.
 
