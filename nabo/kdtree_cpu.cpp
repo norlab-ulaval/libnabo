@@ -819,9 +819,10 @@ namespace Nabo
 	}
 
 	template<typename T, typename Heap>
-	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud):
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const unsigned maxThreadCount):
 		NearestNeighborSearch<T>::NearestNeighborSearch(cloud),
-		dimCount(cloud.rows())
+		dimCount(cloud.rows()),
+		maxThreadCount(maxThreadCount != 0 ? maxThreadCount : boost::thread::hardware_concurrency())
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -867,47 +868,79 @@ namespace Nabo
 		return heap.getIndexes();
 	}
 	
+	static const unsigned sliceSize(16384);
 	
 	template<typename T, typename Heap>
 	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
-		assert(nodes.size() > 0);
+		QueryContext queryContext(query, k, epsilon, optionFlags);
 		
-		assert(nodes.size() > 0);
-		Heap heap(k);
+		statistics.lastQueryVisitCount = 0;
 		
+		// thread pool
+		const unsigned threadCount(min(maxThreadCount, 1 + (query.cols() / sliceSize)));
+		boost::thread_group threads;
+		//cerr << "using " << threadCount << " threads" << endl;
+		
+		// create and run threads
+		for (unsigned i=0; i < threadCount; ++i)
+			threads.create_thread(
+				boost::bind(&KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::workingThread, this, boost::ref(queryContext))
+			);
+		
+		// wait for completion
+		threads.join_all();
+		
+		statistics.totalVisitCount += statistics.lastQueryVisitCount;
+		
+		return queryContext.result;
+	}
+	
+	template<typename T, typename Heap>
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::workingThread(QueryContext& context) const
+	{
+		const bool allowSelfMatch(context.optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool sortResults(context.optionFlags & NearestNeighborSearch<T>::SORT_RESULTS);
+		const Index colCount(context.query.cols());
+		Heap heap(context.k);
 		std::vector<T> off(dimCount, 0);
 		
-		IndexMatrix result(k, query.cols());
-		const int colCount(query.cols());
-		
-		for (int i = 0; i < colCount; ++i)
+		context.mutex.lock();
+		while (context.nextToProcess < colCount)
 		{
-			fill(off.begin(), off.end(), 0);
-			heap.reset();
+			const Index start(context.nextToProcess);
+			const Index nextStart(min(start + int(sliceSize), colCount));
+			context.nextToProcess = nextStart;
+			context.mutex.unlock();
 			
-			// FIXME: add define for statistics
-			statistics.lastQueryVisitCount = 0;
+			for (int i = start; i < nextStart; ++i)
+			{
+				fill(off.begin(), off.end(), 0);
+				heap.reset();
+				
+				// FIXME: do something with statistics
+				//statistics.lastQueryVisitCount = 0;
+				
+				if (allowSelfMatch)
+					recurseKnn<true>(&context.query.coeff(0, i), 0, 0, heap, off, 1+context.epsilon);
+				else
+					recurseKnn<false>(&context.query.coeff(0, i), 0, 0, heap, off, 1+context.epsilon);
+				
+				if (sortResults)
+					heap.sort();
+				
+				context.result.col(i) = heap.getIndexes();
+				
+				//statistics.totalVisitCount += statistics.lastQueryVisitCount;
+			}
 			
-			if (allowSelfMatch)
-				recurseKnn<true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
-			else
-				recurseKnn<false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
-			
-			if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
-				heap.sort();
-			
-			result.col(i) = heap.getIndexes();
-			
-			statistics.totalVisitCount += statistics.lastQueryVisitCount;
+			context.mutex.lock();
 		}
-		
-		return result;
+		context.mutex.unlock();
 	}
 	
 	template<typename T, typename Heap> template<bool allowSelfMatch>
-	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError)
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError) const
 	{
 		const Node& node(nodes[n]);
 		//++statistics.lastQueryVisitCount;

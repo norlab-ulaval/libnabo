@@ -4,7 +4,7 @@ project(nabo)
 
 add_definitions(-Wall)
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 # C++0x 
 if(CMAKE_COMPILER_IS_GNUCXX) #Maybe "OR MINGW"

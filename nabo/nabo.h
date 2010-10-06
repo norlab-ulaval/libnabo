@@ -6,6 +6,8 @@
 #include "index_heap.h"
 #include <vector>
 #include <cstdatomic>
+#include <boost/thread.hpp>
+
 
 namespace Nabo
 {
@@ -50,7 +52,7 @@ namespace Nabo
 		const Statistics& getStatistics() const { return statistics; }
 		
 	protected:
-		Statistics statistics;
+		mutable Statistics statistics;
 	};
 
 	// Brute-force nearest neighbor
@@ -342,15 +344,39 @@ namespace Nabo
 		
 		Nodes nodes;
 		const int dimCount;
+		const unsigned maxThreadCount;
+		
+		struct QueryContext
+		{
+			const Matrix& query;
+			const Index k;
+			const T epsilon;
+			const unsigned optionFlags;
+			
+			IndexMatrix result;
+			
+			boost::mutex mutex;
+			Index nextToProcess;
+			
+			QueryContext(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags):
+				query(query),
+				k(k),
+				epsilon(epsilon),
+				optionFlags(optionFlags),
+				result(k, query.cols()),
+				nextToProcess(0)
+			{}
+		};
 		
 		std::pair<T,T> getBounds(const BuildPointsIt first, const BuildPointsIt last, const unsigned dim);
 		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
 		
 		template<bool allowSelfMatch>
-		void recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError);
+		void recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError) const;
+		void workingThread(QueryContext& context) const;
 		
 	public:
-		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud);
+		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const unsigned maxThreadCount = 0);
 		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
