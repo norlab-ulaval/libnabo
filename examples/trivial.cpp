@@ -1,3 +1,5 @@
+// This example is in the public domain
+
 #include "nabo/nabo.h"
 
 int main()
@@ -13,7 +15,7 @@ int main()
 	// create a kd-tree for these points
 	NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
 	// look for the 5 nearest neighbor
-	const int K(5);
+	const int K = 5;
 	VectorXi n = nns->knn(q, K);
 	
 	// cleanup kd-tree
