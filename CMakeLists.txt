@@ -1,7 +1,19 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(nabo)
+project(libnabo)
 
+# Documentation, extract version from header
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+execute_process(
+	COMMAND grep "NABO_VERSION " nabo/nabo.h
+	COMMAND sed "s/.*\"\(.*\)\"/\1/g"
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	OUTPUT_VARIABLE PROJECT_VERSION
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+include(UseDoxygen)
+
+# Compilation
 add_definitions(-Wall)
 
 find_package(Boost REQUIRED)

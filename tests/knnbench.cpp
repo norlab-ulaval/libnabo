@@ -43,9 +43,9 @@ using namespace std;
 using namespace Nabo;
 
 template<typename T>
-typename NearestNeighborSearch<T>::Matrix load(const char *fileName)
+typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 {
-	typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
 	
 	ifstream ifs(fileName);
 	if (!ifs.good())
@@ -78,11 +78,11 @@ typename NearestNeighborSearch<T>::Matrix load(const char *fileName)
 	return Matrix::Map(&data[0], dim, data.size() / dim);
 }
 
-typedef Nabo::NearestNeighborSearch<double>::Matrix Matrix;
-typedef Nabo::NearestNeighborSearch<double>::Vector Vector;
-typedef Nabo::NearestNeighborSearch<double>::Index Index;
-typedef Nabo::NearestNeighborSearch<double>::IndexVector IndexVector;
-typedef Nabo::NearestNeighborSearch<double> NNS;
+typedef Nabo::NearestNeighbourSearch<double>::Matrix Matrix;
+typedef Nabo::NearestNeighbourSearch<double>::Vector Vector;
+typedef Nabo::NearestNeighbourSearch<double>::Index Index;
+typedef Nabo::NearestNeighbourSearch<double>::IndexVector IndexVector;
+typedef Nabo::NearestNeighbourSearch<double> NNS;
 typedef Nabo::BruteForceSearch<double> BFSD;
 typedef Nabo::KDTreeBalancedPtInNodesPQ<double> KDTD1;
 typedef Nabo::KDTreeBalancedPtInNodesStack<double> KDTD2;
@@ -201,8 +201,8 @@ BenchResult doBenchANNStack(const Matrix& d, const Matrix& q, const Index K, con
 		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
 		ann_kdt->annkSearch(		// search
 						queryPt,	// query point
-						K,			// number of near neighbors
-						nnIdx,		// nearest neighbors (returned)
+						K,			// number of near neighbours
+						nnIdx,		// nearest neighbours (returned)
 						dists,		// distance (returned)
 						0);			// error bound
 	}
@@ -231,8 +231,8 @@ BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, 
 		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
 		ann_kdt->annkPriSearch(		// search
 						queryPt,	// query point
-						K,			// number of near neighbors
-						nnIdx,		// nearest neighbors (returned)
+						K,			// number of near neighbours
+						nnIdx,		// nearest neighbours (returned)
 						dists,		// distance (returned)
 						0);			// error bound
 	}
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
 	// compare KDTree with brute force search
 	if (K >= d.cols())
 	{
-		cerr << "Requested more nearest neighbor than points in the data set" << endl;
+		cerr << "Requested more nearest neighbour than points in the data set" << endl;
 		return 2;
 	}
 	

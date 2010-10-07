@@ -39,12 +39,12 @@ namespace Nabo
 {
 	// KDTree, balanced, points in nodes
 	template<typename T>
-	struct KDTreeBalancedPtInNodes:public NearestNeighborSearch<T>
+	struct KDTreeBalancedPtInNodes:public NearestNeighbourSearch<T>
 	{
-		typedef typename NearestNeighborSearch<T>::Vector Vector;
-		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		
 	protected:
 		struct BuildPoint
@@ -91,14 +91,14 @@ namespace Nabo
 	template<typename T>
 	struct KDTreeBalancedPtInNodesPQ: public KDTreeBalancedPtInNodes<T>
 	{
-		typedef typename NearestNeighborSearch<T>::Vector Vector;
-		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		typedef typename KDTreeBalancedPtInNodes<T>::Node Node;
 		typedef typename KDTreeBalancedPtInNodes<T>::Nodes Nodes;
 		
-		using NearestNeighborSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::statistics;
 		using KDTreeBalancedPtInNodes<T>::nodes;
 		using KDTreeBalancedPtInNodes<T>::childLeft;
 		using KDTreeBalancedPtInNodes<T>::childRight;
@@ -123,14 +123,14 @@ namespace Nabo
 	template<typename T>
 	struct KDTreeBalancedPtInNodesStack: public KDTreeBalancedPtInNodes<T>
 	{
-		typedef typename NearestNeighborSearch<T>::Vector Vector;
-		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		typedef typename KDTreeBalancedPtInNodes<T>::Node Node;
 		typedef typename KDTreeBalancedPtInNodes<T>::Nodes Nodes;
 		
-		using NearestNeighborSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::statistics;
 		using KDTreeBalancedPtInNodes<T>::nodes;
 		using KDTreeBalancedPtInNodes<T>::childLeft;
 		using KDTreeBalancedPtInNodes<T>::childRight;
@@ -148,17 +148,17 @@ namespace Nabo
 	
 	//  KDTree, balanced, points in leaves, stack
 	template<typename T>
-	struct KDTreeBalancedPtInLeavesStack: public NearestNeighborSearch<T>
+	struct KDTreeBalancedPtInLeavesStack: public NearestNeighbourSearch<T>
 	{
-		typedef typename NearestNeighborSearch<T>::Vector Vector;
-		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		
-		using NearestNeighborSearch<T>::statistics;
-		using NearestNeighborSearch<T>::cloud;
-		using NearestNeighborSearch<T>::minBound;
-		using NearestNeighborSearch<T>::maxBound;
+		using NearestNeighbourSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::minBound;
+		using NearestNeighbourSearch<T>::maxBound;
 		
 	protected:
 		struct BuildPoint
@@ -205,18 +205,18 @@ namespace Nabo
 	
 	//  KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT
 	template<typename T, typename Heap>
-	struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack: public NearestNeighborSearch<T>
+	struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack: public NearestNeighbourSearch<T>
 	{
-		typedef typename NearestNeighborSearch<T>::Vector Vector;
-		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
-		typedef typename NearestNeighborSearch<T>::IndexMatrix IndexMatrix;
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighborSearch<T>::statistics;
-		using NearestNeighborSearch<T>::cloud;
-		using NearestNeighborSearch<T>::minBound;
-		using NearestNeighborSearch<T>::maxBound;
+		using NearestNeighbourSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::minBound;
+		using NearestNeighbourSearch<T>::maxBound;
 		
 	protected:
 		struct BuildPoint
@@ -271,18 +271,18 @@ namespace Nabo
 	
 	//  KDTree, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT
 	template<typename T>
-	struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack: public NearestNeighborSearch<T>
+	struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack: public NearestNeighbourSearch<T>
 	{
-		typedef typename NearestNeighborSearch<T>::Vector Vector;
-		typedef typename NearestNeighborSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighborSearch<T>::Index Index;
-		typedef typename NearestNeighborSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		
 		
-		using NearestNeighborSearch<T>::statistics;
-		using NearestNeighborSearch<T>::cloud;
-		using NearestNeighborSearch<T>::minBound;
-		using NearestNeighborSearch<T>::maxBound;
+		using NearestNeighbourSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::minBound;
+		using NearestNeighbourSearch<T>::maxBound;
 		
 	protected:
 		struct BuildPoint

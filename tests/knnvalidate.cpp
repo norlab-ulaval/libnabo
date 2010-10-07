@@ -38,9 +38,9 @@ using namespace std;
 using namespace Nabo;
 
 template<typename T>
-typename NearestNeighborSearch<T>::Matrix load(const char *fileName)
+typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 {
-	typedef typename NearestNeighborSearch<T>::Matrix Matrix;
+	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
 	
 	ifstream ifs(fileName);
 	if (!ifs.good())
@@ -74,11 +74,11 @@ typename NearestNeighborSearch<T>::Matrix load(const char *fileName)
 }
 
 template<typename T, typename NNS>
-typename Nabo::NearestNeighborSearch<T>::Vector createQuery(const typename Nabo::NearestNeighborSearch<T>::Matrix& d, const NNS& nns, const int i, const int method)
+typename Nabo::NearestNeighbourSearch<T>::Vector createQuery(const typename Nabo::NearestNeighbourSearch<T>::Matrix& d, const NNS& nns, const int i, const int method)
 {
 	if (method < 0)
 	{
-		typename Nabo::NearestNeighborSearch<T>::Vector q = d.col(i % d.cols());
+		typename Nabo::NearestNeighbourSearch<T>::Vector q = d.col(i % d.cols());
 		double absBound = 0;
 		for (int j = 0; j < q.size(); ++j)
 			absBound += nns.maxBound(j) - nns.minBound(j);
@@ -91,7 +91,7 @@ typename Nabo::NearestNeighborSearch<T>::Vector createQuery(const typename Nabo:
 	}
 	else
 	{
-		typename Nabo::NearestNeighborSearch<T>::Vector q(nns.minBound.size());
+		typename Nabo::NearestNeighbourSearch<T>::Vector q(nns.minBound.size());
 		for (int j = 0; j < q.size(); ++j)
 			q(j) = nns.minBound(j) + double(rand()) * (nns.maxBound(j) - nns.minBound(j)) / double(RAND_MAX);
 		return q;
@@ -101,7 +101,7 @@ typename Nabo::NearestNeighborSearch<T>::Vector createQuery(const typename Nabo:
 template<typename T>
 void validate(const char *fileName, const int K, const int method)
 {
-	typedef Nabo::NearestNeighborSearch<T> NNS;
+	typedef Nabo::NearestNeighbourSearch<T> NNS;
 	typedef vector<NNS*> NNSV;
 	typedef typename NNS::Matrix Matrix;
 	typedef typename NNS::Vector Vector;
@@ -112,7 +112,7 @@ void validate(const char *fileName, const int K, const int method)
 	const Matrix d(load<T>(fileName));
 	if (K >= d.cols())
 	{
-		cerr << "Requested more nearest neighbor than points in the data set" << endl;
+		cerr << "Requested more nearest neighbour than points in the data set" << endl;
 		exit(2);
 	}
 	

@@ -39,12 +39,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
 
+/*!	\file kdtree_cpu.cpp
+	\brief kd-tree search, cpu implementation
+	\ingroup private
+*/
+
 namespace Nabo
 {
+	//! \ingroup private
+	//@{
+	
 	using namespace std;
 	
 	template<typename T>
-	size_t argMax(const typename NearestNeighborSearch<T>::Vector& v)
+	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
 	{
 		T maxVal(0);
 		size_t maxIdx(0);
@@ -172,8 +180,7 @@ namespace Nabo
 
 	template<typename T, typename Heap>
 	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud):
-		NearestNeighborSearch<T>::NearestNeighborSearch(cloud),
-		dimCount(cloud.rows())
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -198,11 +205,11 @@ namespace Nabo
 	template<typename T, typename Heap>
 	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
-		std::vector<T> off(dimCount, 0);
+		std::vector<T> off(this->dim, 0);
 		
 		statistics.lastQueryVisitCount = 0;
 		
@@ -211,7 +218,7 @@ namespace Nabo
 		else
 			recurseKnn<false>(&query.coeff(0), 0, 0, heap, off, 1+epsilon);
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
@@ -223,13 +230,13 @@ namespace Nabo
 	template<typename T, typename Heap>
 	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		assert(nodes.size() > 0);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
 		
-		std::vector<T> off(dimCount, 0);
+		std::vector<T> off(this->dim, 0);
 		
 		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
@@ -246,7 +253,7 @@ namespace Nabo
 			else
 				recurseKnn<false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
 			
-			if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 				heap.sort();
 			
 			result.col(i) = heap.getIndexes();
@@ -270,7 +277,7 @@ namespace Nabo
 			T dist(0);
 			const T* qPtr(query);
 			const T* dPtr(node.pt);
-			for (int i = 0; i < dimCount; ++i)
+			for (int i = 0; i < this->dim; ++i)
 			{
 				const T diff(*qPtr - *dPtr);
 				dist += diff*diff;
@@ -317,4 +324,6 @@ namespace Nabo
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapBruteForceVector<int,float>>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>>;
+	
+	//@}
 }

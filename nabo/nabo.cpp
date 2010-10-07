@@ -36,12 +36,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <stdexcept>
 
+/*!	\file nabo.cpp
+	\brief implementation of public interface
+	\ingroup private
+*/
+
 namespace Nabo
 {
 	using namespace std;
 	
 	template<typename T>
-	NearestNeighborSearch<T>::NearestNeighborSearch(const Matrix& cloud):
+	NearestNeighbourSearch<T>::NearestNeighbourSearch(const Matrix& cloud):
 		cloud(cloud),
 		dim(cloud.rows()),
 		minBound(Vector::Constant(dim, numeric_limits<T>::max())),
@@ -51,7 +56,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename NearestNeighborSearch<T>::IndexMatrix NearestNeighborSearch<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	typename NearestNeighbourSearch<T>::IndexMatrix NearestNeighbourSearch<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
 		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
@@ -66,7 +71,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	NearestNeighborSearch<T>* NearestNeighborSearch<T>::create(const Matrix& cloud, const SearchType preferedType)
+	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::create(const Matrix& cloud, const SearchType preferedType)
 	{
 		switch (preferedType)
 		{
@@ -78,23 +83,23 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	NearestNeighborSearch<T>* NearestNeighborSearch<T>::createBruteForce(const Matrix& cloud)
+	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createBruteForce(const Matrix& cloud)
 	{
 		return new BruteForceSearch<T>(cloud);;
 	}
 	
 	template<typename T>
-	NearestNeighborSearch<T>* NearestNeighborSearch<T>::createKDTreeLinearHeap(const Matrix& cloud)
+	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createKDTreeLinearHeap(const Matrix& cloud)
 	{
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>>(cloud);
 	}
 	
 	template<typename T>
-	NearestNeighborSearch<T>* NearestNeighborSearch<T>::createKDTreeTreeHeap(const Matrix& cloud)
+	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createKDTreeTreeHeap(const Matrix& cloud)
 	{
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud);
 	}
 	
-	template struct NearestNeighborSearch<float>;
-	template struct NearestNeighborSearch<double>;
+	template struct NearestNeighbourSearch<float>;
+	template struct NearestNeighbourSearch<double>;
 }

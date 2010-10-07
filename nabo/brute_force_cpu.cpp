@@ -32,13 +32,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "nabo_private.h"
 #include "index_heap.h"
 
+/*!	\file brute_force_cpu.cpp
+	\brief brute force search, cpu implementation
+	\ingroup private
+*/
+
 namespace Nabo
 {
 	using namespace std;
 	
 	template<typename T>
 	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud):
-		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
 	{
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
@@ -51,9 +56,9 @@ namespace Nabo
 	
 
 	template<typename T>
-	typename NearestNeighborSearch<T>::IndexVector BruteForceSearch<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	typename NearestNeighbourSearch<T>::IndexVector BruteForceSearch<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		IndexHeapSTL<Index, T> heap(k);
 		
@@ -68,7 +73,7 @@ namespace Nabo
 		this->statistics.lastQueryVisitCount = this->cloud.cols();
 		this->statistics.totalVisitCount += this->statistics.lastQueryVisitCount;
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		return heap.getIndexes();

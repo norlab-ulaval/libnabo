@@ -44,7 +44,7 @@ namespace Nabo
 	using namespace std;
 	
 	template<typename T>
-	size_t argMax(const typename NearestNeighborSearch<T>::Vector& v)
+	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
 	{
 		T maxVal(0);
 		size_t maxIdx(0);
@@ -171,7 +171,7 @@ namespace Nabo
 
 	template<typename T>
 	KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(const Matrix& cloud):
-		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -206,7 +206,7 @@ namespace Nabo
 		typedef priority_queue<SearchElement> Queue;
 		
 		const T maxError(1 + epsilon);
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		Queue queue;
 		queue.push(SearchElement(0, 0));
@@ -268,7 +268,7 @@ namespace Nabo
 		}
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
@@ -288,7 +288,7 @@ namespace Nabo
 	template<typename T>
 	typename KDTreeBalancedPtInNodesStack<T>::IndexVector KDTreeBalancedPtInNodesStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		assert(nodes[0].pos.size() == query.size());
@@ -299,7 +299,7 @@ namespace Nabo
 		
 		recurseKnn(query, 0, 0, heap, off, 1 + epsilon, allowSelfMatch);
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
@@ -443,7 +443,7 @@ namespace Nabo
 
 	template<typename T>
 	KDTreeBalancedPtInLeavesStack<T>::KDTreeBalancedPtInLeavesStack(const Matrix& cloud, const bool balanceVariance):
-		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -466,7 +466,7 @@ namespace Nabo
 	template<typename T>
 	typename KDTreeBalancedPtInLeavesStack<T>::IndexVector KDTreeBalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
@@ -476,7 +476,7 @@ namespace Nabo
 		
 		recurseKnn(query, 0, 0, heap, off, 1 + epsilon, allowSelfMatch);
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
@@ -601,7 +601,7 @@ namespace Nabo
 
 	template<typename T, typename Heap>
 	KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud):
-		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -624,7 +624,7 @@ namespace Nabo
 	template<typename T, typename Heap>
 	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
@@ -634,7 +634,7 @@ namespace Nabo
 		
 		recurseKnn(query, 0, 0, heap, off, 1+epsilon, allowSelfMatch);
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
@@ -645,7 +645,7 @@ namespace Nabo
 	template<typename T, typename Heap>
 	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		assert(nodes.size() > 0);
 		
 		assert(nodes.size() > 0);
@@ -666,7 +666,7 @@ namespace Nabo
 			
 			recurseKnn(q, 0, 0, heap, off, 1+epsilon, allowSelfMatch);
 			
-			if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+			if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 				heap.sort();
 			
 			result.col(i) = heap.getIndexes();
@@ -805,7 +805,7 @@ namespace Nabo
 
 	template<typename T>
 	KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::KDTreeUnbalancedPtInLeavesExplicitBoundsStack(const Matrix& cloud):
-		NearestNeighborSearch<T>::NearestNeighborSearch(cloud)
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -828,7 +828,7 @@ namespace Nabo
 	template<typename T>
 	typename KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighborSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
@@ -837,7 +837,7 @@ namespace Nabo
 		
 		recurseKnn(query, 0, 0, heap, 1+epsilon, allowSelfMatch);
 		
-		if (optionFlags & NearestNeighborSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
