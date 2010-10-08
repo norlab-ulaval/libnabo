@@ -106,6 +106,32 @@ Please use <a href="http://github.com/stephanemagnenat/libnabo/issues">github's 
 
 libnabo is released under a permissive BSD license.
 
+\section Faq
+
+\subsection ANN
+
+libnabo differs from \ref ANN on the following points:
+
+* API
+- templates for scalar types
+- self-match option as execution-time (instead of compile-time) parameter
+- Eigen library [2] for vector and matrixes
+
+* limitations
+- currently no radius search
+- currently only euclidean distance
+- currently only one-point buckets
+
+* implementation
+- optional O(log(n)) tree heap instead of O(n) vector heap
+- compact memory representation, one memory allocation for all nodes
+- implicit reference to left child (always next node in array)
+- do not store bounds in nodes (that is, I do it like in your article)
+
+* performances
+- about 20% faster than ANN (both -O3 -NDEBUG)
+- clearly memory-bound, neither OpenMP nor boost::thread improve performances 
+
 \section References
 
 \li \anchor Eigen Eigen: http://eigen.tuxfamily.org

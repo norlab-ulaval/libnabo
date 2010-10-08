@@ -4,6 +4,7 @@ Its current CPU implementation is strongly inspired by [ANN], but with more comp
 On the average, libnabo is 20% faster than [ANN].
 
 libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
+I am developing libnabo as part of my work at [ASL-ETH](http://www.asl.ethz.ch).
 
 
 Usage
