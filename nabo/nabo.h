@@ -116,17 +116,20 @@ libnabo differs from \ref ANN on the following points:
 - templates for scalar types
 - self-match option as execution-time (instead of compile-time) parameter
 - Eigen library [2] for vector and matrixes
+- reentrant
 
 * limitations
 - currently no radius search
 - currently only euclidean distance
 - currently only one-point buckets
+- currently only KD-tree, no BD-tree
+- currently only ANN_KD_SL_MIDPT splitting rules
 
 * implementation
 - optional O(log(n)) tree heap instead of O(n) vector heap
 - compact memory representation, one memory allocation for all nodes
 - implicit reference to left child (always next node in array)
-- do not store bounds in nodes (that is, I do it like in your article)
+- do not store bounds in nodes (that is, I do it like in ANN's article)
 
 * performances
 - about 20% faster than ANN (both -O3 -NDEBUG)
