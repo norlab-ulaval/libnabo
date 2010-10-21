@@ -34,6 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef HAVE_ANN
 	#include "ANN.h"
 #endif // HAVE_ANN
+#ifdef HAVE_FLANN
+	#include "flann/flann.hpp"
+#endif // HAVE_FLANN
 #include <boost/timer.hpp>
 #include <iostream>
 #include <fstream>
@@ -243,6 +246,48 @@ BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, 
 
 #endif // HAVE_ANN
 
+#ifdef HAVE_FLANN
+
+BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+{
+	BenchResult result;
+	const int dimCount(d.rows());
+	const int dPtCount(d.cols());
+	const int qPtCount(itCount);
+	
+	flann::Matrix<double> dataset(new double[dPtCount*dimCount], dPtCount, dimCount);
+	for (int point = 0; point < dPtCount; ++point)
+		for (int dim = 0; dim < dimCount; ++dim)
+			dataset[point][dim] = d(dim, point);
+		flann::Matrix<double> query(new double[qPtCount*dimCount], qPtCount, dimCount);
+	for (int point = 0; point < qPtCount; ++point)
+		for (int dim = 0; dim < dimCount; ++dim)
+			query[point][dim] = q(dim, point);
+	
+	flann::Matrix<int> indices(new int[query.rows*K], query.rows, K);
+	flann::Matrix<float> dists(new float[query.rows*K], query.rows, K);
+	
+	// construct an randomized kd-tree index using 4 kd-trees
+	boost::timer t;
+	flann::Index<double> index(dataset, flann::KDTreeIndexParams(4) /*flann::AutotunedIndexParams(0.9)*/); // exact search
+	index.buildIndex();
+	result.creationDuration = t.elapsed();
+	
+	t.restart();
+	// do a knn search, using 128 checks
+	index.knnSearch(query, indices, dists, int(K), flann::SearchParams(128)); // last parameter ignored because of autotuned
+	result.executionDuration = t.elapsed();
+	
+	dataset.free();
+	query.free();
+	indices.free();
+	dists.free();
+	
+	return result;
+}
+
+#endif // HAVE_FLANN
+
 
 int main(int argc, char* argv[])
 {
@@ -278,9 +323,17 @@ int main(int argc, char* argv[])
 	
 	#define SELF_BENCH_COUNT 2
 	#ifdef HAVE_ANN
-		#define BENCH_COUNT (SELF_BENCH_COUNT+1)
+		#ifdef HAVE_FLANN
+			#define BENCH_COUNT (SELF_BENCH_COUNT+2)
+		#else // HAVE_FLANN
+			#define BENCH_COUNT (SELF_BENCH_COUNT+1)
+		#endif // HAVE_FLANN
 	#else // HAVE_ANN
-		#define BENCH_COUNT SELF_BENCH_COUNT
+		#ifdef HAVE_FLANN
+			#define BENCH_COUNT (SELF_BENCH_COUNT+1)
+		#else // HAVE_FLANN
+			#define BENCH_COUNT (SELF_BENCH_COUNT+0)
+		#endif // HAVE_FLANN
 	#endif // HAVE_ANN
 	const size_t benchCount(BENCH_COUNT);
 	const char* benchLabels[benchCount] =
@@ -298,6 +351,9 @@ int main(int argc, char* argv[])
 		"ANN stack",
 		//"ANN priority",
 		#endif // HAVE_ANN
+		#ifdef HAVE_FLANN
+		"FLANN",
+		#endif // HAVE_FLANN
 	};
 	
 	// do bench themselves, accumulate over several times
@@ -318,6 +374,9 @@ int main(int argc, char* argv[])
 		results.at(i++) += doBenchANNStack(d, q, K, itCount);
 		//results.at(i++) += doBenchANNPriority(d, q, K, itCount);
 		#endif // HAVE_ANN
+		#ifdef HAVE_FLANN
+		results.at(i++) += doBenchFLANN(d, q, K, itCount);
+		#endif // HAVE_FLANN
 	}
 	
 	// print results

@@ -21,11 +21,29 @@ find_library(ANN_LIBRARY
 
 if (ANN_INCLUDE_DIR AND ANN_LIBRARY)
 	include_directories(${ANN_INCLUDE_DIR})
-	set(EXTRA_LIBS ${ANN_LIBRARY})
+	set(EXTRA_LIBS ${ANN_LIBRARY} ${EXTRA_LIBS})
 	add_definitions(-DHAVE_ANN)
 else (ANN_INCLUDE_DIR AND ANN_LIBRARY)
 	message("ANN not found, disabling it in benchmarks")
 endif (ANN_INCLUDE_DIR AND ANN_LIBRARY)
+
+find_path(FLANN_INCLUDE_DIR flann/flann.hpp
+	/usr/local/include/
+	/usr/include
+)
+find_library(FLANN_LIBRARY
+	flann_cpp
+	PATHS /usr/local/lib
+	/usr/lib
+)
+
+if (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
+	include_directories(${FLANN_INCLUDE_DIR})
+	set(EXTRA_LIBS ${FLANN_LIBRARY} ${EXTRA_LIBS})
+	add_definitions(-DHAVE_FLANN)
+else (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
+	message("FLANN not found, disabling it in benchmarks")
+endif (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 
 include_directories(..)
 
