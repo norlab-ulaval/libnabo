@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "nabo/nabo.h"
+//#include "experimental/nabo_experimental.h"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -118,8 +119,13 @@ void validate(const char *fileName, const int K, const int method)
 	
 	// create different methods
 	NNSV nnss;
-	for (unsigned i = 0; i < NNS::SEARCH_TYPE_COUNT; ++i)
+	unsigned searchTypeCount(NNS::SEARCH_TYPE_COUNT);
+	#ifndef HAVE_OPENCL
+	searchTypeCount -= 2;
+	#endif // HAVE_OPENCL
+	for (unsigned i = 0; i < searchTypeCount; ++i)
 		nnss.push_back(NNS::create(d, typename NNS::SearchType(i)));
+	//nnss.push_back(new KDTreeBalancedPtInLeavesStack<T>(d, false));
 	
 	// check methods together
 	const int itCount(method != -1 ? method : d.cols() * 2);

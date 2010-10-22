@@ -29,6 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+// currently disable FLANN
+#undef HAVE_FLANN
+
 #include "nabo/nabo.h"
 #include "experimental/nabo_experimental.h"
 #ifdef HAVE_ANN
@@ -81,39 +84,45 @@ typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 	return Matrix::Map(&data[0], dim, data.size() / dim);
 }
 
-typedef Nabo::NearestNeighbourSearch<double>::Matrix Matrix;
-typedef Nabo::NearestNeighbourSearch<double>::Vector Vector;
-typedef Nabo::NearestNeighbourSearch<double>::Index Index;
-typedef Nabo::NearestNeighbourSearch<double>::IndexVector IndexVector;
-typedef Nabo::NearestNeighbourSearch<double> NNS;
+typedef Nabo::NearestNeighbourSearch<double>::Matrix MatrixD;
+typedef Nabo::NearestNeighbourSearch<double>::Vector VectorD;
+typedef Nabo::NearestNeighbourSearch<double>::Index IndexD;
+typedef Nabo::NearestNeighbourSearch<double>::IndexVector IndexVectorD;
+typedef Nabo::NearestNeighbourSearch<float>::Matrix MatrixF;
+typedef Nabo::NearestNeighbourSearch<float>::Vector VectorF;
+typedef Nabo::NearestNeighbourSearch<float>::Index IndexF;
+typedef Nabo::NearestNeighbourSearch<float>::IndexVector IndexVectorF;
 typedef Nabo::BruteForceSearch<double> BFSD;
-typedef Nabo::KDTreeBalancedPtInNodesPQ<double> KDTD1;
-typedef Nabo::KDTreeBalancedPtInNodesStack<double> KDTD2;
-struct KDTD3: public Nabo::KDTreeBalancedPtInLeavesStack<double>
-{
-	KDTD3(const Matrix& cloud):
-		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, true)
-	{}
-};
-struct KDTD4: public Nabo::KDTreeBalancedPtInLeavesStack<double>
-{
-	KDTD4(const Matrix& cloud):
-		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, false)
-	{}
-};
-typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>> KDTD5A;
-typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>> KDTD5B;
-typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>> KDTD5OB;
-typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>> KDTD5OA;
-typedef Nabo::KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double> KDTD6;
+typedef Nabo::BruteForceSearch<float> BFSF;
+// typedef Nabo::KDTreeBalancedPtInNodesPQ<double> KDTD1;
+// typedef Nabo::KDTreeBalancedPtInNodesStack<double> KDTD2;
+// struct KDTD3: public Nabo::KDTreeBalancedPtInLeavesStack<double>
+// {
+// 	KDTD3(const Matrix& cloud):
+// 		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, true)
+// 	{}
+// };
+// struct KDTD4: public Nabo::KDTreeBalancedPtInLeavesStack<double>
+// {
+// 	KDTD4(const Matrix& cloud):
+// 		Nabo::KDTreeBalancedPtInLeavesStack<double>(cloud, false)
+// 	{}
+// };
+// typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>> KDTD5A;
+// typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>> KDTD5B;
+// typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>> KDTD5OB;
+// typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>> KDTD5OA;
+// typedef Nabo::KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double> KDTD6;
 
 
-inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const int method)
+template<typename T>
+typename NearestNeighbourSearch<T>::Vector createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const NearestNeighbourSearch<T>& kdt, const int i, const int method)
 {
+	typedef typename NearestNeighbourSearch<T>::Vector VectorT;
 	if (method < 0)
 	{
-		Vector q = d.col(i % d.cols());
-		double absBound = 0;
+		VectorT q = d.col(i % d.cols());
+		T absBound = 0;
 		for (int j = 0; j < q.size(); ++j)
 			absBound += kdt.maxBound(j) - kdt.minBound(j);
 		absBound /= 3 * (-method); // divided by -method
@@ -125,12 +134,25 @@ inline Vector createQuery(const Matrix& d, const KDTD1& kdt, const int i, const 
 	}
 	else
 	{
-		Vector q(kdt.minBound.size());
+		VectorT q(kdt.minBound.size());
 		for (int j = 0; j < q.size(); ++j)
-			q(j) = kdt.minBound(j) + double(rand()) * (kdt.maxBound(j) - kdt.minBound(j)) / double(RAND_MAX);
+			q(j) = kdt.minBound(j) + T(rand()) * (kdt.maxBound(j) - kdt.minBound(j)) / T(RAND_MAX);
 		return q;
 	}
 }
+
+template<typename T>
+typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const int itCount, const int method)
+{
+	typedef typename NearestNeighbourSearch<T>::Matrix MatrixT;
+	typedef Nabo::KDTreeBalancedPtInNodesPQ<T> KDTD1T;
+	MatrixT q(d.rows(), itCount);
+	KDTD1T kdtt(d);
+	for (int i = 0; i < itCount; ++i)
+		q.col(i) = createQuery<T>(d, kdtt, i, method);
+	return q;
+}
+
 
 struct BenchResult
 {
@@ -164,19 +186,41 @@ struct BenchResult
 };
 typedef vector<BenchResult> BenchResults;
 
+// template<typename T>
+// BenchResult doBench(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+// {
+// 	BenchResult result;
+// 	boost::timer t;
+// 	T nns(d);
+// 	result.creationDuration = t.elapsed();
+// 	
+// 	t.restart();
+// 	nns.knnM(q, K, 0, 0);
+// 	result.executionDuration = t.elapsed();
+// 	
+// 	result.visitCount = double(nns.getStatistics().totalVisitCount);
+// 	result.totalCount = double(itCount) * double(d.cols());
+// 	
+// 	return result;
+// }
+
 template<typename T>
-BenchResult doBench(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, const typename NearestNeighbourSearch<T>::Matrix& d, const typename NearestNeighbourSearch<T>::Matrix& q, const int K, const int itCount)
 {
+	typedef NearestNeighbourSearch<T> nnsT;
+	
 	BenchResult result;
 	boost::timer t;
-	T nns(d);
+	nnsT* nns(nnsT::create(d, type));
 	result.creationDuration = t.elapsed();
 	
 	t.restart();
-	nns.knnM(q, K, 0, 0);
+	nns->knnM(q, K, 0, 0);
 	result.executionDuration = t.elapsed();
 	
-	result.visitCount = double(nns.getStatistics().totalVisitCount);
+	delete nns;
+	
+	result.visitCount = double(nns->getStatistics().totalVisitCount);
 	result.totalCount = double(itCount) * double(d.cols());
 	
 	return result;
@@ -184,7 +228,7 @@ BenchResult doBench(const Matrix& d, const Matrix& q, const Index K, const int i
 
 #ifdef HAVE_ANN
 
-BenchResult doBenchANNStack(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, const int itCount)
 {
 	BenchResult result;
 	boost::timer t;
@@ -200,7 +244,7 @@ BenchResult doBenchANNStack(const Matrix& d, const Matrix& q, const Index K, con
 	ANNdist dists[K];
 	for (int i = 0; i < itCount; ++i)
 	{
-		const Vector& tq(q.col(i));
+		const VectorD& tq(q.col(i));
 		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
 		ann_kdt->annkSearch(		// search
 						queryPt,	// query point
@@ -214,7 +258,7 @@ BenchResult doBenchANNStack(const Matrix& d, const Matrix& q, const Index K, con
 	return result;
 }
 
-BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, const int itCount)
+BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, const int itCount)
 {
 	BenchResult result;
 	boost::timer t;
@@ -230,7 +274,7 @@ BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, 
 	ANNdist dists[K];
 	for (int i = 0; i < itCount; ++i)
 	{
-		const Vector& tq(q.col(i));
+		const VectorD& tq(q.col(i));
 		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
 		ann_kdt->annkPriSearch(		// search
 						queryPt,	// query point
@@ -248,6 +292,7 @@ BenchResult doBenchANNPriority(const Matrix& d, const Matrix& q, const Index K, 
 
 #ifdef HAVE_FLANN
 
+template<typename T>
 BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const int itCount)
 {
 	BenchResult result;
@@ -255,11 +300,11 @@ BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const 
 	const int dPtCount(d.cols());
 	const int qPtCount(itCount);
 	
-	flann::Matrix<double> dataset(new double[dPtCount*dimCount], dPtCount, dimCount);
+	flann::Matrix<T> dataset(new T[dPtCount*dimCount], dPtCount, dimCount);
 	for (int point = 0; point < dPtCount; ++point)
 		for (int dim = 0; dim < dimCount; ++dim)
 			dataset[point][dim] = d(dim, point);
-		flann::Matrix<double> query(new double[qPtCount*dimCount], qPtCount, dimCount);
+		flann::Matrix<T> query(new T[qPtCount*dimCount], qPtCount, dimCount);
 	for (int point = 0; point < qPtCount; ++point)
 		for (int dim = 0; dim < dimCount; ++dim)
 			query[point][dim] = q(dim, point);
@@ -269,7 +314,7 @@ BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const 
 	
 	// construct an randomized kd-tree index using 4 kd-trees
 	boost::timer t;
-	flann::Index<double> index(dataset, flann::KDTreeIndexParams(4) /*flann::AutotunedIndexParams(0.9)*/); // exact search
+	flann::Index<T> index(dataset, flann::KDTreeIndexParams(4) /*flann::AutotunedIndexParams(0.9)*/); // exact search
 	index.buildIndex();
 	result.creationDuration = t.elapsed();
 	
@@ -297,46 +342,25 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	
-	const Matrix d(load<double>(argv[1]));
-	const Index K(atoi(argv[2]));
+	const MatrixD dD(load<double>(argv[1]));
+	const MatrixF dF(load<float>(argv[1]));
+	const int K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
-	const int itCount(method >= 0 ? method : d.cols() * 2);
+	const int itCount(method >= 0 ? method : dD.cols() * 2);
 	const int runCount(atoi(argv[4]));
 	
 	// compare KDTree with brute force search
-	if (K >= d.cols())
+	if (K >= dD.cols())
 	{
 		cerr << "Requested more nearest neighbour than points in the data set" << endl;
 		return 2;
 	}
 	
 	// create queries
-	Matrix q(d.rows(), itCount);
-	{
-		// temp kdtree to get bounds
-		KDTD1 kdtt(d);
-		for (int i = 0; i < itCount; ++i)
-		{
-			q.col(i) = createQuery(d, kdtt, i, method);
-		}
-	}
+	MatrixD qD(createQuery<double>(dD, itCount, method));
+	MatrixF qF(createQuery<float>(dF, itCount, method));
 	
-	#define SELF_BENCH_COUNT 2
-	#ifdef HAVE_ANN
-		#ifdef HAVE_FLANN
-			#define BENCH_COUNT (SELF_BENCH_COUNT+2)
-		#else // HAVE_FLANN
-			#define BENCH_COUNT (SELF_BENCH_COUNT+1)
-		#endif // HAVE_FLANN
-	#else // HAVE_ANN
-		#ifdef HAVE_FLANN
-			#define BENCH_COUNT (SELF_BENCH_COUNT+1)
-		#else // HAVE_FLANN
-			#define BENCH_COUNT (SELF_BENCH_COUNT+0)
-		#endif // HAVE_FLANN
-	#endif // HAVE_ANN
-	const size_t benchCount(BENCH_COUNT);
-	const char* benchLabels[benchCount] =
+	const char* benchLabels[] =
 	{
 		//doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance",
 		//doBench<KDTD2>("Nabo, pt in nodes, stack, balance variance",
@@ -344,19 +368,28 @@ int main(int argc, char* argv[])
 		//"Nabo, balanced, stack, pt in leaves only, balance cell aspect ratio",
 		//"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap",
 		//"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap",
-		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
-		"Nabo, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
+		"Nabo, double, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
+		"Nabo, double, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
+		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
+		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
+		#ifdef HAVE_OPENCL
+		"Nabo, float, OpenCL, CPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
+		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
+		#endif // HAVE_OPENCL
 		//"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
 		#ifdef HAVE_ANN
-		"ANN stack",
+		"ANN stack, double",
 		//"ANN priority",
 		#endif // HAVE_ANN
 		#ifdef HAVE_FLANN
-		"FLANN",
+		"FLANN, double",
+		"FLANN, float",
 		#endif // HAVE_FLANN
 	};
 	
 	// do bench themselves, accumulate over several times
+	size_t benchCount(sizeof(benchLabels) / sizeof(const char *));
+	cout << "Doing " << benchCount << " different benches " << runCount << " times" << endl;
 	BenchResults results(benchCount);
 	for (int run = 0; run < runCount; ++run)
 	{
@@ -367,15 +400,21 @@ int main(int argc, char* argv[])
 		//results.at(i++) += doBench<KDTD4>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD5A>(d, q, K, itCount);
 		//results.at(i++) += doBench<KDTD5B>(d, q, K, itCount);
-		results.at(i++) += doBench<KDTD5OB>(d, q, K, itCount);
-		results.at(i++) += doBench<KDTD5OA>(d, q, K, itCount);
-		//results.at(i++) += doBench<KDTD6>(d, q, K, itCount);
+		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_LINEAR_HEAP, dD, qD, K, itCount);
+		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_TREE_HEAP, dD, qD, K, itCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_LINEAR_HEAP, dF, qF, K, itCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, dF, qF, K, itCount);
+		#ifdef HAVE_OPENCL
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL_CPU, dF, qF, K, itCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL_GPU, dF, qF, K, itCount);
+		#endif // HAVE_OPENCL
 		#ifdef HAVE_ANN
-		results.at(i++) += doBenchANNStack(d, q, K, itCount);
+		results.at(i++) += doBenchANNStack(dD, qD, K, itCount);
 		//results.at(i++) += doBenchANNPriority(d, q, K, itCount);
 		#endif // HAVE_ANN
 		#ifdef HAVE_FLANN
-		results.at(i++) += doBenchFLANN(d, q, K, itCount);
+		results.at(i++) += doBenchFLANN<double>(dD, qD, K, itCount);
+		results.at(i++) += doBenchFLANN<float>(dF, qF, K, itCount);
 		#endif // HAVE_FLANN
 	}
 	

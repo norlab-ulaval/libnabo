@@ -416,14 +416,16 @@ namespace Nabo
 			cutDim = argMax<T>(maxValues - minValues);
 		}
 		
-		// sort
-		sort(first, last, CompareDim(cutDim));
-		
-		// set node
+		// compute number of elements
 		const size_t rightCount(count/2);
 		const size_t leftCount(count - rightCount);
 		assert(last - rightCount == first + leftCount);
 		
+		// sort
+		//sort(first, last, CompareDim(cutDim));
+		nth_element(first, first + leftCount, last, CompareDim(cutDim));
+		
+		// set node
 		const T cutVal((first+leftCount)->pos.coeff(cutDim));
 		nodes[pos] = Node(cutDim, cutVal);
 		

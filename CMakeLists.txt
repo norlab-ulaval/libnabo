@@ -34,6 +34,23 @@ find_path(EIGEN2_INCLUDE_DIR Eigen/Core
 	/usr/include/eigen2
 )
 
+# opencl
+find_path(OPENCL_INCLUDE_DIR CL/cl.h
+	/usr/local/include
+	/usr/include
+)
+if (WIN32)
+	find_library(OPENCL_LIBRARIES opencl64)
+	if (!OPENCL_LIBRARIES)
+		find_library(OPENCL_LIBRARIES opencl32)
+	endif (!OPENCL_LIBRARIES)
+else (WIN32)
+	find_library(OPENCL_LIBRARIES OpenCL ENV LD_LIBRARY_PATH)
+endif (WIN32)
+if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
+	add_definitions(-DHAVE_OPENCL)
+endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
+
 # include all libs so far
 include_directories(${EIGEN2_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
@@ -42,6 +59,7 @@ add_library(nabo
 	nabo/nabo.cpp
 	nabo/brute_force_cpu.cpp
 	nabo/kdtree_cpu.cpp
+	nabo/kdtree_opencl.cpp
 )
 install(TARGETS nabo ARCHIVE DESTINATION lib)
 install(FILES nabo/nabo.h DESTINATION include/nabo)

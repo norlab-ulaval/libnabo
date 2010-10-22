@@ -129,7 +129,7 @@ libnabo differs from \ref ANN on the following points:
 - optional O(log(n)) tree heap instead of O(n) vector heap
 - compact memory representation, one memory allocation for all nodes
 - implicit reference to left child (always next node in array)
-- do not store bounds in nodes (that is, I do it like in ANN's article)
+- do not store bounds in nodes (that is, I do it like in ANN's article instead of like in ANN's source code)
 
 * performances
 - about 20% faster than ANN (both -O3 -NDEBUG)
@@ -193,6 +193,8 @@ namespace Nabo
 			BRUTE_FORCE = 0, //!< brute force, check distance to every point in the data
 			KDTREE_LINEAR_HEAP = 1, //!< kd-tree with linear heap, good for small k (~up to 30)
 			KDTREE_TREE_HEAP = 2, //!< kd-tree with tree heap, good for large k (~from 30)
+			KDTREE_CL_CPU = 3, //!< kd-tree using openCL, cpu
+			KDTREE_CL_GPU = 4, //!< kd-tree using openCL, gpu if available
 			SEARCH_TYPE_COUNT //!< number of search types
 		};
 		

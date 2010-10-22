@@ -33,6 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NABO_PRIVATE_H
 
 #include "nabo.h"
+// temporary
+#include "index_heap.h"
 
 
 /*!	\file nabo_private.h
@@ -139,6 +141,67 @@ namespace Nabo
 		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
+	
+	#ifdef HAVE_OPENCL
+	
+	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
+	template<typename T>
+	struct KDTreeBalancedPtInLeavesStackOpenCL: public NearestNeighbourSearch<T>
+	{
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
+		
+		using NearestNeighbourSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::minBound;
+		using NearestNeighbourSearch<T>::maxBound;
+		
+	protected:
+		struct BuildPoint
+		{
+			Vector pos;
+			size_t index;
+			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
+		};
+		typedef std::vector<BuildPoint> BuildPoints;
+		typedef typename BuildPoints::iterator BuildPointsIt;
+		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
+		
+		struct CompareDim
+		{
+			size_t dim;
+			CompareDim(const size_t dim):dim(dim){}
+			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
+		};
+		
+		typedef IndexHeapBruteForceVector<Index, T> Heap;
+		
+		struct Node
+		{
+			int dim; // -1 == invalid, <= -2 = index of pt
+			T cutVal;
+			Node(const int dim = -1, const T cutVal = 0):
+			dim(dim), cutVal(cutVal) {}
+		};
+		typedef std::vector<Node> Nodes;
+		
+		Nodes nodes;
+		
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
+		inline size_t parent(size_t pos) const { return (pos-1)/2; }
+		size_t getTreeSize(size_t size) const;
+		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
+		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch);
+		
+	public:
+		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const bool tryGPU);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
+	};
+	
+	#endif // HAVE_OPENCL
 	
 	//@}
 }
