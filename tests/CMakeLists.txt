@@ -1,7 +1,7 @@
 include_directories(..)
 
 add_executable(knnvalidate knnvalidate.cpp)
-target_link_libraries(knnvalidate naboexperimental nabo ${Boost_LIBRARIES})
+target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_test(validation-2D-exhaustive ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 -1)
 add_test(validation-2D-random ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 10000)

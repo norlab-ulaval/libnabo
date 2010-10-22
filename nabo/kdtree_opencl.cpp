@@ -31,6 +31,7 @@
 
 #ifdef HAVE_OPENCL
 
+#include "CL/cl.hpp"
 #include "nabo_private.h"
 #include "index_heap.h"
 #include <iostream>
@@ -228,5 +229,4 @@ namespace Nabo
 	//@}
 }
 
-#endif HAVE_OPENCL
-
+#endif // HAVE_OPENCL

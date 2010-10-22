@@ -49,10 +49,11 @@ else (WIN32)
 endif (WIN32)
 if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 	add_definitions(-DHAVE_OPENCL)
+	set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
 endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 
 # include all libs so far
-include_directories(${EIGEN2_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(${EIGEN2_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${OPENCL_INCLUDE_DIR})
 
 # main nabo lib
 add_library(nabo 
