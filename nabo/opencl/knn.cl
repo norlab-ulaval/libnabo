@@ -1,4 +1,3 @@
-
 T heapHeadValue(HeapEntry* heap)
 {
 	return heap->value;
@@ -6,7 +5,7 @@ T heapHeadValue(HeapEntry* heap)
 
 void heapHeadReplace(HeapEntry* heap, const int index, const T value, const uint K)
 {
-	for (i = 0; i < K - 1; ++i)
+	for (uint i = 0; i < K - 1; ++i)
 	{
 		if (data[i + 1].value > value)
 			data[i] = data[i + 1];
@@ -23,30 +22,42 @@ void heapInit(HeapEntry* heap, uint K)
 		heap[i].value = HUGE_VALF;
 }
 
-// assertions:
+void heapCopy(Index* dest, const HeapEntry* heap, const uint K)
+{
+	for (uint i = 0; i < K; ++i)
+		*dest++ = heap[i].index;
+}
+
+size_t childLeft(size_t pos) { return 2*pos + 1; }
+size_t childRight(size_t pos) { return 2*pos + 2; }
+ize_t parent(size_t pos) { return (pos-1)/2; }
+
+// for cloud and result, use DirectAccessBit and stride
+// preconditions:
 // 		K < MAX_K
-//		dims < MAX_DIM
 //		stack_ptr < MAX_STACK_DEPTH
-kernel void knnSearch(	constant Node* nodes,
+kernel void knnKDTree(	constant Node* nodes,
 						constant Point* cloud,
 						constant Point* query,
-						global Index* results,
+						global Index* result,
 						uint K,
-						bool allowSelfMatch,
-						T maxError)
+						T maxError,
+						uint optionFlags,
+						size_t indexStride)
 {
 	StackEntry stack[MAX_STACK_DEPTH];
 	HeapEntry heap[MAX_K];
-	T off[MAX_DIM];
+	T off[DIM_COUNT];
 	uint stackPtr = 1;
 
 	const size_t queryId = get_global_id(0);
-	const Point q = query[queryId];
+	const T* q = &query[queryId * POINT_STRIDE];
 	
 	heapInit(heap, K);
 	
-	stack[0].n = 0;
 	stack[0].op = OP_BEGIN_FUNCTION;
+	stack[0].n = 0;
+	stack[0].rd = 0;
 
 	while (stackPtr != 0)
 	{
@@ -63,7 +74,13 @@ kernel void knnSearch(	constant Node* nodes,
 				if (cd != -1)
 				{
 					const int index = -(cd + 2);
-					const T dist = dist2(q, cloud[index]);
+					const T* p = &cloud[index * POINT_STRIDE];
+					T dist = 0;
+					for (uint i = 0; i < DIM_COUNT; ++i)
+					{
+						const T diff = q[i] - p[i];
+						dist += diff * diff;
+					}
 					if (dist < heapHeadValue(heap) &&
 						allowSelfMatch || (dist > 0)) // TODO: epsilon
 						heapHeadReplace(heap, index, dist, K);
@@ -108,5 +125,7 @@ kernel void knnSearch(	constant Node* nodes,
 			break;
 		}
 	}
+	
+	heapCopy(&results[queryId * indexStride], heap, K);
 }
 

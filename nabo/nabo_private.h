@@ -33,9 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NABO_PRIVATE_H
 
 #include "nabo.h"
-// temporary
-#include "index_heap.h"
-
+#ifdef HAVE_OPENCL
+#define __CL_ENABLE_EXCEPTIONS
+#include "CL/cl.hpp"
+#endif // HAVE_OPENCL
 
 /*!	\file nabo_private.h
 	\brief header for implementation
@@ -152,6 +153,7 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighbourSearch<T>::Index Index;
 		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
 		using NearestNeighbourSearch<T>::statistics;
 		using NearestNeighbourSearch<T>::cloud;
@@ -176,8 +178,6 @@ namespace Nabo
 			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
 		};
 		
-		typedef IndexHeapBruteForceVector<Index, T> Heap;
-		
 		struct Node
 		{
 			int dim; // -1 == invalid, <= -2 = index of pt
@@ -189,15 +189,22 @@ namespace Nabo
 		
 		Nodes nodes;
 		
+		cl::Context context;
+		cl::Kernel knnKernel;
+		cl::CommandQueue queue;
+		cl::Buffer nodesCL;
+		cl::Buffer cloudCL;
+		
 		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
 		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
 		inline size_t parent(size_t pos) const { return (pos-1)/2; }
+		size_t getTreeDepth(size_t size) const;
 		size_t getTreeSize(size_t size) const;
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
-		void recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch);
 		
 	public:
 		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const bool tryGPU);
+		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
 		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
