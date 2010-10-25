@@ -1,8 +1,11 @@
+#define ALLOW_SELF_MATCH 1
+#define SORT_RESULTS 2
+
 #define INVALID_NODE -1
 
-#define OP_BEGIN_FUNCTION = 0
-#define OP_REC1 = 1
-#define OP_REC2 = 2
+#define OP_BEGIN_FUNCTION 0
+#define OP_REC1 1
+#define OP_REC2 2
 
 // T is the scalar type
 

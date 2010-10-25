@@ -211,7 +211,7 @@ namespace Nabo
 		cl::Program::Sources sources;
 		// build defines
 		ostringstream oss;
-		oss << "typedef " << TypeName<T>::name << " T\n";
+		oss << "typedef " << TypeName<T>::name << " T;\n";
 		oss << "#define DIM_COUNT " << cloud.rows() << "\n";
 		oss << "#define POINT_STRIDE " << cloud.stride() << "\n";
 		oss << "#define MAX_K " << MAX_K << "\n";
@@ -220,7 +220,7 @@ namespace Nabo
 		const size_t defLen(oss.str().length());
 		char *defContent(new char[defLen+1]);
 		strcpy(defContent, oss.str().c_str());
-		sources.push_back(std::make_pair(defContent, defLen + 1));
+		sources.push_back(std::make_pair(defContent, defLen));
 		// load files
 		const char* files[] = { "structure.cl", "knn.cl", NULL };
 		for (const char** file = files; *file != NULL; ++file) {

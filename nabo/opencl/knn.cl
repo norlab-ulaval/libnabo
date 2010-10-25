@@ -1,45 +1,45 @@
-T heapHeadValue(HeapEntry* heap)
+T heapHeadValue(const HeapEntry* heap)
 {
 	return heap->value;
 }
 
 void heapHeadReplace(HeapEntry* heap, const int index, const T value, const uint K)
 {
-	for (uint i = 0; i < K - 1; ++i)
+	uint i = 0;
+	for (; i < K - 1; ++i)
 	{
-		if (data[i + 1].value > value)
-			data[i] = data[i + 1];
+		if (heap[i + 1].value > value)
+			heap[i] = heap[i + 1];
 		else
 			break;
 	}
-	data[i].value = value;
-	data[i].index = index;
+	heap[i].value = value;
+	heap[i].index = index;
 }
 
-void heapInit(HeapEntry* heap, uint K)
+void heapInit(HeapEntry* heap, const uint K)
 {
 	for (uint i = 0; i < K; ++i)
 		heap[i].value = HUGE_VALF;
 }
 
-void heapCopy(Index* dest, const HeapEntry* heap, const uint K)
+void heapCopy(global int* dest, const HeapEntry* heap, const uint K)
 {
 	for (uint i = 0; i < K; ++i)
 		*dest++ = heap[i].index;
 }
 
-size_t childLeft(size_t pos) { return 2*pos + 1; }
-size_t childRight(size_t pos) { return 2*pos + 2; }
-ize_t parent(size_t pos) { return (pos-1)/2; }
+size_t childLeft(const size_t pos) { return 2*pos + 1; }
+size_t childRight(const size_t pos) { return 2*pos + 2; }
 
 // for cloud and result, use DirectAccessBit and stride
 // preconditions:
 // 		K < MAX_K
 //		stack_ptr < MAX_STACK_DEPTH
 kernel void knnKDTree(	constant Node* nodes,
-						constant Point* cloud,
-						constant Point* query,
-						global Index* result,
+						constant T* cloud,
+						constant T* query,
+						global int* result,
 						uint K,
 						T maxError,
 						uint optionFlags,
@@ -51,7 +51,9 @@ kernel void knnKDTree(	constant Node* nodes,
 	uint stackPtr = 1;
 
 	const size_t queryId = get_global_id(0);
-	const T* q = &query[queryId * POINT_STRIDE];
+	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
+	//const bool doSort = optionFlags & SORT_RESULTS;
+	constant T* q = &query[queryId * POINT_STRIDE];
 	
 	heapInit(heap, K);
 	
@@ -62,9 +64,9 @@ kernel void knnKDTree(	constant Node* nodes,
 	while (stackPtr != 0)
 	{
 		--stackPtr;
-		Stack* s = stack + stackPtr;
+		StackEntry* s = stack + stackPtr;
 		const size_t n = s->n;
-		const Node* node = nodes + n;
+		constant Node* node = nodes + n;
 		const int cd = node->dim;
 		switch (stack[stackPtr].op)
 		{
@@ -74,7 +76,7 @@ kernel void knnKDTree(	constant Node* nodes,
 				if (cd != -1)
 				{
 					const int index = -(cd + 2);
-					const T* p = &cloud[index * POINT_STRIDE];
+					constant T* p = &cloud[index * POINT_STRIDE];
 					T dist = 0;
 					for (uint i = 0; i < DIM_COUNT; ++i)
 					{
@@ -94,20 +96,20 @@ kernel void knnKDTree(	constant Node* nodes,
 				s->op = OP_REC1;
 				if (s->new_off > 0)
 				{
-					(s+1)->n = rightChild(n);
-					s->other_n = leftChild(n);
+					(s+1)->n = childRight(n);
+					s->other_n = childLeft(n);
 				}
 				else
 				{
-					(s+1)->n = leftChild(n);
-					s->other_n = rightChild(n);
+					(s+1)->n = childLeft(n);
+					s->other_n = childRight(n);
 				}
 				(s+1)->rd = s->rd;
 				stackPtr+=2;
 			}
 			break;
 			
-			case OP_REC1;
+			case OP_REC1:
 			s->rd += - (s->old_off*s->old_off) + (s->new_off*s->new_off);
 			if (s->rd * maxError < heapHeadValue(heap))
 			{
@@ -126,6 +128,6 @@ kernel void knnKDTree(	constant Node* nodes,
 		}
 	}
 	
-	heapCopy(&results[queryId * indexStride], heap, K);
+	heapCopy(&result[queryId * indexStride], heap, K);
 }
 
