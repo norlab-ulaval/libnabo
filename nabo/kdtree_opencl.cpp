@@ -200,7 +200,7 @@ namespace Nabo
 			try {
 				context = cl::Context(CL_DEVICE_TYPE_GPU, cps);
 			} catch (cl::Error e) {
-				cerr << "Cannot find GPU for OpenCL" << endl;
+				cerr << "Cannot find GPU for OpenCL, falling back to CPU" << endl;
 				context = cl::Context(CL_DEVICE_TYPE_CPU, cps);
 			}
 		}
@@ -269,10 +269,11 @@ namespace Nabo
 		knnKernel = cl::Kernel(program, "knnKDTree");
 		queue = cl::CommandQueue(context, devices.back());
 		
-		// map nodes
+		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
-		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes);
-		knnKernel.setArg(0, nodesCL);// TODO: manage alignment, see sect 6.1.5 
+		//cerr << "sznode " << sizeof(Node)  << endl;
+		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
+		knnKernel.setArg(0, nodesCL);
 		// map cloud
 		if (!(cloud.Flags & Eigen::DirectAccessBit) || (cloud.Flags & Eigen::RowMajorBit))
 			throw runtime_error("wrong memory mapping in point cloud");
@@ -320,6 +321,7 @@ namespace Nabo
 		queue.enqueueMapBuffer(resultCL, true, CL_MAP_READ, 0, result.cols() * indexStride, 0, 0);
 		queue.finish();
 		
+		cerr << "query completed" << endl;
 		// TODO: if requested, sort results
 		return result;
 	}

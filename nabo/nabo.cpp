@@ -80,7 +80,7 @@ namespace Nabo
 			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud);
 			#ifdef HAVE_OPENCL
 			case KDTREE_CL_CPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, false);
-			case KDTREE_CL_GPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, true);
+			//case KDTREE_CL_GPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, true);
 			#else // HAVE_OPENCL
 			case KDTREE_CL_CPU: throw runtime_error("OpenCL not found during compilation");
 			case KDTREE_CL_GPU: throw runtime_error("OpenCL not found during compilation");

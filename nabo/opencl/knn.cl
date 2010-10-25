@@ -43,7 +43,7 @@ kernel void knnKDTree(	constant Node* nodes,
 						uint K,
 						T maxError,
 						uint optionFlags,
-						size_t indexStride)
+						uint indexStride)
 {
 	StackEntry stack[MAX_STACK_DEPTH];
 	HeapEntry heap[MAX_K];

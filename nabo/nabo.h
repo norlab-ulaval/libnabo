@@ -194,7 +194,7 @@ namespace Nabo
 			KDTREE_LINEAR_HEAP = 1, //!< kd-tree with linear heap, good for small k (~up to 30)
 			KDTREE_TREE_HEAP = 2, //!< kd-tree with tree heap, good for large k (~from 30)
 			KDTREE_CL_CPU = 3, //!< kd-tree using openCL, cpu
-			KDTREE_CL_GPU = 4, //!< kd-tree using openCL, gpu if available
+			//KDTREE_CL_GPU = 4, //!< kd-tree using openCL, gpu if available
 			SEARCH_TYPE_COUNT //!< number of search types
 		};
 		
