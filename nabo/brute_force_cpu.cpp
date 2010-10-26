@@ -76,6 +76,7 @@ namespace Nabo
 		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 			heap.sort();
 		
+		//cerr << "bfiv " << heap.getIndexes() << endl;
 		return heap.getIndexes();
 	}
 	

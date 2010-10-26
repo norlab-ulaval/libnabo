@@ -128,6 +128,7 @@ namespace Nabo
 		}
 	};
 	
+#if 0
 	//! brute-force implementation of heap
 	/** It uses a vector and linear search, which provides replacement in O(n),
 	 * 	but with a very low constant overhead. */
@@ -180,6 +181,95 @@ namespace Nabo
 		
 		//! get the largest value of the heap
 		/** \return the smallest value in the heap */
+		inline const VT& headValue() const { return data[0].value; }
+		
+		//! replace the largest value of the heap
+		/** \param index new point index
+		 * 	\param value new distance value */
+		inline void replaceHead(const Index index, const Value value)
+		{
+			register size_t i = 0;
+			for (; i < sizeMinusOne; ++i)
+			{
+				if (data[i + 1].value > value)
+					data[i] = data[i + 1];
+				else
+					break;
+			}
+			data[i].value = value;
+			data[i].index = index;
+		}
+		
+		//! sort the entries, from the smallest to the largest
+		inline void sort()
+		{
+			// no need to sort as data are already sorted
+		}
+		
+		//! get the data-point indices from the heap
+		/** \return the indices */
+		inline IndexVector getIndexes() const
+		{
+			IndexVector indexes(data.size());
+			for (size_t i = 0; i < data.size(); ++i)
+				indexes.coeffRef(i) = data[sizeMinusOne-i].index;
+			return indexes;
+		}
+	};
+#endif
+	
+	//! brute-force implementation of heap
+	/** It uses a vector and linear search, which provides replacement in O(n),
+	 * 	but with a very low constant overhead. */
+	template<typename IT, typename VT>
+	struct IndexHeapBruteForceVector
+	{
+		//! type of an index
+		typedef IT Index;
+		//! type of a value
+		typedef VT Value;
+		
+		//! an entry of the heap vector
+		struct Entry
+		{
+			IT index; //!< index of point
+			VT value;  //!< distance for this point
+			
+			//! create a new entry
+			Entry(const IT index, const VT value): index(index), value(value) {} 
+			//! return true if e0 is smaller than e1, false otherwise
+			friend bool operator<(const Entry& e0, const Entry& e1) { return e0.value < e1.value; }
+		};
+		//! vector of entry, type for the storage of the tree
+		typedef std::vector<Entry> Entries;
+		//! vector of indices
+		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
+		
+		//! storage for the tree
+		Entries data;
+		//! reference to the largest value in the tree, to optimise access speed
+		const VT& headValueRef;
+		//! pre-competed size minus one, to optimise access speed
+		const size_t sizeMinusOne;
+		
+		//! Constructor
+		/*! \param size number of elements in the heap */
+		IndexHeapBruteForceVector(const size_t size):
+		data(size, Entry(0, std::numeric_limits<VT>::infinity())),
+		headValueRef((data.end() - 1)->value),
+		sizeMinusOne(data.size() - 1)
+		{
+		}
+		
+		//! reset to the empty heap
+		inline void reset()
+		{
+			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
+				it->value = std::numeric_limits<VT>::infinity();
+		}
+		
+		//! get the largest value of the heap
+		/** \return the smallest value in the heap */
 		inline const VT& headValue() const { return headValueRef; }
 		
 		//! replace the largest value of the heap
@@ -202,7 +292,7 @@ namespace Nabo
 		//! sort the entries, from the smallest to the largest
 		inline void sort()
 		{
-			std::sort(data.begin(), data.end());
+			// no need to sort as data are already sorted
 		}
 		
 		//! get the data-point indices from the heap

@@ -34,10 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-// #ifdef HAVE_OPENCL
-// 	#define __CL_ENABLE_EXCEPTIONS
-// 	#include "CL/cl.hpp"
-// #endif // HAVE_OPENCL
 
 using namespace std;
 using namespace Nabo;
@@ -195,7 +191,7 @@ int main(int argc, char* argv[])
 	const int method(atoi(argv[3]));
 	
 	validate<float>(argv[1], K, method);
-	//validate<double>(argv[1], K, method);
+	validate<double>(argv[1], K, method);
 	
 	return 0;
 }

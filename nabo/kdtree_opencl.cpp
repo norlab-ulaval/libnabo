@@ -63,13 +63,35 @@ namespace Nabo
 	
 	using namespace std;
 	
-	template<typename T> struct TypeName {};
-	#define DEF_TYPE_MAP(CT, CLT) \
-		template<> struct TypeName<CT> { static const char name[]; }; \
-		const char TypeName<CT>::name[] = CLT;
-	DEF_TYPE_MAP(float, "float");
-	DEF_TYPE_MAP(double, "double");
+	template<typename T>
+	struct EnableCLTypeSupport {};
 	
+	template<> struct EnableCLTypeSupport<float>
+	{
+		static string code(const cl::Device& device)
+		{
+			return "typedef float T;\n";
+		}
+	};
+	
+	template<> struct EnableCLTypeSupport<double>
+	{
+		static string code(const cl::Device& device)
+		{
+			string s;
+			const string& exts(device.getInfo<CL_DEVICE_EXTENSIONS>());
+			//cerr << "extensions: " << exts << endl;
+			// first try generic 64-bits fp, otherwise try to fall back on vendor-specific extensions
+			if (exts.find("cl_khr_fp64") != string::npos)
+				s += "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n";
+			else if (exts.find("cl_amd_fp64") != string::npos)
+				s += "#pragma OPENCL EXTENSION cl_amd_fp64 : enable\n";
+			else
+				throw runtime_error("The OpenCL platform does not support 64 bits double-precision floating-points scalars.");
+			s += "typedef double T;\n";
+			return s;
+		}
+	};
 	
 	template<typename T>
 	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
@@ -187,12 +209,20 @@ namespace Nabo
 		// looking for platforms, AMD drivers do not like the default for creating context
 		vector<cl::Platform> platforms;
 		cl::Platform::get(&platforms);
-		for(vector<cl::Platform>::iterator i = platforms.begin(); i != platforms.end(); ++i)
-		{
+		if (platforms.empty())
+			throw runtime_error("No OpenCL platform found");
+		/*for(vector<cl::Platform>::iterator i = platforms.begin(); i != platforms.end(); ++i)
 			cerr << "platform " << i - platforms.begin() << " is " << (*i).getInfo<CL_PLATFORM_VENDOR>() << endl;
+		*/
+		size_t platformId = 0;
+		const char *userDefinedPlatform(getenv("NABO_OPENCL_USE_PLATFORM"));
+		if (userDefinedPlatform)
+		{
+			size_t userDefinedPlatformId = atoi(userDefinedPlatform);
+			if (userDefinedPlatformId < platforms.size())
+				platformId = userDefinedPlatformId;
 		}
-		cl_context_properties cps[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(), 0 };
-		// TODO: add a way to specify the platform
+		cl_context_properties cps[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[platformId])(), 0 };
 		
 		// create OpenCL contexts
 		if (tryGPU)
@@ -206,13 +236,17 @@ namespace Nabo
 		}
 		else
 			context = cl::Context(CL_DEVICE_TYPE_CPU, cps);
+		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+		if (devices.empty())
+			throw runtime_error("No devices on OpenCL platform");
 		
 		// build and load source files
 		cl::Program::Sources sources;
 		// build defines
 		ostringstream oss;
-		oss << "typedef " << TypeName<T>::name << " T;\n";
+		oss << EnableCLTypeSupport<T>::code(devices[0]);
 		oss << "#define DIM_COUNT " << cloud.rows() << "\n";
+		oss << "#define CLOUD_POINT_COUNT " << cloud.cols() << "\n";
 		oss << "#define POINT_STRIDE " << cloud.stride() << "\n";
 		oss << "#define MAX_K " << MAX_K << "\n";
 		oss << "#define MAX_STACK_DEPTH " << maxStackDepth << "\n";
@@ -222,7 +256,7 @@ namespace Nabo
 		strcpy(defContent, oss.str().c_str());
 		sources.push_back(std::make_pair(defContent, defLen));
 		// load files
-		const char* files[] = { "structure.cl", "knn.cl", NULL };
+		const char* files[] = { OPENCL_SOURCE_DIR "structure.cl", OPENCL_SOURCE_DIR "knn.cl", NULL };
 		for (const char** file = files; *file != NULL; ++file) {
 			std::ifstream stream(*file);
 			if (!stream.good())
@@ -242,7 +276,6 @@ namespace Nabo
 		cl::Program program(context, sources);
 		
 		// build
-		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
 		cl::Error error(CL_SUCCESS);
 		try {
 			program.build(devices);
@@ -266,7 +299,7 @@ namespace Nabo
 			throw error;
 		
 		// build kernel and command queue
-		knnKernel = cl::Kernel(program, "knnKDTree");
+		knnKernel = cl::Kernel(program, /*"knnBruteForce"*/ "knnKDTree");
 		queue = cl::CommandQueue(context, devices.back());
 		
 		// map nodes, for info about alignment, see sect 6.1.5 
@@ -277,7 +310,7 @@ namespace Nabo
 		// map cloud
 		if (!(cloud.Flags & Eigen::DirectAccessBit) || (cloud.Flags & Eigen::RowMajorBit))
 			throw runtime_error("wrong memory mapping in point cloud");
-		const size_t cloudCLSize(cloud.cols() * cloud.stride());
+		const size_t cloudCLSize(cloud.cols() * cloud.stride() * sizeof(T));
 		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
 		knnKernel.setArg(1, cloudCL);
 		
@@ -299,7 +332,7 @@ namespace Nabo
 		// map query
 		if (!(query.Flags & Eigen::DirectAccessBit) || (query.Flags & Eigen::RowMajorBit))
 			throw runtime_error("wrong memory mapping in query data");
-		const size_t queryCLSize(query.cols() * query.stride());
+		const size_t queryCLSize(query.cols() * query.stride() * sizeof(T));
 		cl::Buffer queryCL(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, queryCLSize, const_cast<T*>(&query.coeff(0,0)));
 		knnKernel.setArg(2, queryCL);
 		// map result
@@ -317,11 +350,10 @@ namespace Nabo
 		knnKernel.setArg(7, indexStride);
 		
 		// execute query
-		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(nodes.size()), cl::NullRange);
+		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
 		queue.enqueueMapBuffer(resultCL, true, CL_MAP_READ, 0, result.cols() * indexStride, 0, 0);
 		queue.finish();
 		
-		cerr << "query completed" << endl;
 		// TODO: if requested, sort results
 		return result;
 	}
@@ -331,170 +363,14 @@ namespace Nabo
 	{
 		Matrix m(query.size(), 1);
 		m = query;
-		return knnM(m, k, epsilon, optionFlags).col(0);
+		//cerr << "m " << m << endl;
+		IndexVector iv = knnM(m, k, epsilon, optionFlags).col(0);
+		//cerr << "iv " << iv << endl;
+		return iv;
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<double>;
-	
-	/*
-	
-	template<typename T>
-	size_t KDTreeBalancedPtInLeavesStackOpenCL<T>::getTreeSize(size_t elCount) const
-	{
-		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
-		assert(elCount > 0);
-		elCount --;
-		size_t count = 0;
-		int i = 31;
-		for (; i >= 0; --i)
-		{
-			if (elCount & (1 << i))
-				break;
-		}
-		for (int j = 0; j <= i; ++j)
-			count |= (1 << j);
-		count <<= 1;
-		count |= 1;
-		return count;
-	}
-
-	template<typename T>
-	void KDTreeBalancedPtInLeavesStackOpenCL<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues)
-	{
-		const size_t count(last - first);
-		//cerr << count << endl;
-		if (count == 1)
-		{
-			const int dim = -2-(first->index);
-			assert(pos < nodes.size());
-			nodes[pos] = Node(dim);
-			return;
-		}
-		
-		// find the largest dimension of the box
-		size_t cutDim = argMax<T>(maxValues - minValues);
-		
-		// compute number of elements
-		const size_t rightCount(count/2);
-		const size_t leftCount(count - rightCount);
-		assert(last - rightCount == first + leftCount);
-		
-		// sort
-		nth_element(first, first + leftCount, last, CompareDim(cutDim));
-		
-		// set node
-		const T cutVal((first+leftCount)->pos.coeff(cutDim));
-		nodes[pos] = Node(cutDim, cutVal);
-		
-		//cerr << pos << " cutting on " << cutDim << " at " << (first+leftCount)->pos[cutDim] << endl;
-		
-		// update bounds for left
-		Vector leftMaxValues(maxValues);
-		leftMaxValues[cutDim] = cutVal;
-		// update bounds for right
-		Vector rightMinValues(minValues);
-		rightMinValues[cutDim] = cutVal;
-		
-		// recurse
-		buildNodes(first, first + leftCount, childLeft(pos), minValues, leftMaxValues);
-		buildNodes(first + leftCount, last, childRight(pos), rightMinValues, maxValues);
-	}
-
-	template<typename T>
-	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const bool tryGPU):
-	NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
-	{
-		// build point vector and compute bounds
-		BuildPoints buildPoints;
-		buildPoints.reserve(cloud.cols());
-		for (int i = 0; i < cloud.cols(); ++i)
-		{
-			const Vector& v(cloud.col(i));
-			buildPoints.push_back(BuildPoint(v, i));
-			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
-			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
-		}
-		
-		// create nodes
-		nodes.resize(getTreeSize(cloud.cols()));
-		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
-		//for (size_t i = 0; i < nodes.size(); ++i)
-		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal << endl;
-	}
-
-	template<typename T>
-	typename KDTreeBalancedPtInLeavesStackOpenCL<T>::IndexVector KDTreeBalancedPtInLeavesStackOpenCL<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
-	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
-		
-		assert(nodes.size() > 0);
-		Heap heap(k);
-		Vector off(Vector::Zero(query.size()));
-		
-		statistics.lastQueryVisitCount = 0;
-		
-		recurseKnn(query, 0, 0, heap, off, 1 + epsilon, allowSelfMatch);
-		
-		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
-			heap.sort();
-		
-		statistics.totalVisitCount += statistics.lastQueryVisitCount;
-		
-		return heap.getIndexes();
-	}
-
-	template<typename T>
-	void KDTreeBalancedPtInLeavesStackOpenCL<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
-	{
-		const Node& node(nodes[n]);
-		const int cd(node.dim);
-		
-		++statistics.lastQueryVisitCount;
-		
-		if (cd < 0)
-		{
-			if (cd == -1)
-				return;
-			const int index(-(cd + 2));
-			const T dist(dist2<T>(query, cloud.col(index)));
-			if ((dist < heap.headValue()) &&
-				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
-			)
-				heap.replaceHead(index, dist);
-		}
-		else
-		{
-			const T old_off(off.coeff(cd));
-			const T new_off(query.coeff(cd) - node.cutVal);
-			if (new_off > 0)
-			{
-				recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
-				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.headValue())
-				{
-					off.coeffRef(cd) = new_off;
-					recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
-					off.coeffRef(cd) = old_off;
-				}
-			}
-			else
-			{
-				recurseKnn(query, childLeft(n), rd, heap, off, maxError, allowSelfMatch);
-				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.headValue())
-				{
-					off.coeffRef(cd) = new_off;
-					recurseKnn(query, childRight(n), rd, heap, off, maxError, allowSelfMatch);
-					off.coeffRef(cd) = old_off;
-				}
-			}
-		}
-	}
-
-	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
-	template struct KDTreeBalancedPtInLeavesStackOpenCL<double>;
-	*/
 	
 	//@}
 }

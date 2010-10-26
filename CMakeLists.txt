@@ -50,6 +50,7 @@ endif (WIN32)
 if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 	add_definitions(-DHAVE_OPENCL)
 	set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
+	add_definitions(-DOPENCL_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}/nabo/opencl/\")
 endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 
 # include all libs so far
