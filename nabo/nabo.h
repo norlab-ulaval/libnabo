@@ -191,11 +191,15 @@ namespace Nabo
 		enum SearchType
 		{
 			BRUTE_FORCE = 0, //!< brute force, check distance to every point in the data
-			KDTREE_LINEAR_HEAP = 1, //!< kd-tree with linear heap, good for small k (~up to 30)
-			KDTREE_TREE_HEAP = 2, //!< kd-tree with tree heap, good for large k (~from 30)
-			KDTREE_CL_CPU = 3, //!< kd-tree using openCL, cpu
-			KDTREE_CL_GPU = 4, //!< kd-tree using openCL, gpu if available
+			KDTREE_LINEAR_HEAP, //!< kd-tree with linear heap, good for small k (~up to 30)
+			KDTREE_TREE_HEAP, //!< kd-tree with tree heap, good for large k (~from 30)
+			BRUTE_FORCE_CL_CPU, //!< brute-force using openCL, cpu
+			BRUTE_FORCE_CL_GPU, //!< brute-force using openCL, gpu
 			SEARCH_TYPE_COUNT,
+			KDTREE_CL_CPU, //!< kd-tree using openCL, cpu
+			KDTREE_CL_GPU, //!< kd-tree using openCL, gpu
+			
+			//SEARCH_TYPE_COUNT,
 			//SEARCH_TYPE_COUNT //!< number of search types
 		};
 		

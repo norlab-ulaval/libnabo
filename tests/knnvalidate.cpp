@@ -100,6 +100,20 @@ typename Nabo::NearestNeighbourSearch<T>::Vector createQuery(const typename Nabo
 }
 
 template<typename T>
+typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const int itCount, const int method)
+{
+	typedef typename NearestNeighbourSearch<T>::Matrix MatrixT;
+	typedef Nabo::NearestNeighbourSearch<T> NNS;
+	NNS* nns = NNS::create(d, typename NNS::SearchType(0));
+	MatrixT q(d.rows(), itCount);
+	for (int i = 0; i < itCount; ++i)
+		q.col(i) = createQuery<T>(d, *nns, i, method);
+	delete nns;
+	return q;
+}
+
+
+template<typename T>
 void validate(const char *fileName, const int K, const int method)
 {
 	typedef Nabo::NearestNeighbourSearch<T> NNS;
@@ -108,6 +122,7 @@ void validate(const char *fileName, const int K, const int method)
 	typedef typename NNS::Vector Vector;
 	typedef typename NNS::Index Index;
 	typedef typename NNS::IndexVector IndexVector;
+	typedef typename NNS::IndexMatrix IndexMatrix;
 	
 	// check if file is ok
 	const Matrix d(load<T>(fileName));
@@ -127,8 +142,12 @@ void validate(const char *fileName, const int K, const int method)
 		nnss.push_back(NNS::create(d, typename NNS::SearchType(i)));
 	//nnss.push_back(new KDTreeBalancedPtInLeavesStack<T>(d, false));
 	
+	
 	// check methods together
 	const int itCount(method != -1 ? method : d.cols() * 2);
+	
+	/*
+	// element-by-element search
 	for (int i = 0; i < itCount; ++i)
 	{
 		const Vector q(createQuery<T>(d, *nnss[0], i, method));
@@ -146,22 +165,79 @@ void validate(const char *fileName, const int K, const int method)
 				cerr << "Different number of points found between brute force and NNS type "<< j  << endl;
 				exit(3);
 			}
-			for (size_t j = 0; j < size_t(K); ++j)
+			for (size_t k = 0; k < size_t(K); ++k)
 			{
-				Vector pbf(d.col(indexes_bf[j]));
-				//cerr << indexes_kdtree[j] << endl;
-				Vector pkdtree(d.col(indexes_kdtree[j]));
+				Vector pbf(d.col(indexes_bf[k]));
+				//cerr << indexes_kdtree[k] << endl;
+				Vector pkdtree(d.col(indexes_kdtree[k]));
 				if (fabsf((pbf-q).squaredNorm() - (pkdtree-q).squaredNorm()) >= numeric_limits<float>::epsilon())
 				{
-					cerr << "Method " << j << ", cloud point " << i << ", neighbour " << j << " of " << K << " is different between bf and kdtree (dist " << (pbf-pkdtree).norm() << ")\n";
+					cerr << "Method " << j << ", cloud point " << i << ", neighbour " << k << " of " << K << " is different between bf and kdtree (dist " << (pbf-pkdtree).norm() << ")\n";
 					cerr << "* query:\n";
 					cerr << q << "\n";
-					cerr << "* indexes " << indexes_bf[j] << " (bf) vs " <<  indexes_kdtree[j] << " (kdtree)\n";
+					cerr << "* indexes " << indexes_bf[k] << " (bf) vs " <<  indexes_kdtree[k] << " (kdtree)\n";
 					cerr << "* coordinates:\n";
 					cerr << "bf: (dist " << (pbf-q).norm() << ")\n";
 					cerr << pbf << "\n";
 					cerr << "kdtree (dist " << (pkdtree-q).norm() << ")\n";
 					cerr << pkdtree << endl;
+					exit(4);
+				}
+			}
+		}
+	}
+	*/
+	// create big query
+	// check all-in-one query
+	Matrix q(createQuery<T>(d, itCount, method));
+	const IndexMatrix indexes_bf(nnss[0]->knnM(q, K, 0, NNS::SORT_RESULTS));
+	assert(indexes_bf.cols() == q.cols());
+	for (size_t j = 1; j < nnss.size(); ++j)
+	{
+		const IndexMatrix indexes_kdtree(nnss[j]->knnM(q, K, 0, NNS::SORT_RESULTS));
+		if (indexes_bf.rows() != K)
+		{
+			cerr << "Different number of points found between brute force and request" << endl;
+			exit(3);
+		}
+		if (indexes_bf.cols() != indexes_kdtree.cols())
+		{
+			cerr << "Different number of points found between brute force and NNS type "<< j  << endl;
+			exit(3);
+		}
+		
+		for (int i = 0; i < q.cols(); ++i)
+		{
+			for (size_t k = 0; k < size_t(K); ++k)
+			{
+				const int pbfi(indexes_bf(k,i));
+				const Vector pbf(d.col(pbfi));
+				const int pkdt(indexes_kdtree(k,i));
+				if (pkdt < 0 || pkdt >= d.cols())
+				{
+					cerr << "Method " << j << ", query point " << i << ", neighbour " << k << " of " << K << " has invalid index " << pkdt << " out of range [0:" << d.cols() << "[" << endl;
+					exit(4);
+				}
+				const Vector pkdtree(d.col(pkdt));
+				const Vector pq(q.col(i));
+				const float distDiff(fabsf((pbf-pq).squaredNorm() - (pkdtree-pq).squaredNorm()));
+				if (distDiff > numeric_limits<float>::epsilon())
+				{
+					cerr << "Method " << j << ", query point " << i << ", neighbour " << k << " of " << K << " is different between bf and kdtree (dist2 " << distDiff << ")\n";
+					cerr << "* query point:\n";
+					cerr << pq << "\n";
+					cerr << "* indexes " << pbfi << " (bf) vs " << pkdt << " (kdtree)\n";
+					cerr << "* coordinates:\n";
+					cerr << "bf: (dist " << (pbf-pq).norm() << ")\n";
+					cerr << pbf << "\n";
+					cerr << "kdtree (dist " << (pkdtree-pq).norm() << ")\n";
+					cerr << pkdtree << endl;
+					cerr << "* bf neighbours:\n";
+					for (int l = 0; l < K; ++l)
+						cerr << indexes_bf(l,i) << " (dist " << (d.col(indexes_bf(l,i))-pq).norm() << ")\n";
+					cerr << "* kdtree neighbours:\n";
+					for (int l = 0; l < K; ++l)
+						cerr << indexes_kdtree(l,i) << " (dist " << (d.col(indexes_kdtree(l,i))-pq).norm() << ")\n";
 					exit(4);
 				}
 			}
@@ -191,7 +267,7 @@ int main(int argc, char* argv[])
 	const int method(atoi(argv[3]));
 	
 	validate<float>(argv[1], K, method);
-	validate<double>(argv[1], K, method);
+	//validate<double>(argv[1], K, method);
 	
 	return 0;
 }

@@ -145,9 +145,9 @@ namespace Nabo
 	
 	#ifdef HAVE_OPENCL
 	
-	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
+	//! OpenCL support for nearest neighbour search	
 	template<typename T>
-	struct KDTreeBalancedPtInLeavesStackOpenCL: public NearestNeighbourSearch<T>
+	struct OpenCLSearch: public NearestNeighbourSearch<T>
 	{
 		typedef typename NearestNeighbourSearch<T>::Vector Vector;
 		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
@@ -155,10 +155,52 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighbourSearch<T>::statistics;
+		using NearestNeighbourSearch<T>::cloud;
+		
+	protected:
+		cl::Context context;
+		cl::Kernel knnKernel;
+		cl::CommandQueue queue;
+		cl::Buffer cloudCL;
+		
+		OpenCLSearch(const Matrix& cloud);
+		void initOpenCL(const cl_device_type deviceType, const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
+	
+	public:
+		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
+		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
+	};
+	
+	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
+	template<typename T>
+	struct BruteForceSearchOpenCL: public OpenCLSearch<T>
+	{
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		
+		using OpenCLSearch<T>::initOpenCL;
+		
+		BruteForceSearchOpenCL(const Matrix& cloud, const cl_device_type deviceType);
+	};
+	
+	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
+	template<typename T>
+	struct KDTreeBalancedPtInLeavesStackOpenCL: public OpenCLSearch<T>
+	{
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		
 		using NearestNeighbourSearch<T>::cloud;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
+		
+		using OpenCLSearch<T>::context;
+		using OpenCLSearch<T>::knnKernel;
+		
+		using OpenCLSearch<T>::initOpenCL;
 		
 	protected:
 		struct BuildPoint
@@ -189,11 +231,7 @@ namespace Nabo
 		
 		Nodes nodes;
 		
-		cl::Context context;
-		cl::Kernel knnKernel;
-		cl::CommandQueue queue;
 		cl::Buffer nodesCL;
-		cl::Buffer cloudCL;
 		
 		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
 		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
@@ -203,9 +241,7 @@ namespace Nabo
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
-		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const bool tryGPU);
-		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
-		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
+		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const cl_device_type deviceType);
 	};
 	
 	#endif // HAVE_OPENCL

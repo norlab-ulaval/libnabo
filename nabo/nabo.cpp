@@ -79,11 +79,15 @@ namespace Nabo
 			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>>(cloud);
 			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud);
 			#ifdef HAVE_OPENCL
-			case KDTREE_CL_CPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, false);
-			case KDTREE_CL_GPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, true);
+			case KDTREE_CL_CPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, CL_DEVICE_TYPE_CPU);
+			case KDTREE_CL_GPU: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, CL_DEVICE_TYPE_GPU);
+			case BRUTE_FORCE_CL_CPU: return new BruteForceSearchOpenCL<T>(cloud, CL_DEVICE_TYPE_GPU);
+			case BRUTE_FORCE_CL_GPU: return new BruteForceSearchOpenCL<T>(cloud, CL_DEVICE_TYPE_GPU);
 			#else // HAVE_OPENCL
 			case KDTREE_CL_CPU: throw runtime_error("OpenCL not found during compilation");
 			case KDTREE_CL_GPU: throw runtime_error("OpenCL not found during compilation");
+			case BRUTE_FORCE_CL_CPU: throw runtime_error("OpenCL not found during compilation");
+			case BRUTE_FORCE_CL_GPU: throw runtime_error("OpenCL not found during compilation");
 			#endif // HAVE_OPENCL
 			default: throw runtime_error("Unknown search type");
 		}

@@ -42,6 +42,7 @@
 #include <algorithm>
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
+#include <boost/format.hpp>
 
 /*!	\file kdtree_opencl.cpp
  \ *brief kd-tree search, opencl implementation
@@ -92,6 +93,201 @@ namespace Nabo
 			return s;
 		}
 	};
+	
+	template<typename T>
+	OpenCLSearch<T>::OpenCLSearch(const Matrix& cloud):
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	{
+	}
+	
+	template<typename T>
+	void OpenCLSearch<T>::initOpenCL(const cl_device_type deviceType, const char* clFileName, const char* kernelName, const string& additionalDefines)
+	{
+		// looking for platforms, AMD drivers do not like the default for creating context
+		vector<cl::Platform> platforms;
+		cl::Platform::get(&platforms);
+		if (platforms.empty())
+			throw runtime_error("No OpenCL platform found");
+		//for(vector<cl::Platform>::iterator i = platforms.begin(); i != platforms.end(); ++i)
+		//	cerr << "platform " << i - platforms.begin() << " is " << (*i).getInfo<CL_PLATFORM_VENDOR>() << endl;
+		cl::Platform platform = platforms[0];
+		const char *userDefinedPlatform(getenv("NABO_OPENCL_USE_PLATFORM"));
+		if (userDefinedPlatform)
+		{
+			size_t userDefinedPlatformId = atoi(userDefinedPlatform);
+			if (userDefinedPlatformId < platforms.size())
+				platform = platforms[userDefinedPlatformId];
+		}
+		
+		// create OpenCL contexts
+		cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platform(), 0 };
+		bool deviceFound = false;
+		try {
+			context = cl::Context(deviceType, properties);
+			deviceFound = true;
+		} catch (cl::Error e) {
+			cerr << "Cannot find device type " << deviceType << " for OpenCL, falling back to any device" << endl;
+		}
+		if (!deviceFound)
+			context = cl::Context(CL_DEVICE_TYPE_ALL, properties);
+		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+		if (devices.empty())
+			throw runtime_error("No devices on OpenCL platform");
+		
+		// build and load source files
+		cl::Program::Sources sources;
+		// build defines
+		ostringstream oss;
+		oss << EnableCLTypeSupport<T>::code(devices[0]);
+		oss << "#define EPSILON " << numeric_limits<T>::epsilon() << "\n";
+		oss << "#define DIM_COUNT " << cloud.rows() << "\n";
+		oss << "#define CLOUD_POINT_COUNT " << cloud.cols() << "\n";
+		oss << "#define POINT_STRIDE " << cloud.stride() << "\n";
+		oss << "#define MAX_K " << MAX_K << "\n";
+		oss << additionalDefines;
+		cerr << "params:\n" << oss.str() << endl;
+		const size_t defLen(oss.str().length());
+		char *defContent(new char[defLen+1]);
+		strcpy(defContent, oss.str().c_str());
+		sources.push_back(std::make_pair(defContent, defLen));
+		string sourceFileName(OPENCL_SOURCE_DIR);
+		sourceFileName += clFileName;
+		// load files
+		const char* files[] = {
+			OPENCL_SOURCE_DIR "structure.cl",
+			OPENCL_SOURCE_DIR "heap.cl",
+			sourceFileName.c_str(),
+			NULL 
+		};
+		for (const char** file = files; *file != NULL; ++file)
+		{
+			std::ifstream stream(*file);
+			if (!stream.good())
+				throw runtime_error((string("cannot open file: ") + *file));
+			
+			stream.seekg(0, std::ios_base::end);
+			size_t size(stream.tellg());
+			stream.seekg(0, std::ios_base::beg);
+			
+			char* content(new char[size + 1]);
+			std::copy(std::istreambuf_iterator<char>(stream),
+						std::istreambuf_iterator<char>(), content);
+			content[size] = '\0';
+			
+			sources.push_back(std::make_pair(content, size));
+		}
+		cl::Program program(context, sources);
+		
+		// build
+		cl::Error error(CL_SUCCESS);
+		try {
+			program.build(devices);
+		} catch (cl::Error e) {
+			error = e;
+		}
+		
+		// dump
+		for (cl::Devices::const_iterator it = devices.begin(); it != devices.end(); ++it)
+		{
+			cerr << "device : " << it->getInfo<CL_DEVICE_NAME>() << "\n";
+			cerr << "compilation log:\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*it) << endl;
+		}
+		// cleanup sources
+		for (cl::Program::Sources::iterator it = sources.begin(); it != sources.end(); ++it)
+		{
+			delete[] it->first;
+		}
+		sources.clear();
+		
+		// make sure to stop if compilation failed
+		if (error.err() != CL_SUCCESS)
+			throw error;
+		
+		// build kernel and command queue
+		knnKernel = cl::Kernel(program, kernelName); 
+		queue = cl::CommandQueue(context, devices.back());
+		
+		// map cloud
+		if (!(cloud.Flags & Eigen::DirectAccessBit) || (cloud.Flags & Eigen::RowMajorBit))
+			throw runtime_error("wrong memory mapping in point cloud");
+		const size_t cloudCLSize(cloud.cols() * cloud.stride() * sizeof(T));
+		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
+		knnKernel.setArg(0, cloudCL);
+		
+		// TODO: optimise by caching context and programs
+	}
+	
+	template<typename T>
+	typename OpenCLSearch<T>::IndexMatrix OpenCLSearch<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	{
+		// check K
+		if (k > MAX_K)
+			throw runtime_error("number of neighbors too large for OpenCL");
+		
+		// check consistency of query wrt cloud
+		if (query.stride() != cloud.stride() ||
+			query.rows() != cloud.rows())
+			throw runtime_error("query is not of the same dimensionality as the point cloud");
+		// map query
+		if (!(query.Flags & Eigen::DirectAccessBit) || (query.Flags & Eigen::RowMajorBit))
+			throw runtime_error("wrong memory mapping in query data");
+		const size_t queryCLSize(query.cols() * query.stride() * sizeof(T));
+		cl::Buffer queryCL(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, queryCLSize, const_cast<T*>(&query.coeff(0,0)));
+		knnKernel.setArg(1, queryCL);
+		// map result
+		IndexMatrix result(k, query.cols());
+		assert((query.Flags & Eigen::DirectAccessBit) && (!(query.Flags & Eigen::RowMajorBit)));
+		const int indexStride(result.stride());
+		const size_t resultCLSize(result.cols() * indexStride * sizeof(int));
+		cl::Buffer resultCL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, resultCLSize, &result.coeffRef(0,0));
+		knnKernel.setArg(2, resultCL);
+		
+		// set resulting parameters
+		knnKernel.setArg(3, k);
+		knnKernel.setArg(4, 1 + epsilon);
+		knnKernel.setArg(5, optionFlags);
+		knnKernel.setArg(6, indexStride);
+		
+		// execute query
+		cerr << "querying " << query.cols() << " points" << endl;
+		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
+		queue.enqueueMapBuffer(resultCL, true, CL_MAP_READ, 0, resultCLSize, 0, 0);
+		queue.finish();
+		
+		return result;
+	}
+	
+	template<typename T>
+	typename OpenCLSearch<T>::IndexVector OpenCLSearch<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	{
+		Matrix m(query.size(), 1);
+		m = query;
+		//cerr << "m " << m << endl;
+		IndexVector iv = knnM(m, k, epsilon, optionFlags).col(0);
+		//cerr << "iv " << iv << endl;
+		return iv;
+	}
+	
+	
+	template<typename T>
+	BruteForceSearchOpenCL<T>::BruteForceSearchOpenCL(const Matrix& cloud, const cl_device_type deviceType):
+	OpenCLSearch<T>::OpenCLSearch(cloud)
+	{
+		// compute bounds
+		for (int i = 0; i < cloud.cols(); ++i)
+		{
+			const Vector& v(cloud.col(i));
+			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
+			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
+		}
+		
+		// init openCL
+		initOpenCL(deviceType, "knn_bf.cl", "knnBruteForce");
+	}
+	
+	template struct BruteForceSearchOpenCL<float>;
+	template struct BruteForceSearchOpenCL<double>;
+	
 	
 	template<typename T>
 	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
@@ -187,8 +383,8 @@ namespace Nabo
 	}
 
 	template<typename T>
-	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const bool tryGPU):
-	NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const cl_device_type deviceType):
+	OpenCLSearch<T>::OpenCLSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -206,167 +402,14 @@ namespace Nabo
 		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
 		const unsigned maxStackDepth(getTreeDepth(nodes.size())*2 + 1);
 		
-		// looking for platforms, AMD drivers do not like the default for creating context
-		vector<cl::Platform> platforms;
-		cl::Platform::get(&platforms);
-		if (platforms.empty())
-			throw runtime_error("No OpenCL platform found");
-		/*for(vector<cl::Platform>::iterator i = platforms.begin(); i != platforms.end(); ++i)
-			cerr << "platform " << i - platforms.begin() << " is " << (*i).getInfo<CL_PLATFORM_VENDOR>() << endl;
-		*/
-		size_t platformId = 0;
-		const char *userDefinedPlatform(getenv("NABO_OPENCL_USE_PLATFORM"));
-		if (userDefinedPlatform)
-		{
-			size_t userDefinedPlatformId = atoi(userDefinedPlatform);
-			if (userDefinedPlatformId < platforms.size())
-				platformId = userDefinedPlatformId;
-		}
-		cl_context_properties cps[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[platformId])(), 0 };
-		
-		// create OpenCL contexts
-		if (tryGPU)
-		{
-			try {
-				context = cl::Context(CL_DEVICE_TYPE_GPU, cps);
-			} catch (cl::Error e) {
-				cerr << "Cannot find GPU for OpenCL, falling back to CPU" << endl;
-				context = cl::Context(CL_DEVICE_TYPE_CPU, cps);
-			}
-		}
-		else
-			context = cl::Context(CL_DEVICE_TYPE_CPU, cps);
-		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
-		if (devices.empty())
-			throw runtime_error("No devices on OpenCL platform");
-		
-		// build and load source files
-		cl::Program::Sources sources;
-		// build defines
-		ostringstream oss;
-		oss << EnableCLTypeSupport<T>::code(devices[0]);
-		oss << "#define DIM_COUNT " << cloud.rows() << "\n";
-		oss << "#define CLOUD_POINT_COUNT " << cloud.cols() << "\n";
-		oss << "#define POINT_STRIDE " << cloud.stride() << "\n";
-		oss << "#define MAX_K " << MAX_K << "\n";
-		oss << "#define MAX_STACK_DEPTH " << maxStackDepth << "\n";
-		cerr << "params:\n" << oss.str() << endl;
-		const size_t defLen(oss.str().length());
-		char *defContent(new char[defLen+1]);
-		strcpy(defContent, oss.str().c_str());
-		sources.push_back(std::make_pair(defContent, defLen));
-		// load files
-		const char* files[] = { OPENCL_SOURCE_DIR "structure.cl", OPENCL_SOURCE_DIR "knn.cl", NULL };
-		for (const char** file = files; *file != NULL; ++file) {
-			std::ifstream stream(*file);
-			if (!stream.good())
-				throw runtime_error((string("cannot open file: ") + *file));
-			
-			stream.seekg(0, std::ios_base::end);
-			size_t size(stream.tellg());
-			stream.seekg(0, std::ios_base::beg);
-			
-			char* content(new char[size + 1]);
-			std::copy(std::istreambuf_iterator<char>(stream),
-					  std::istreambuf_iterator<char>(), content);
-			content[size] = '\0';
-			
-			sources.push_back(std::make_pair(content, size));
-		}
-		cl::Program program(context, sources);
-		
-		// build
-		cl::Error error(CL_SUCCESS);
-		try {
-			program.build(devices);
-		} catch (cl::Error e) {
-			error = e;
-		}
-		
-		// dump
-		for (cl::Devices::const_iterator it = devices.begin(); it != devices.end(); ++it) {
-			cerr << "device : " << it->getInfo<CL_DEVICE_NAME>() << "\n";
-			cerr << "compilation log:\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*it) << endl;
-		}
-		// cleanup sources
-		for (cl::Program::Sources::iterator it = sources.begin(); it != sources.end(); ++it) {
-			delete[] it->first;
-		}
-		sources.clear();
-		
-		// make sure to stop if compilation failed
-		if (error.err() != CL_SUCCESS)
-			throw error;
-		
-		// build kernel and command queue
-		knnKernel = cl::Kernel(program, /*"knnBruteForce"*/ "knnKDTree");
-		queue = cl::CommandQueue(context, devices.back());
+		// init openCL
+		initOpenCL(deviceType, "knn_kdtree.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
 		
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		//cerr << "sznode " << sizeof(Node)  << endl;
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
-		knnKernel.setArg(0, nodesCL);
-		// map cloud
-		if (!(cloud.Flags & Eigen::DirectAccessBit) || (cloud.Flags & Eigen::RowMajorBit))
-			throw runtime_error("wrong memory mapping in point cloud");
-		const size_t cloudCLSize(cloud.cols() * cloud.stride() * sizeof(T));
-		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
-		knnKernel.setArg(1, cloudCL);
-		
-		// TODO: optimise by caching context and programs
-	}
-	
-	
-	template<typename T>
-	typename KDTreeBalancedPtInLeavesStackOpenCL<T>::IndexMatrix KDTreeBalancedPtInLeavesStackOpenCL<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
-	{
-		// check K
-		if (k > MAX_K)
-			throw runtime_error("number of neighbors too large for OpenCL");
-		
-		// check consistency of query wrt cloud
-		if (query.stride() != cloud.stride() ||
-			query.rows() != cloud.rows())
-			throw runtime_error("query is not of the same dimensionality as the point cloud");
-		// map query
-		if (!(query.Flags & Eigen::DirectAccessBit) || (query.Flags & Eigen::RowMajorBit))
-			throw runtime_error("wrong memory mapping in query data");
-		const size_t queryCLSize(query.cols() * query.stride() * sizeof(T));
-		cl::Buffer queryCL(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, queryCLSize, const_cast<T*>(&query.coeff(0,0)));
-		knnKernel.setArg(2, queryCL);
-		// map result
-		IndexMatrix result(k, query.cols());
-		assert((query.Flags & Eigen::DirectAccessBit) && (!(query.Flags & Eigen::RowMajorBit)));
-		const int indexStride(result.stride());
-		const size_t resultCLSize(result.cols() * indexStride);
-		cl::Buffer resultCL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, resultCLSize, &result.coeffRef(0,0));
-		knnKernel.setArg(3, resultCL);
-		
-		// set resulting parameters
-		knnKernel.setArg(4, k);
-		knnKernel.setArg(5, 1 + epsilon);
-		knnKernel.setArg(6, optionFlags);
-		knnKernel.setArg(7, indexStride);
-		
-		// execute query
-		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
-		queue.enqueueMapBuffer(resultCL, true, CL_MAP_READ, 0, result.cols() * indexStride, 0, 0);
-		queue.finish();
-		
-		// TODO: if requested, sort results
-		return result;
-	}
-
-	template<typename T>
-	typename KDTreeBalancedPtInLeavesStackOpenCL<T>::IndexVector KDTreeBalancedPtInLeavesStackOpenCL<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
-	{
-		Matrix m(query.size(), 1);
-		m = query;
-		//cerr << "m " << m << endl;
-		IndexVector iv = knnM(m, k, epsilon, optionFlags).col(0);
-		//cerr << "iv " << iv << endl;
-		return iv;
+		knnKernel.setArg(7, nodesCL);
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
