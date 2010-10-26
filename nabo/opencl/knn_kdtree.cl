@@ -19,6 +19,7 @@ kernel void knnKDTree(	const global T* cloud,
 	HeapEntry heap[MAX_K];
 	T off[DIM_COUNT];
 	uint stackPtr = 1;
+	uint maxStackPtr = 0;
 
 	const size_t queryId = get_global_id(0);
 	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
@@ -33,6 +34,7 @@ kernel void knnKDTree(	const global T* cloud,
 
 	while (stackPtr != 0)
 	{
+		maxStackPtr = max(maxStackPtr, stackPtr);
 		--stackPtr;
 		StackEntry* s = stack + stackPtr;
 		const size_t n = s->n;
@@ -54,7 +56,7 @@ kernel void knnKDTree(	const global T* cloud,
 						dist += diff * diff;
 					}
 					if (dist < heapHeadValue(heap) &&
-						(allowSelfMatch || (dist > EPSILON)))
+						(allowSelfMatch || (dist > (T)EPSILON)))
 						heapHeadReplace(heap, index, dist, K);
 				}
 			}

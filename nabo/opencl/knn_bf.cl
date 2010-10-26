@@ -15,7 +15,7 @@ kernel void knnBruteForce(const global T* cloud,
 	
 	for (uint index = 0; index < CLOUD_POINT_COUNT; ++index)
 	{
-		global T* p = &cloud[index * POINT_STRIDE];
+		const global T* p = &cloud[index * POINT_STRIDE];
 		T dist = 0;
 		for (uint i = 0; i < DIM_COUNT; ++i)
 		{
@@ -23,7 +23,7 @@ kernel void knnBruteForce(const global T* cloud,
 			dist += diff * diff;
 		}
 		if (dist < heapHeadValue(heap) &&
-			(allowSelfMatch || (dist > EPSILON)))
+			(allowSelfMatch || (dist > (T)EPSILON)))
 			heapHeadReplace(heap, index, dist, K);
 	}
 	heapCopy(&result[queryId * indexStride], heap, K);

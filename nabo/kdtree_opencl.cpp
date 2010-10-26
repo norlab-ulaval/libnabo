@@ -212,7 +212,7 @@ namespace Nabo
 			throw runtime_error("wrong memory mapping in point cloud");
 		const size_t cloudCLSize(cloud.cols() * cloud.stride() * sizeof(T));
 		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
-		knnKernel.setArg(0, cloudCL);
+		knnKernel.setArg(0, sizeof(cl_mem), &cloudCL);
 		
 		// TODO: optimise by caching context and programs
 	}
@@ -233,14 +233,14 @@ namespace Nabo
 			throw runtime_error("wrong memory mapping in query data");
 		const size_t queryCLSize(query.cols() * query.stride() * sizeof(T));
 		cl::Buffer queryCL(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, queryCLSize, const_cast<T*>(&query.coeff(0,0)));
-		knnKernel.setArg(1, queryCL);
+		knnKernel.setArg(1, sizeof(cl_mem), &queryCL);
 		// map result
 		IndexMatrix result(k, query.cols());
 		assert((query.Flags & Eigen::DirectAccessBit) && (!(query.Flags & Eigen::RowMajorBit)));
 		const int indexStride(result.stride());
 		const size_t resultCLSize(result.cols() * indexStride * sizeof(int));
 		cl::Buffer resultCL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, resultCLSize, &result.coeffRef(0,0));
-		knnKernel.setArg(2, resultCL);
+		knnKernel.setArg(2, sizeof(cl_mem), &resultCL);
 		
 		// set resulting parameters
 		knnKernel.setArg(3, k);
@@ -249,7 +249,6 @@ namespace Nabo
 		knnKernel.setArg(6, indexStride);
 		
 		// execute query
-		cerr << "querying " << query.cols() << " points" << endl;
 		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
 		queue.enqueueMapBuffer(resultCL, true, CL_MAP_READ, 0, resultCLSize, 0, 0);
 		queue.finish();
@@ -381,7 +380,7 @@ namespace Nabo
 		buildNodes(first, first + leftCount, childLeft(pos), minValues, leftMaxValues);
 		buildNodes(first + leftCount, last, childRight(pos), rightMinValues, maxValues);
 	}
-
+	
 	template<typename T>
 	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const cl_device_type deviceType):
 	OpenCLSearch<T>::OpenCLSearch(cloud)
@@ -401,15 +400,15 @@ namespace Nabo
 		nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
 		const unsigned maxStackDepth(getTreeDepth(nodes.size())*2 + 1);
+		// FIXME: *2 maybe not useful
 		
 		// init openCL
 		initOpenCL(deviceType, "knn_kdtree.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
 		
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
-		//cerr << "sznode " << sizeof(Node)  << endl;
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
-		knnKernel.setArg(7, nodesCL);
+		knnKernel.setArg(7, sizeof(cl_mem), &nodesCL);
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;

@@ -373,7 +373,6 @@ int main(int argc, char* argv[])
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
 		#ifdef HAVE_OPENCL
-		"Nabo, float, OpenCL, CPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
 		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
 		"Nabo, float, OpenCL, GPU, brute force",
 		#endif // HAVE_OPENCL
@@ -406,9 +405,8 @@ int main(int argc, char* argv[])
 		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_LINEAR_HEAP, dF, qF, K, itCount);
 		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, dF, qF, K, itCount);
 		#ifdef HAVE_OPENCL
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL_CPU, dF, qF, K, itCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL_GPU, dF, qF, K, itCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL_GPU, dF, qF, K, itCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, dF, qF, K, itCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount);
 		#endif // HAVE_OPENCL
 		#ifdef HAVE_ANN
 		results.at(i++) += doBenchANNStack(dD, qD, K, itCount);
