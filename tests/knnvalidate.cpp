@@ -153,7 +153,7 @@ void validate(const char *fileName, const int K, const int method)
 				Vector pkdtree(d.col(indexes_kdtree[j]));
 				if (fabsf((pbf-q).squaredNorm() - (pkdtree-q).squaredNorm()) >= numeric_limits<float>::epsilon())
 				{
-					cerr << "Step " << i << ", point " << j << " of " << K << " is different between bf and kdtree (dist " << (pbf-pkdtree).norm() << ")\n";
+					cerr << "Method " << j << ", cloud point " << i << ", neighbour " << j << " of " << K << " is different between bf and kdtree (dist " << (pbf-pkdtree).norm() << ")\n";
 					cerr << "* query:\n";
 					cerr << q << "\n";
 					cerr << "* indexes " << indexes_bf[j] << " (bf) vs " <<  indexes_kdtree[j] << " (kdtree)\n";
