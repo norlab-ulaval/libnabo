@@ -205,7 +205,7 @@ typedef vector<BenchResult> BenchResults;
 // }
 
 template<typename T>
-BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, const typename NearestNeighbourSearch<T>::Matrix& d, const typename NearestNeighbourSearch<T>::Matrix& q, const int K, const int itCount)
+BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, const typename NearestNeighbourSearch<T>::Matrix& d, const typename NearestNeighbourSearch<T>::Matrix& q, const int K, const int itCount, const int searchCount)
 {
 	typedef NearestNeighbourSearch<T> nnsT;
 	
@@ -214,9 +214,13 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	nnsT* nns(nnsT::create(d, type));
 	result.creationDuration = t.elapsed();
 	
-	t.restart();
-	nns->knnM(q, K, 0, 0);
-	result.executionDuration = t.elapsed();
+	for (int i = 0; i < searchCount; ++i)
+	{
+		t.restart();
+		nns->knnM(q, K, 0, 0);
+		result.executionDuration += t.elapsed();
+	}
+	result.executionDuration /= double(searchCount);
 	
 	delete nns;
 	
@@ -228,7 +232,7 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 
 #ifdef HAVE_ANN
 
-BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, const int itCount)
+BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, const int itCount, const int searchCount)
 {
 	BenchResult result;
 	boost::timer t;
@@ -239,26 +243,30 @@ BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, con
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
 	result.creationDuration = t.elapsed();
 	
-	t.restart();
-	ANNidx nnIdx[K];
-	ANNdist dists[K];
-	for (int i = 0; i < itCount; ++i)
+	for (int i = 0; i < searchCount; ++i)
 	{
-		const VectorD& tq(q.col(i));
-		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
-		ann_kdt->annkSearch(		// search
-						queryPt,	// query point
-						K,			// number of near neighbours
-						nnIdx,		// nearest neighbours (returned)
-						dists,		// distance (returned)
-						0);			// error bound
+		t.restart();
+		ANNidx nnIdx[K];
+		ANNdist dists[K];
+		for (int i = 0; i < itCount; ++i)
+		{
+			const VectorD& tq(q.col(i));
+			ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
+			ann_kdt->annkSearch(		// search
+							queryPt,	// query point
+							K,			// number of near neighbours
+							nnIdx,		// nearest neighbours (returned)
+							dists,		// distance (returned)
+							0);			// error bound
+		}
+		result.executionDuration += t.elapsed();
 	}
-	result.executionDuration = t.elapsed();
+	result.executionDuration /= double(searchCount);
 	
 	return result;
 }
 
-BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, const int itCount)
+BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, const int itCount, const int searchCount)
 {
 	BenchResult result;
 	boost::timer t;
@@ -269,21 +277,25 @@ BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, 
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
 	result.creationDuration = t.elapsed();
 	
-	t.restart();
-	ANNidx nnIdx[K];
-	ANNdist dists[K];
-	for (int i = 0; i < itCount; ++i)
+	for (int i = 0; i < searchCount; ++i)
 	{
-		const VectorD& tq(q.col(i));
-		ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
-		ann_kdt->annkPriSearch(		// search
-						queryPt,	// query point
-						K,			// number of near neighbours
-						nnIdx,		// nearest neighbours (returned)
-						dists,		// distance (returned)
-						0);			// error bound
+		t.restart();
+		ANNidx nnIdx[K];
+		ANNdist dists[K];
+		for (int i = 0; i < itCount; ++i)
+		{
+			const VectorD& tq(q.col(i));
+			ANNpoint queryPt(const_cast<double*>(&tq.coeff(0)));
+			ann_kdt->annkPriSearch(		// search
+							queryPt,	// query point
+							K,			// number of near neighbours
+							nnIdx,		// nearest neighbours (returned)
+							dists,		// distance (returned)
+							0);			// error bound
+		}
+		result.executionDuration += t.elapsed();
 	}
-	result.executionDuration = t.elapsed();
+	result.executionDuration /= double(searchCount);
 	
 	return result;
 }
@@ -336,9 +348,9 @@ BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const 
 
 int main(int argc, char* argv[])
 {
-	if (argc != 5)
+	if (argc != 6)
 	{
-		cerr << "Usage " << argv[0] << " DATA K METHOD RUN_COUNT" << endl;
+		cerr << "Usage " << argv[0] << " DATA K METHOD RUN_COUNT SEARCH_COUNT" << endl;
 		return 1;
 	}
 	
@@ -348,6 +360,7 @@ int main(int argc, char* argv[])
 	const int method(atoi(argv[3]));
 	const int itCount(method >= 0 ? method : dD.cols() * 2);
 	const int runCount(atoi(argv[4]));
+	const int searchCount(atoi(argv[5]));
 	
 	// compare KDTree with brute force search
 	if (K >= dD.cols())
@@ -389,32 +402,32 @@ int main(int argc, char* argv[])
 	
 	// do bench themselves, accumulate over several times
 	size_t benchCount(sizeof(benchLabels) / sizeof(const char *));
-	cout << "Doing " << benchCount << " different benches " << runCount << " times" << endl;
+	cout << "Doing " << benchCount << " different benches " << runCount << " times, with " << searchCount << " query count per run" << endl;
 	BenchResults results(benchCount);
 	for (int run = 0; run < runCount; ++run)
 	{
 		size_t i = 0;
-		//results.at(i++) += doBench<KDTD1>(d, q, K, itCount);
-		//results.at(i++) += doBench<KDTD2>(d, q, K, itCount);
-		//results.at(i++) += doBench<KDTD3>(d, q, K, itCount);
-		//results.at(i++) += doBench<KDTD4>(d, q, K, itCount);
-		//results.at(i++) += doBench<KDTD5A>(d, q, K, itCount);
-		//results.at(i++) += doBench<KDTD5B>(d, q, K, itCount);
-		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_LINEAR_HEAP, dD, qD, K, itCount);
-		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_TREE_HEAP, dD, qD, K, itCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_LINEAR_HEAP, dF, qF, K, itCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, dF, qF, K, itCount);
+		//results.at(i++) += doBench<KDTD1>(d, q, K, itCount, searchCount);
+		//results.at(i++) += doBench<KDTD2>(d, q, K, itCount, searchCount);
+		//results.at(i++) += doBench<KDTD3>(d, q, K, itCount, searchCount);
+		//results.at(i++) += doBench<KDTD4>(d, q, K, itCount, searchCount);
+		//results.at(i++) += doBench<KDTD5A>(d, q, K, itCount, searchCount);
+		//results.at(i++) += doBench<KDTD5B>(d, q, K, itCount, searchCount);
+		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_LINEAR_HEAP, dD, qD, K, itCount, searchCount);
+		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_TREE_HEAP, dD, qD, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_LINEAR_HEAP, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, dF, qF, K, itCount, searchCount);
 		#ifdef HAVE_OPENCL
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, dF, qF, K, itCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount, searchCount);
 		#endif // HAVE_OPENCL
 		#ifdef HAVE_ANN
-		results.at(i++) += doBenchANNStack(dD, qD, K, itCount);
+		results.at(i++) += doBenchANNStack(dD, qD, K, itCount, searchCount);
 		//results.at(i++) += doBenchANNPriority(d, q, K, itCount);
 		#endif // HAVE_ANN
 		#ifdef HAVE_FLANN
-		results.at(i++) += doBenchFLANN<double>(dD, qD, K, itCount);
-		results.at(i++) += doBenchFLANN<float>(dF, qF, K, itCount);
+		results.at(i++) += doBenchFLANN<double>(dD, qD, K, itCount, searchCount);
+		results.at(i++) += doBenchFLANN<float>(dF, qF, K, itCount, searchCount);
 		#endif // HAVE_FLANN
 	}
 	
