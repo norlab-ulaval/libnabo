@@ -214,7 +214,7 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	nnsT* nns(nnsT::create(d, type));
 	result.creationDuration = t.elapsed();
 	
-	for (int i = 0; i < searchCount; ++i)
+	for (int s = 0; s < searchCount; ++s)
 	{
 		t.restart();
 		nns->knnM(q, K, 0, 0);
@@ -243,7 +243,7 @@ BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, con
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
 	result.creationDuration = t.elapsed();
 	
-	for (int i = 0; i < searchCount; ++i)
+	for (int s = 0; s < searchCount; ++s)
 	{
 		t.restart();
 		ANNidx nnIdx[K];
@@ -277,7 +277,7 @@ BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, 
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
 	result.creationDuration = t.elapsed();
 	
-	for (int i = 0; i < searchCount; ++i)
+	for (int s = 0; s < searchCount; ++s)
 	{
 		t.restart();
 		ANNidx nnIdx[K];
@@ -402,7 +402,7 @@ int main(int argc, char* argv[])
 	
 	// do bench themselves, accumulate over several times
 	size_t benchCount(sizeof(benchLabels) / sizeof(const char *));
-	cout << "Doing " << benchCount << " different benches " << runCount << " times, with " << searchCount << " query count per run" << endl;
+	cout << "Doing " << benchCount << " different benches " << runCount << " times, with " << searchCount << " query per run" << endl;
 	BenchResults results(benchCount);
 	for (int run = 0; run < runCount; ++run)
 	{
