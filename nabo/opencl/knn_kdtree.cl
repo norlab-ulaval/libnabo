@@ -1,6 +1,12 @@
 size_t childLeft(const size_t pos) { return 2*pos + 1; }
 size_t childRight(const size_t pos) { return 2*pos + 2; }
 
+void offInit(T *off)
+{
+	for (uint i = 0; i < DIM_COUNT; ++i)
+		off[i] = 0;
+}
+
 // for cloud and result, use DirectAccessBit and stride
 // preconditions:
 // 		K < MAX_K
@@ -18,6 +24,7 @@ kernel void knnKDTree(	const global T* cloud,
 	StackEntry stack[MAX_STACK_DEPTH];
 	HeapEntry heap[MAX_K];
 	T off[DIM_COUNT];
+	
 	uint stackPtr = 1;
 	uint maxStackPtr = 0;
 
@@ -27,6 +34,7 @@ kernel void knnKDTree(	const global T* cloud,
 	const global T* q = &query[queryId * POINT_STRIDE];
 	
 	heapInit(heap, K);
+	offInit(off);
 	
 	stack[0].op = OP_BEGIN_FUNCTION;
 	stack[0].n = 0;
