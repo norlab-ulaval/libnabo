@@ -13,11 +13,13 @@ void offInit(T *off)
 //		stack_ptr < MAX_STACK_DEPTH
 kernel void knnKDTree(	const global T* cloud,
 						const global T* query,
-						global int* result,
+						global int* indices,
+						global T* dists2,
 						uint K,
 						T maxError,
 						uint optionFlags,
 						uint indexStride,
+						uint dists2Stride,
 						const global Node* nodes
  					)
 {
@@ -26,11 +28,10 @@ kernel void knnKDTree(	const global T* cloud,
 	T off[DIM_COUNT];
 	
 	uint stackPtr = 1;
-	uint maxStackPtr = 0;
 
 	const size_t queryId = get_global_id(0);
 	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
-	//const bool doSort = optionFlags & SORT_RESULTS;
+	const bool doSort = optionFlags & SORT_RESULTS;
 	const global T* q = &query[queryId * POINT_STRIDE];
 	
 	heapInit(heap, K);
@@ -42,7 +43,6 @@ kernel void knnKDTree(	const global T* cloud,
 
 	while (stackPtr != 0)
 	{
-		maxStackPtr = max(maxStackPtr, stackPtr);
 		--stackPtr;
 		StackEntry* s = stack + stackPtr;
 		const size_t n = s->n;
@@ -108,6 +108,8 @@ kernel void knnKDTree(	const global T* cloud,
 		}
 	}
 	
-	heapCopy(&result[queryId * indexStride], heap, K);
+	if (doSort)
+		heapSort(heap);
+	heapCopy(&indices[queryId * indexStride], &dists2[queryId * dists2Stride], heap, K);
 }
 

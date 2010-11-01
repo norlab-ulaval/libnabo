@@ -95,8 +95,8 @@ namespace Nabo
 	};
 	
 	template<typename T>
-	OpenCLSearch<T>::OpenCLSearch(const Matrix& cloud):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	OpenCLSearch<T>::OpenCLSearch(const Matrix& cloud, const Index dim):
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim)
 	{
 	}
 	
@@ -140,7 +140,7 @@ namespace Nabo
 		ostringstream oss;
 		oss << EnableCLTypeSupport<T>::code(devices[0]);
 		oss << "#define EPSILON " << numeric_limits<T>::epsilon() << "\n";
-		oss << "#define DIM_COUNT " << cloud.rows() << "\n";
+		oss << "#define DIM_COUNT " << dim << "\n";
 		oss << "#define CLOUD_POINT_COUNT " << cloud.cols() << "\n";
 		oss << "#define POINT_STRIDE " << cloud.stride() << "\n";
 		oss << "#define MAX_K " << MAX_K << "\n";
@@ -218,8 +218,10 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	typename OpenCLSearch<T>::IndexMatrix OpenCLSearch<T>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	void OpenCLSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
 	{
+		checkSizesKnn(query, indices, dists2, k);
+		
 		// check K
 		if (k > MAX_K)
 			throw runtime_error("number of neighbors too large for OpenCL");
@@ -234,48 +236,41 @@ namespace Nabo
 		const size_t queryCLSize(query.cols() * query.stride() * sizeof(T));
 		cl::Buffer queryCL(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, queryCLSize, const_cast<T*>(&query.coeff(0,0)));
 		knnKernel.setArg(1, sizeof(cl_mem), &queryCL);
-		// map result
-		IndexMatrix result(k, query.cols());
-		assert((query.Flags & Eigen::DirectAccessBit) && (!(query.Flags & Eigen::RowMajorBit)));
-		const int indexStride(result.stride());
-		const size_t resultCLSize(result.cols() * indexStride * sizeof(int));
-		cl::Buffer resultCL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, resultCLSize, &result.coeffRef(0,0));
-		knnKernel.setArg(2, sizeof(cl_mem), &resultCL);
+		// map indices
+		assert((indices.Flags & Eigen::DirectAccessBit) && (!(indices.Flags & Eigen::RowMajorBit)));
+		const int indexStride(indices.stride());
+		const size_t indicesCLSize(indices.cols() * indexStride * sizeof(int));
+		cl::Buffer indicesCL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, indicesCLSize, &indices.coeffRef(0,0));
+		knnKernel.setArg(2, sizeof(cl_mem), &indicesCL);
+		// map dists2
+		assert((dists2.Flags & Eigen::DirectAccessBit) && (!(dists2.Flags & Eigen::RowMajorBit)));
+		const int dists2Stride(dists2.stride());
+		const size_t dists2CLSize(dists2.cols() * dists2Stride * sizeof(T));
+		cl::Buffer dists2CL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, dists2CLSize, &dists2.coeffRef(0,0));
+		knnKernel.setArg(3, sizeof(cl_mem), &dists2CL);
 		
 		// set resulting parameters
-		knnKernel.setArg(3, k);
-		knnKernel.setArg(4, 1 + epsilon);
-		knnKernel.setArg(5, optionFlags);
-		knnKernel.setArg(6, indexStride);
+		knnKernel.setArg(4, k);
+		knnKernel.setArg(5, 1 + epsilon);
+		knnKernel.setArg(6, optionFlags);
+		knnKernel.setArg(7, indexStride);
+		knnKernel.setArg(8, dists2Stride);
 		
 		// execute query
 		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
-		queue.enqueueMapBuffer(resultCL, true, CL_MAP_READ, 0, resultCLSize, 0, 0);
+		queue.enqueueMapBuffer(indicesCL, true, CL_MAP_READ, 0, indicesCLSize, 0, 0);
+		queue.enqueueMapBuffer(dists2CL, true, CL_MAP_READ, 0, dists2CLSize, 0, 0);
 		queue.finish();
-		
-		return result;
 	}
 	
 	template<typename T>
-	typename OpenCLSearch<T>::IndexVector OpenCLSearch<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
-	{
-		Matrix m(query.size(), 1);
-		m = query;
-		//cerr << "m " << m << endl;
-		IndexVector iv = knnM(m, k, epsilon, optionFlags).col(0);
-		//cerr << "iv " << iv << endl;
-		return iv;
-	}
-	
-	
-	template<typename T>
-	BruteForceSearchOpenCL<T>::BruteForceSearchOpenCL(const Matrix& cloud, const cl_device_type deviceType):
-	OpenCLSearch<T>::OpenCLSearch(cloud)
+	BruteForceSearchOpenCL<T>::BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
+	OpenCLSearch<T>::OpenCLSearch(cloud, dim)
 	{
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
-			const Vector& v(cloud.col(i));
+			const Vector& v(cloud.block(0,i,this->dim,1));
 			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
 			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
 		}
@@ -346,9 +341,9 @@ namespace Nabo
 		//cerr << count << endl;
 		if (count == 1)
 		{
-			const int dim = -2-(first->index);
+			const int d = -2-(first->index);
 			assert(pos < nodes.size());
-			nodes[pos] = Node(dim);
+			nodes[pos] = Node(d);
 			return;
 		}
 		
@@ -382,15 +377,15 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const cl_device_type deviceType):
-	OpenCLSearch<T>::OpenCLSearch(cloud)
+	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
+		OpenCLSearch<T>::OpenCLSearch(cloud, dim)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
-			const Vector& v(cloud.col(i));
+			const Vector& v(cloud.block(0,i,this->dim,1));
 			buildPoints.push_back(BuildPoint(v, i));
 			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
@@ -399,8 +394,7 @@ namespace Nabo
 		// create nodes
 		nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
-		const unsigned maxStackDepth(getTreeDepth(nodes.size())*2 + 1);
-		// FIXME: *2 maybe not useful
+		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
 		
 		// init openCL
 		initOpenCL(deviceType, "knn_kdtree.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
@@ -408,7 +402,7 @@ namespace Nabo
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
-		knnKernel.setArg(7, sizeof(cl_mem), &nodesCL);
+		knnKernel.setArg(9, sizeof(cl_mem), &nodesCL);
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;

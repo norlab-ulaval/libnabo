@@ -179,15 +179,15 @@ namespace Nabo
 	}
 
 	template<typename T, typename Heap>
-	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim):
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
-			const Vector& v(cloud.col(i));
+			const Vector& v(cloud.block(0,i,this->dim,1));
 			buildPoints.push_back(i);
 			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
@@ -203,33 +203,10 @@ namespace Nabo
 	}
 	
 	template<typename T, typename Heap>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		checkSizesKnn(query, indices, dists2, k);
 		
-		assert(nodes.size() > 0);
-		Heap heap(k);
-		std::vector<T> off(this->dim, 0);
-		
-		statistics.lastQueryVisitCount = 0;
-		
-		if (allowSelfMatch)
-			recurseKnn<true>(&query.coeff(0), 0, 0, heap, off, 1+epsilon);
-		else
-			recurseKnn<false>(&query.coeff(0), 0, 0, heap, off, 1+epsilon);
-		
-		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
-			heap.sort();
-		
-		statistics.totalVisitCount += statistics.lastQueryVisitCount;
-		
-		return heap.getIndexes();
-	}
-	
-	
-	template<typename T, typename Heap>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
-	{
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		assert(nodes.size() > 0);
 		
@@ -256,12 +233,10 @@ namespace Nabo
 			if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 				heap.sort();
 			
-			result.col(i) = heap.getIndexes();
-			
 			statistics.totalVisitCount += statistics.lastQueryVisitCount;
+			
+			heap.getData(indices.col(i), dists2.col(i));
 		}
-		
-		return result;
 	}
 	
 	template<typename T, typename Heap> template<bool allowSelfMatch>

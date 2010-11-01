@@ -71,6 +71,8 @@ namespace Nabo
 		typedef std::vector<Entry> Entries;
 		//! vector of indices
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
+		//! vector of values
+		typedef typename Eigen::Matrix<Value, Eigen::Dynamic, 1> ValueVector;
 		
 		//! storage for the tree
 		Entries data;
@@ -117,6 +119,24 @@ namespace Nabo
 			sort_heap (data.begin(), data.end());
 		}
 		
+		//! get the data from the heap
+		/** \param indices index vector
+		 * 	\param values value vector */
+		template<typename DI, typename DV>
+		inline void getData(const Eigen::MatrixBase<DI>& indices, const Eigen::MatrixBase<DV> & values) const
+		{
+			// note: we must implement this hack because of problem with reference to temporary
+			// C++0x will solve this with rvalue
+			// see: http://eigen.tuxfamily.org/dox-devel/TopicFunctionTakingEigenTypes.html
+			// for more informations
+			for (size_t i = 0; i < data.size(); ++i)
+			{
+				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = data[i].index;
+				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = data[i].value;
+			}
+		}
+		
+#if 0
 		//! get the data-point indices from the heap
 		/** \return the indices */
 		inline IndexVector getIndexes() const
@@ -126,6 +146,7 @@ namespace Nabo
 				indexes.coeffRef(i) = data[i].index;
 			return indexes;
 		}
+#endif
 	};
 	
 #if 0
@@ -244,6 +265,8 @@ namespace Nabo
 		typedef std::vector<Entry> Entries;
 		//! vector of indices
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
+		//! vector of values
+		typedef typename Eigen::Matrix<Value, Eigen::Dynamic, 1> ValueVector;
 		
 		//! storage for the tree
 		Entries data;
@@ -295,6 +318,23 @@ namespace Nabo
 			// no need to sort as data are already sorted
 		}
 		
+		//! get the data from the heap
+		/** \param indices index vector
+		 * 	\param values value vector */
+		template<typename DI, typename DV>
+		inline void getData(const Eigen::MatrixBase<DI>& indices, const Eigen::MatrixBase<DV> & values) const
+		{
+			// note: we must implement this hack because of problem with reference to temporary
+			// C++0x will solve this with rvalue
+			// see: http://eigen.tuxfamily.org/dox-devel/TopicFunctionTakingEigenTypes.html
+			// for more informations
+			for (size_t i = 0; i < data.size(); ++i)
+			{
+				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = data[i].index;
+				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = data[i].value;
+			}
+		}
+#if 0
 		//! get the data-point indices from the heap
 		/** \return the indices */
 		inline IndexVector getIndexes() const
@@ -304,6 +344,7 @@ namespace Nabo
 				indexes.coeffRef(i) = data[i].index;
 			return indexes;
 		}
+#endif
 	};
 }
 

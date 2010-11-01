@@ -1,7 +1,8 @@
 include_directories(..)
 
 add_executable(knnvalidate knnvalidate.cpp)
-target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnvalidate nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
+# disable as experimental is broken target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_test(validation-2D-exhaustive ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 -1)
 add_test(validation-2D-random ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 10000)
@@ -48,7 +49,8 @@ endif (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 include_directories(..)
 
 add_executable(knnbench knnbench.cpp)
-target_link_libraries(knnbench naboexperimental nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnbench nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
+# disable as experimental is broken target_link_libraries(knnbench naboexperimental nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_test(bench-3D-large-exhaustive-10000-K10 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 10 -10000 3 5)
 add_test(bench-3D-large-exhaustive-1000-K10 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 10 -1000 3 5)

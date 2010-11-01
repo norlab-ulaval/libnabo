@@ -42,13 +42,13 @@ namespace Nabo
 	using namespace std;
 	
 	template<typename T>
-	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud, const Index dim):
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim)
 	{
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
-			const Vector& v(cloud.col(i));
+			const Vector& v(cloud.block(0,i,this->dim,1));
 			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
 			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
 		}
@@ -56,18 +56,24 @@ namespace Nabo
 	
 
 	template<typename T>
-	typename NearestNeighbourSearch<T>::IndexVector BruteForceSearch<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	void BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
 	{
+		checkSizesKnn(query, indices, dists2, k);
+		
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
 		IndexHeapSTL<Index, T> heap(k);
 		
-		for (int i = 0; i < this->cloud.cols(); ++i)
+		for (int c = 0; c < query.cols(); ++c)
 		{
-			const T dist(dist2<T>(this->cloud.col(i), query));
-			if ((dist < heap.headValue()) &&
-				(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
-				heap.replaceHead(i, dist);
+			const Vector& q(query.block(0,c,dim,1));
+			for (int i = 0; i < this->cloud.cols(); ++i)
+			{
+				const T dist(dist2<T>(this->cloud.block(0,i,dim,1), q));
+				if ((dist < heap.headValue()) &&
+					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
+					heap.replaceHead(i, dist);
+			}
 		}
 		
 		this->statistics.lastQueryVisitCount = this->cloud.cols();
@@ -77,7 +83,7 @@ namespace Nabo
 			heap.sort();
 		
 		//cerr << "bfiv " << heap.getIndexes() << endl;
-		return heap.getIndexes();
+		heap.getData(indices, dists2);
 	}
 	
 	template struct BruteForceSearch<float>;

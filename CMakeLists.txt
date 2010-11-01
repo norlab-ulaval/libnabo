@@ -68,6 +68,6 @@ install(FILES nabo/nabo.h DESTINATION include/nabo)
 
 enable_testing()
 add_subdirectory(examples)
-add_subdirectory(experimental)
+#add_subdirectory(experimental)
 add_subdirectory(tests)
 

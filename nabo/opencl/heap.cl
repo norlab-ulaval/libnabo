@@ -23,8 +23,15 @@ void heapInit(HeapEntry* heap, const uint K)
 		heap[i].value = HUGE_VALF;
 }
 
-void heapCopy(global int* dest, const HeapEntry* heap, const uint K)
+void heapCopy(global int* indices, global T* dists2, const HeapEntry* heap, const uint K)
 {
 	for (uint i = 0; i < K; ++i)
-		*dest++ = heap[K-i-1].index;
+	{
+		*indices++ = heap[K-i-1].index;
+		*dists2++ = heap[K-i-1].value;
+	}
+}
+
+void heapSort(const HeapEntry* heap)
+{
 }

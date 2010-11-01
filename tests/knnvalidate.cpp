@@ -190,11 +190,15 @@ void validate(const char *fileName, const int K, const int method)
 	// create big query
 	// check all-in-one query
 	Matrix q(createQuery<T>(d, itCount, method));
-	const IndexMatrix indexes_bf(nnss[0]->knnM(q, K, 0, NNS::SORT_RESULTS));
+	IndexMatrix indexes_bf(K, q.cols());
+	Matrix dists2_bf(K, q.cols());
+	nnss[0]->knn(q, indexes_bf, dists2_bf, K, 0, NNS::SORT_RESULTS);
 	assert(indexes_bf.cols() == q.cols());
 	for (size_t j = 1; j < nnss.size(); ++j)
 	{
-		const IndexMatrix indexes_kdtree(nnss[j]->knnM(q, K, 0, NNS::SORT_RESULTS));
+		IndexMatrix indexes_kdtree(K, q.cols());
+		Matrix dists2_kdtree(K, q.cols());
+		nnss[j]->knn(q, indexes_kdtree, dists2_kdtree, K, 0, NNS::SORT_RESULTS);
 		if (indexes_bf.rows() != K)
 		{
 			cerr << "Different number of points found between brute force and request" << endl;

@@ -14,9 +14,12 @@ int main()
 	
 	// create a kd-tree for M, note that M must stay valid during the lifetime of the kd-tree
 	NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
-	// look for the 5 nearest neighbour
+	
+	// look for the 5 nearest neighbour of a the single-point query
 	const int K = 5;
-	VectorXi n = nns->knn(q, K);
+	VectorXi indices(5);
+	VectorXf dists2(5);
+	nns->knn(q, indices, dists2, K);
 	
 	// cleanup kd-tree
 	delete nns;

@@ -145,11 +145,11 @@ template<typename T>
 typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const int itCount, const int method)
 {
 	typedef typename NearestNeighbourSearch<T>::Matrix MatrixT;
-	typedef Nabo::KDTreeBalancedPtInNodesPQ<T> KDTD1T;
+	typedef Nabo::BruteForceSearch<T> BFS;
 	MatrixT q(d.rows(), itCount);
-	KDTD1T kdtt(d);
+	BFS nns(d, numeric_limits<int>::max());
 	for (int i = 0; i < itCount; ++i)
-		q.col(i) = createQuery<T>(d, kdtt, i, method);
+		q.col(i) = createQuery<T>(d, nns, i, method);
 	return q;
 }
 
@@ -208,6 +208,8 @@ template<typename T>
 BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, const typename NearestNeighbourSearch<T>::Matrix& d, const typename NearestNeighbourSearch<T>::Matrix& q, const int K, const int itCount, const int searchCount)
 {
 	typedef NearestNeighbourSearch<T> nnsT;
+	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+	typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 	
 	BenchResult result;
 	boost::timer t;
@@ -216,8 +218,10 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	
 	for (int s = 0; s < searchCount; ++s)
 	{
+		IndexMatrix indices(K, q.cols());
+		Matrix dists2(K, q.cols());
 		t.restart();
-		nns->knnM(q, K, 0, 0);
+		nns->knn(q, indices, dists2, K, 0, 0);
 		result.executionDuration += t.elapsed();
 	}
 	result.executionDuration /= double(searchCount);

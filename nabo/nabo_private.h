@@ -63,10 +63,13 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
 		typedef typename NearestNeighbourSearch<T>::Index Index;
 		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		
+		using NearestNeighbourSearch<T>::dim;
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		BruteForceSearch(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
+		BruteForceSearch(const Matrix& cloud, const Index dim);
+		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	//! KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT, optimised implementation
@@ -79,6 +82,7 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
+		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::statistics;
 		using NearestNeighbourSearch<T>::cloud;
 		using NearestNeighbourSearch<T>::minBound;
@@ -138,9 +142,8 @@ namespace Nabo
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud);
-		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
-		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
+		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim);
+		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	#ifdef HAVE_OPENCL
@@ -155,6 +158,7 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
+		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
 		
 	protected:
@@ -163,12 +167,11 @@ namespace Nabo
 		cl::CommandQueue queue;
 		cl::Buffer cloudCL;
 		
-		OpenCLSearch(const Matrix& cloud);
+		OpenCLSearch(const Matrix& cloud, const Index dim);
 		void initOpenCL(const cl_device_type deviceType, const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
 	
 	public:
-		virtual IndexMatrix knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags);
-		virtual IndexVector knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags);
+		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
@@ -177,10 +180,11 @@ namespace Nabo
 	{
 		typedef typename NearestNeighbourSearch<T>::Vector Vector;
 		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
 		
 		using OpenCLSearch<T>::initOpenCL;
 		
-		BruteForceSearchOpenCL(const Matrix& cloud, const cl_device_type deviceType);
+		BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
@@ -193,6 +197,7 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
+		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
@@ -241,7 +246,7 @@ namespace Nabo
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
-		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const cl_device_type deviceType);
+		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
 	};
 	
 	#endif // HAVE_OPENCL

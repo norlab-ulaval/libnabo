@@ -210,45 +210,55 @@ namespace Nabo
 		 *	\param k number of nearest neighbour requested
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
 		 *	\param optionFlags search options, must be a binary OR of SearchOptionFlags
-		 *	\return a vector of k indices to points in cloud */
-		virtual IndexVector knn(const Vector& query, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
+		 *	\param indices indices of nearest neighbours, must be of size k
+		 *	\param dists squared distances to nearest neighbours, must be of size k */
+		void knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
 		
 		//! Find the k nearest neighbours for each point of query
 		/*!	\param query query points
 		 *	\param k number of nearest neighbour requested
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
 		 *	\param optionFlags search options, must be a binary OR of SearchOptionFlags
-		 *	\return a matrix of k x query.cols() indices to points in cloud */
-		virtual IndexMatrix knnM(const Matrix& query, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
+		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
+		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() */
+		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
 		
 		//! get a constant version of the statistics
 		const Statistics& getStatistics() const { return statistics; }
 		
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search
+		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
 		 * 	\param preferedType type of search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* create(const Matrix& cloud, const SearchType preferedType);
+		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP);
 		
 		//! Create a nearest-neighbour search, using brute-force search, useful for comparison only
 		/*!	\param cloud data-point cloud in which to search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createBruteForce(const Matrix& cloud);
+		static NearestNeighbourSearch* createBruteForce(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
 		
 		//! Create a nearest-neighbour search, using a kd-tree with linear heap, good for small k (~up to 30)
 		/*!	\param cloud data-point cloud in which to search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud);
+		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
 		
 		//! Create a nearest-neighbour search, using a kd-tree with tree heap, good for large k (~from 30)
 		/*!	\param cloud data-point cloud in which to search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud);
+		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
 		
 	protected:
 		//! constructor
-		NearestNeighbourSearch(const Matrix& cloud);
+		NearestNeighbourSearch(const Matrix& cloud, const Index dim);
 		
+		//! Make sure that the output matrices have the right sizes. Throw an exception otherwise.
+		/*!	\param query query points
+		 *	\param k number of nearest neighbour requested
+		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
+		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() */
+		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k);
+				
 		//! search statistics
 		Statistics statistics;
 	};
