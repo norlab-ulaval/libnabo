@@ -35,7 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Eigen/Core"
 #include "Eigen/Array"
 #include <vector>
-#include <atomic>
 
 /*! 
 	\file nabo.h
@@ -178,15 +177,6 @@ namespace Nabo
 		//! the high bound of the search space (axis-aligned bounding box)
 		const Vector maxBound;
 		
-		//! statistics for search
-		struct Statistics
-		{
-			//! create zero-initialised statistics
-			Statistics():lastQueryVisitCount(0),totalVisitCount(0) {}
-			std::atomic_uint lastQueryVisitCount; //!< number of visits during the last query
-			std::atomic_uint totalVisitCount; //!< total number of visits
-		};
-		
 		//! type of search
 		enum SearchType
 		{
@@ -223,9 +213,6 @@ namespace Nabo
 		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() */
 		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
 		
-		//! get a constant version of the statistics
-		const Statistics& getStatistics() const { return statistics; }
-		
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
@@ -258,9 +245,6 @@ namespace Nabo
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() */
 		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k);
-				
-		//! search statistics
-		Statistics statistics;
 	};
 	
 	// Convenience typedefs

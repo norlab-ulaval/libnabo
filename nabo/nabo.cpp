@@ -95,8 +95,8 @@ namespace Nabo
 		switch (preferedType)
 		{
 			case BRUTE_FORCE: return new BruteForceSearch<T>(cloud, dim);
-			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>>(cloud, dim);
-			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud, dim);
+			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T> >(cloud, dim);
+			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T> >(cloud, dim);
 			#ifdef HAVE_OPENCL
 			case KDTREE_CL: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
 			case BRUTE_FORCE_CL: return new BruteForceSearchOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
@@ -121,7 +121,7 @@ namespace Nabo
 	{
 		if (dim <= 0)
 			throw runtime_error("Your space must have at least one dimension");
-		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>>(cloud, dim);
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T> >(cloud, dim);
 	}
 	
 	template<typename T>
@@ -129,7 +129,7 @@ namespace Nabo
 	{
 		if (dim <= 0)
 			throw runtime_error("Your space must have at least one dimension");
-		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud, dim);
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T> >(cloud, dim);
 	}
 	
 	template struct NearestNeighbourSearch<float>;

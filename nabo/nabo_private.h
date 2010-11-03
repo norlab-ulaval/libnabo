@@ -83,7 +83,6 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
 		using NearestNeighbourSearch<T>::dim;
-		using NearestNeighbourSearch<T>::statistics;
 		using NearestNeighbourSearch<T>::cloud;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;

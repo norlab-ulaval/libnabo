@@ -158,13 +158,13 @@ struct BenchResult
 {
 	double creationDuration;
 	double executionDuration;
-	double visitCount;
+	//double visitCount;
 	double totalCount;
 	
 	BenchResult():
 		creationDuration(0),
 		executionDuration(0),
-		visitCount(0),
+	//	visitCount(0),
 		totalCount(0)
 	{}
 	
@@ -172,7 +172,7 @@ struct BenchResult
 	{
 		creationDuration += that.creationDuration;
 		executionDuration += that.executionDuration;
-		visitCount += that.visitCount;
+//		visitCount += that.visitCount;
 		totalCount += that.totalCount;
 	}
 	
@@ -180,7 +180,7 @@ struct BenchResult
 	{
 		creationDuration /= factor;
 		executionDuration /= factor;
-		visitCount /= factor;
+//		visitCount /= factor;
 		totalCount /= factor;
 	}
 };
@@ -228,7 +228,6 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	
 	delete nns;
 	
-	result.visitCount = double(nns->getStatistics().totalVisitCount);
 	result.totalCount = double(itCount) * double(d.cols());
 	
 	return result;
@@ -445,9 +444,9 @@ int main(int argc, char* argv[])
 		cout << "  execution duration: " << results[i].executionDuration << "\n";
 		if (results[i].totalCount != 0)
 		{
-			cout << "  visit count: " << results[i].visitCount << "\n";
+//			cout << "  visit count: " << results[i].visitCount << "\n";
 			cout << "  total count: " << results[i].totalCount << "\n";
-			cout << "  precentage visit: " << (results[i].visitCount * 100.) / results[i].totalCount << "\n";
+//			cout << "  precentage visit: " << (results[i].visitCount * 100.) / results[i].totalCount << "\n";
 		}
 		else
 			cout << "  no stats for visits\n";

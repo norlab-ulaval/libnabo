@@ -18,10 +18,6 @@ add_definitions(-Wall)
 
 find_package(Boost REQUIRED)
 
-# C++0x 
-if(CMAKE_COMPILER_IS_GNUCXX) #Maybe "OR MINGW"
-	add_definitions(-std=c++0x) #Enable C++0x mode
-endif(CMAKE_COMPILER_IS_GNUCXX)
 # openmp
 # find_package(OpenMP)
 # if (OPENMP_FOUND)

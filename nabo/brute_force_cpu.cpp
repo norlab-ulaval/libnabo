@@ -79,10 +79,6 @@ namespace Nabo
 				heap.sort();	
 			heap.getData(indices.col(c), dists2.col(c));
 		}
-		
-		// FIXME: statistics are broken
-		this->statistics.lastQueryVisitCount = this->cloud.cols();
-		this->statistics.totalVisitCount += this->statistics.lastQueryVisitCount;
 	}
 	
 	template struct BruteForceSearch<float>;

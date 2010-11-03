@@ -223,9 +223,6 @@ namespace Nabo
 			fill(off.begin(), off.end(), 0);
 			heap.reset();
 			
-			// FIXME: add define for statistics
-			statistics.lastQueryVisitCount = 0;
-			
 			if (allowSelfMatch)
 				recurseKnn<true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
 			else
@@ -233,8 +230,6 @@ namespace Nabo
 			
 			if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
 				heap.sort();
-			
-			statistics.totalVisitCount += statistics.lastQueryVisitCount;
 			
 			heap.getData(indices.col(i), dists2.col(i));
 		}
@@ -244,7 +239,6 @@ namespace Nabo
 	void KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError)
 	{
 		const Node& node(nodes[n]);
-		//++statistics.lastQueryVisitCount;
 		
 		if (node.rightChild == Node::INVALID_CHILD)
 		{
@@ -296,10 +290,10 @@ namespace Nabo
 		}
 	}
 	
-	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapSTL<int,float>>;
-	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapBruteForceVector<int,float>>;
-	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>>;
-	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapSTL<int,float> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<float,IndexHeapBruteForceVector<int,float> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double> >;
 	
 	//@}
 }
