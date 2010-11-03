@@ -101,10 +101,8 @@ namespace Nabo
 			case KDTREE_CL: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
 			case BRUTE_FORCE_CL: return new BruteForceSearchOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
 			#else // HAVE_OPENCL
-			case KDTREE_CL_CPU: throw runtime_error("OpenCL not found during compilation");
-			case KDTREE_CL_GPU: throw runtime_error("OpenCL not found during compilation");
-			case BRUTE_FORCE_CL_CPU: throw runtime_error("OpenCL not found during compilation");
-			case BRUTE_FORCE_CL_GPU: throw runtime_error("OpenCL not found during compilation");
+			case KDTREE_CL: throw runtime_error("OpenCL not found during compilation");
+			case BRUTE_FORCE_CL: throw runtime_error("OpenCL not found during compilation");
 			#endif // HAVE_OPENCL
 			default: throw runtime_error("Unknown search type");
 		}
