@@ -67,6 +67,7 @@ namespace Nabo
 		for (int c = 0; c < query.cols(); ++c)
 		{
 			const Vector& q(query.block(0,c,dim,1));
+			heap.reset();
 			for (int i = 0; i < this->cloud.cols(); ++i)
 			{
 				const T dist(dist2<T>(this->cloud.block(0,i,dim,1), q));
@@ -74,16 +75,14 @@ namespace Nabo
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
 					heap.replaceHead(i, dist);
 			}
+			if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
+				heap.sort();	
+			heap.getData(indices.col(c), dists2.col(c));
 		}
 		
+		// FIXME: statistics are broken
 		this->statistics.lastQueryVisitCount = this->cloud.cols();
 		this->statistics.totalVisitCount += this->statistics.lastQueryVisitCount;
-		
-		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
-			heap.sort();
-		
-		//cerr << "bfiv " << heap.getIndexes() << endl;
-		heap.getData(indices, dists2);
 	}
 	
 	template struct BruteForceSearch<float>;

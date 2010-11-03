@@ -104,7 +104,7 @@ typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNei
 {
 	typedef typename NearestNeighbourSearch<T>::Matrix MatrixT;
 	typedef Nabo::NearestNeighbourSearch<T> NNS;
-	NNS* nns = NNS::create(d, typename NNS::SearchType(0));
+	NNS* nns = NNS::create(d, d.rows(), typename NNS::SearchType(0));
 	MatrixT q(d.rows(), itCount);
 	for (int i = 0; i < itCount; ++i)
 		q.col(i) = createQuery<T>(d, *nns, i, method);
@@ -139,7 +139,7 @@ void validate(const char *fileName, const int K, const int method)
 	searchTypeCount -= 2;
 	#endif // HAVE_OPENCL
 	for (unsigned i = 0; i < searchTypeCount; ++i)
-		nnss.push_back(NNS::create(d, typename NNS::SearchType(i)));
+		nnss.push_back(NNS::create(d, d.rows(), typename NNS::SearchType(i)));
 	//nnss.push_back(new KDTreeBalancedPtInLeavesStack<T>(d, false));
 	
 	

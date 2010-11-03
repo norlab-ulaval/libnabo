@@ -90,6 +90,8 @@ namespace Nabo
 	template<typename T>
 	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::create(const Matrix& cloud, const Index dim, const SearchType preferedType)
 	{
+		if (dim <= 0)
+			throw runtime_error("Your space must have at least one dimension");
 		switch (preferedType)
 		{
 			case BRUTE_FORCE: return new BruteForceSearch<T>(cloud, dim);
@@ -111,18 +113,24 @@ namespace Nabo
 	template<typename T>
 	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createBruteForce(const Matrix& cloud, const Index dim)
 	{
+		if (dim <= 0)
+			throw runtime_error("Your space must have at least one dimension");
 		return new BruteForceSearch<T>(cloud, dim);
 	}
 	
 	template<typename T>
 	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createKDTreeLinearHeap(const Matrix& cloud, const Index dim)
 	{
+		if (dim <= 0)
+			throw runtime_error("Your space must have at least one dimension");
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>>(cloud, dim);
 	}
 	
 	template<typename T>
 	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createKDTreeTreeHeap(const Matrix& cloud, const Index dim)
 	{
+		if (dim <= 0)
+			throw runtime_error("Your space must have at least one dimension");
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>>(cloud, dim);
 	}
 	
