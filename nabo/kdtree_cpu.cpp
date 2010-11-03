@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <queue>
 #include <algorithm>
+#include <utility>
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
 
@@ -81,7 +82,7 @@ namespace Nabo
 			maxVal = max(val, maxVal);
 		}
 		
-		return make_pair<T>(minVal, maxVal);
+		return make_pair(minVal, maxVal);
 	}
 	
 	template<typename T, typename Heap>

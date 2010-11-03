@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Eigen/Core"
 #include "Eigen/Array"
 #include <vector>
-#include <cstdatomic>
+#include <atomic>
 
 /*! 
 	\file nabo.h
