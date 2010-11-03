@@ -71,12 +71,12 @@ Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMak
 
 \section Usage
 
-libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set \c M and a query point \c q, you can find the indices \c n of the K nearest neighbours of \c q in \c M :
+libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set \c M and a query point \c q, you can find the \c K nearest neighbours of \c q in \c M :
 
 \include trivial.cpp
 
 In this example, \c M is an \ref Eigen (refering to the software, not to the math) matrix (column major, float) and \c q is an \ref Eigen vector (float).
-The result \c n is an \ref Eigen vector of indices refering to the columns of \c M.
+The results \c indices and \c dists2 are \ref Eigen vectors of indices and squared distances refering to the columns of \c M.
 
 Here is a slightly more complex example:
 

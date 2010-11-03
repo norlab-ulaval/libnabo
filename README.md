@@ -10,19 +10,23 @@ I am developing libnabo as part of my work at [ASL-ETH](http://www.asl.ethz.ch).
 Usage
 -----
 
-libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set `M` and a query point `q`, you can find the indices `n` of the K nearest neighbours of `q` in `M`:
+libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set `M` and a query point `q`, you can find the `K` nearest neighbours of `q` in `M`:
 
 	#include "nabo/nabo.h"
 	using namespace Nabo;
 	using namespace Eigen;
 	...
 	NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
+	
 	const int K = 5;
-	VectorXi n = nns->knn(q, K);
+	VectorXi indices(K);
+	VectorXf dists2(K);
+	
+	nns->knn(q, indices, dists2, K);
 
 In this example, `M` is an [Eigen] (refering to the software, not to the math) matrix (column major, float) and `q` is an [Eigen] vector (float).
-The result `n` is an [Eigen] vector of indices refering to the columns of `M`.
-See `examples/trivial.cpp` for a compilable version of this example, and `examples/usage.cpp` for a slightly more complex example.
+The results `indices` and `dists2` are [Eigen] vectors of indices and squared distances refering to the columns of `M`.
+See `examples/trivial.cpp` for a compilable version of this example, and `examples/usage.cpp` for a slightly more complex example involving multi-point queries.
 
 
 Compilation

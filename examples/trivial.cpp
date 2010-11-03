@@ -17,8 +17,8 @@ int main()
 	
 	// look for the 5 nearest neighbour of a the single-point query
 	const int K = 5;
-	VectorXi indices(5);
-	VectorXf dists2(5);
+	VectorXi indices(K);
+	VectorXf dists2(K);
 	nns->knn(q, indices, dists2, K);
 	
 	// cleanup kd-tree
