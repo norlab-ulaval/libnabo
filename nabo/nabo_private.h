@@ -248,6 +248,62 @@ namespace Nabo
 		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
 	};
 	
+	//! KDTree, balanced, points in nodes, stack, implicit bounds, balance aspect ratio
+	template<typename T>
+	struct KDTreeBalancedPtInNodesStackOpenCL: public OpenCLSearch<T>
+	{
+		typedef typename NearestNeighbourSearch<T>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		
+		using NearestNeighbourSearch<T>::dim;
+		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::minBound;
+		using NearestNeighbourSearch<T>::maxBound;
+		
+		using OpenCLSearch<T>::context;
+		using OpenCLSearch<T>::knnKernel;
+		
+		using OpenCLSearch<T>::initOpenCL;
+		
+	protected:
+		typedef Index BuildPoint;
+		typedef std::vector<BuildPoint> BuildPoints;
+		typedef typename BuildPoints::iterator BuildPointsIt;
+		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
+		
+		struct CompareDim
+		{
+			const Matrix& cloud;
+			size_t dim;
+			CompareDim(const Matrix& cloud, const size_t dim): cloud(cloud), dim(dim){}
+			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return cloud.coeff(dim, p0) < cloud.coeff(dim, p1); }
+		};
+		
+		struct Node
+		{
+			int dim; // >=0 cut dim, -1 == leaf, -2 == invalid
+			Index index;
+			Node(const int dim = -2, const Index index = 0):dim(dim), index(index) {}
+		};
+		typedef std::vector<Node> Nodes;
+		
+		Nodes nodes;
+		cl::Buffer nodesCL;
+		
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
+		inline size_t parent(size_t pos) const { return (pos-1)/2; }
+		size_t getTreeDepth(size_t size) const;
+		size_t getTreeSize(size_t size) const;
+		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
+		
+	public:
+		KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
+	};
+	
 	#endif // HAVE_OPENCL
 	
 	//@}

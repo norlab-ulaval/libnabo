@@ -397,7 +397,7 @@ namespace Nabo
 		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
 		
 		// init openCL
-		initOpenCL(deviceType, "knn_kdtree.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
+		initOpenCL(deviceType, "knn_kdtree_pt_in_leaves.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
 		
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
@@ -407,6 +407,119 @@ namespace Nabo
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<double>;
+	
+	
+	template<typename T>
+	size_t KDTreeBalancedPtInNodesStackOpenCL<T>::getTreeSize(size_t elCount) const
+	{
+		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
+		size_t count = 0;
+		int i = 31;
+		for (; i >= 0; --i)
+		{
+			if (elCount & (1 << i))
+				break;
+		}
+		for (int j = 0; j <= i; ++j)
+			count |= (1 << j);
+		//cerr << "tree size " << count << " (" << elCount << " elements)\n";
+		return count;
+	}
+	
+	template<typename T>
+	size_t KDTreeBalancedPtInNodesStackOpenCL<T>::getTreeDepth(size_t elCount) const
+	{
+		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
+		int i = 31;
+		for (; i >= 0; --i)
+		{
+			if (elCount & (1 << i))
+				break;
+		}
+		return i + 1;
+	}
+	
+	template<typename T>
+	void KDTreeBalancedPtInNodesStackOpenCL<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues)
+	{
+		const size_t count(last - first);
+		//cerr << count << endl;
+		if (count == 1)
+		{
+			nodes[pos] = Node(-1, *first);
+			return;
+		}
+		
+		// find the largest dimension of the box
+		const size_t cutDim = argMax<T>(maxValues - minValues);
+		
+		// compute number of elements
+		const size_t recurseCount(count-1);
+		const size_t rightCount(recurseCount/2);
+		const size_t leftCount(recurseCount-rightCount);
+		assert(last - rightCount == first + leftCount + 1);
+		
+		// sort
+		nth_element(first, first + leftCount, last, CompareDim(cloud, cutDim));
+		
+		// set node
+		const Index index(*(first+leftCount));
+		const T cutVal(cloud.coeff(cutDim, index));
+		nodes[pos] = Node(cutDim, index);
+		
+		//cerr << pos << " cutting on " << cutDim << " at " << (first+leftCount)->pos[cutDim] << endl;
+		
+		// update bounds for left
+		Vector leftMaxValues(maxValues);
+		leftMaxValues[cutDim] = cutVal;
+		// update bounds for right
+		Vector rightMinValues(minValues);
+		rightMinValues[cutDim] = cutVal;
+		
+		// recurse
+		if (count > 2)
+		{
+			buildNodes(first, first + leftCount, childLeft(pos), minValues, leftMaxValues);
+			buildNodes(first + leftCount + 1, last, childRight(pos), rightMinValues, maxValues);
+		}
+		else
+		{
+			nodes[childLeft(pos)] = Node(-1, *first);
+			nodes[childRight(pos)] = Node(-2, 0);
+		}
+	}
+	
+	template<typename T>
+	KDTreeBalancedPtInNodesStackOpenCL<T>::KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
+	OpenCLSearch<T>::OpenCLSearch(cloud, dim)
+	{
+		// build point vector and compute bounds
+		BuildPoints buildPoints;
+		buildPoints.reserve(cloud.cols());
+		for (int i = 0; i < cloud.cols(); ++i)
+		{
+			buildPoints.push_back(i);
+			const Vector& v(cloud.block(0,i,this->dim,1));
+			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
+			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+		}
+		
+		// create nodes
+		nodes.resize(getTreeSize(cloud.cols()));
+		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
+		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
+		
+		// init openCL
+		initOpenCL(deviceType, "knn_kdtree_pt_in_nodes.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
+		
+		// map nodes, for info about alignment, see sect 6.1.5 
+		const size_t nodesCLSize(nodes.size() * sizeof(Node));
+		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
+		knnKernel.setArg(9, sizeof(cl_mem), &nodesCL);
+	}
+	
+	template struct KDTreeBalancedPtInNodesStackOpenCL<float>;
+	template struct KDTreeBalancedPtInNodesStackOpenCL<double>;
 	
 	//@}
 }

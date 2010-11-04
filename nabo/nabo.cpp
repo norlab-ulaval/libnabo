@@ -98,7 +98,8 @@ namespace Nabo
 			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T> >(cloud, dim);
 			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T> >(cloud, dim);
 			#ifdef HAVE_OPENCL
-			case KDTREE_CL: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
+			//case KDTREE_CL: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
+			case KDTREE_CL: return new KDTreeBalancedPtInNodesStackOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
 			case BRUTE_FORCE_CL: return new BruteForceSearchOpenCL<T>(cloud, dim, CL_DEVICE_TYPE_GPU);
 			#else // HAVE_OPENCL
 			case KDTREE_CL: throw runtime_error("OpenCL not found during compilation");
