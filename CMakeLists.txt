@@ -6,11 +6,12 @@ project(libnabo)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 execute_process(
 	COMMAND grep "NABO_VERSION " nabo/nabo.h
-	COMMAND sed "s/.*\"\(.*\)\"/\1/g"
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	OUTPUT_VARIABLE PROJECT_VERSION
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
+
 include(UseDoxygen)
 
 # Compilation
