@@ -66,6 +66,7 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
 		using NearestNeighbourSearch<T>::dim;
+		using NearestNeighbourSearch<T>::checkSizesKnn;
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		BruteForceSearch(const Matrix& cloud, const Index dim);
@@ -86,6 +87,7 @@ namespace Nabo
 		using NearestNeighbourSearch<T>::cloud;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
+		using NearestNeighbourSearch<T>::checkSizesKnn;
 		
 	protected:
 		//! indices of points during kd-tree construction
@@ -159,6 +161,7 @@ namespace Nabo
 		
 		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::checkSizesKnn;
 		
 	protected:
 		cl::Context context;

@@ -58,10 +58,10 @@ kernel void knnKDTree(	const global T* cloud,
 		// check whether we already have better dist
 		if ((s->state == OFFSIDE) && (cd >= 0))
 		{
-			const T side = q[cd] - p[cd];
+			const T diff = q[cd] - p[cd];
 			// TODO: use approximate dist
 			// FIXME: bug in this early out
-			//if (side*side > heapHeadValue(heap))
+			//if (diff * diff > heapHeadValue(heap))
 			//	continue;
 		}
 		// compute new distance and update if lower

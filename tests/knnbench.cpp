@@ -213,14 +213,14 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	
 	BenchResult result;
 	boost::timer t;
-	nnsT* nns(nnsT::create(d, type));
+	nnsT* nns(nnsT::create(d, d.rows(), type));
 	result.creationDuration = t.elapsed();
 	
 	for (int s = 0; s < searchCount; ++s)
 	{
+		t.restart();
 		IndexMatrix indices(K, q.cols());
 		Matrix dists2(K, q.cols());
-		t.restart();
 		nns->knn(q, indices, dists2, K, 0, 0);
 		result.executionDuration += t.elapsed();
 	}
@@ -390,7 +390,7 @@ int main(int argc, char* argv[])
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
 		#ifdef HAVE_OPENCL
 		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
-		"Nabo, float, OpenCL, GPU, brute force",
+		//"Nabo, float, OpenCL, GPU, brute force",
 		#endif // HAVE_OPENCL
 		//"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
 		#ifdef HAVE_ANN
@@ -422,7 +422,7 @@ int main(int argc, char* argv[])
 		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, dF, qF, K, itCount, searchCount);
 		#ifdef HAVE_OPENCL
 		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, dF, qF, K, itCount, searchCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount, searchCount);
+		//results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount, searchCount);
 		#endif // HAVE_OPENCL
 		#ifdef HAVE_ANN
 		results.at(i++) += doBenchANNStack(dD, qD, K, itCount, searchCount);
