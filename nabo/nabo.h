@@ -235,6 +235,9 @@ namespace Nabo
 		 * 	\return an object on which to run nearest neighbour queries */
 		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
 		
+		//! virtual destructor
+		virtual ~NearestNeighbourSearch() {}
+		
 	protected:
 		//! constructor
 		NearestNeighbourSearch(const Matrix& cloud, const Index dim);
