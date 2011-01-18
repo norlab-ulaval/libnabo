@@ -53,7 +53,7 @@ Just type:
 ...in the build directory to run the tests.
 Their outputs are available in the `Testing` directory.
 These consist of validation and benchmarking tests.
-If [ANN] is detected when compiling libnabo, `make test` will also perform comparative benchmarks.
+If [ANN] or [FLANN] are detected when compiling libnabo, `make test` will also perform comparative benchmarks.
 
 
 Bug reporting
@@ -68,6 +68,7 @@ libnabo is released under a permissive BSD license.
 
 
 [ANN]: http://www.cs.umd.edu/~mount/ANN
+[FLANN]: http://www.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
 [CMake]: http://www.cmake.org
 [CMake documentation]: http://www.cmake.org/cmake/help/cmake2.6docs.html
 [Eigen]: http://eigen.tuxfamily.org
