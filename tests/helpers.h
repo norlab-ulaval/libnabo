@@ -86,7 +86,7 @@ typename NearestNeighbourSearch<T>::Vector createQuery(const typename NearestNei
 		T absBound = 0;
 		for (int j = 0; j < q.size(); ++j)
 			absBound += kdt.maxBound(j) - kdt.minBound(j);
-		absBound /= 3 * (-method); // divided by -method
+		absBound /= (-method); // divided by -method
 		if (i < d.cols())
 			q.cwise() += absBound;
 		else
