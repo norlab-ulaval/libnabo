@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "nabo/nabo.h"
+#include "helpers.h"
 //#include "experimental/nabo_experimental.h"
 #include <iostream>
 #include <fstream>
@@ -37,81 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std;
 using namespace Nabo;
-
-template<typename T>
-typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
-{
-	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-	
-	ifstream ifs(fileName);
-	if (!ifs.good())
-	{
-		cerr << "Cannot open file "<< fileName << endl;
-		exit(1);
-	}
-	
-	vector<T> data;
-	int dim(0);
-	bool firstLine(true);
-	
-	while (!ifs.eof())
-	{
-		char line[1024];
-		ifs.getline(line, sizeof(line));
-		line[sizeof(line)-1] = 0;
-		
-		char *token = strtok(line, " \t,;");
-		while (token)
-		{
-			if (firstLine)
-				++dim;
-			data.push_back(atof(token));
-			token = strtok(NULL, " \t,;"); // FIXME: non reentrant, use strtok_r
-		}
-		firstLine = false;
-	}
-	
-	return Matrix::Map(&data[0], dim, data.size() / dim);
-}
-
-template<typename T, typename NNS>
-typename Nabo::NearestNeighbourSearch<T>::Vector createQuery(const typename Nabo::NearestNeighbourSearch<T>::Matrix& d, const NNS& nns, const int i, const int method)
-{
-	if (method < 0)
-	{
-		typename Nabo::NearestNeighbourSearch<T>::Vector q = d.col(i % d.cols());
-		double absBound = 0;
-		for (int j = 0; j < q.size(); ++j)
-			absBound += nns.maxBound(j) - nns.minBound(j);
-		absBound /= 3 * (-method); // divided by -method
-		if (i < d.cols())
-			q.cwise() += absBound;
-		else
-			q.cwise() -= absBound;
-		return q;
-	}
-	else
-	{
-		typename Nabo::NearestNeighbourSearch<T>::Vector q(nns.minBound.size());
-		for (int j = 0; j < q.size(); ++j)
-			q(j) = nns.minBound(j) + double(rand()) * (nns.maxBound(j) - nns.minBound(j)) / double(RAND_MAX);
-		return q;
-	}
-}
-
-template<typename T>
-typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const int itCount, const int method)
-{
-	typedef typename NearestNeighbourSearch<T>::Matrix MatrixT;
-	typedef Nabo::NearestNeighbourSearch<T> NNS;
-	NNS* nns = NNS::create(d, d.rows(), typename NNS::SearchType(0));
-	MatrixT q(d.rows(), itCount);
-	for (int i = 0; i < itCount; ++i)
-		q.col(i) = createQuery<T>(d, *nns, i, method);
-	delete nns;
-	return q;
-}
-
 
 template<typename T>
 void validate(const char *fileName, const int K, const int method)

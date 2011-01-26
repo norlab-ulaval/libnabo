@@ -64,3 +64,6 @@ add_test(bench-3D-large-exhaustive-10000-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench
 add_test(bench-3D-large-exhaustive-1000-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 30 -1000 3 5)
 add_test(bench-3D-large-exhaustive-100-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 30 -100 3 5)
 add_test(bench-3D-large-random-K100 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 30 40000 3 5)
+
+add_executable(knnepsilon knnepsilon.cpp)
+target_link_libraries(knnepsilon nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})

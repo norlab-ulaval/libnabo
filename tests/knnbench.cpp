@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "nabo/nabo.h"
 #include "experimental/nabo_experimental.h"
+#include "helpers.h"
 #ifdef HAVE_ANN
 	#include "ANN.h"
 #endif // HAVE_ANN
@@ -47,42 +48,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std;
 using namespace Nabo;
-
-template<typename T>
-typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
-{
-	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-	
-	ifstream ifs(fileName);
-	if (!ifs.good())
-	{
-		cerr << "Cannot open file "<< fileName << endl;
-		exit(1);
-	}
-	
-	vector<T> data;
-	int dim(0);
-	bool firstLine(true);
-	
-	while (!ifs.eof())
-	{
-		char line[1024];
-		ifs.getline(line, sizeof(line));
-		line[sizeof(line)-1] = 0;
-		
-		char *token = strtok(line, " \t,;");
-		while (token)
-		{
-			if (firstLine)
-				++dim;
-			data.push_back(atof(token));
-			token = strtok(NULL, " \t,;"); // FIXME: non reentrant, use strtok_r
-		}
-		firstLine = false;
-	}
-	
-	return Matrix::Map(&data[0], dim, data.size() / dim);
-}
 
 typedef Nabo::NearestNeighbourSearch<double>::Matrix MatrixD;
 typedef Nabo::NearestNeighbourSearch<double>::Vector VectorD;
@@ -113,45 +78,6 @@ typedef Nabo::BruteForceSearch<float> BFSF;
 // typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapBruteForceVector<int,double>> KDTD5OB;
 // typedef Nabo::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<double,IndexHeapSTL<int,double>> KDTD5OA;
 // typedef Nabo::KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double> KDTD6;
-
-
-template<typename T>
-typename NearestNeighbourSearch<T>::Vector createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const NearestNeighbourSearch<T>& kdt, const int i, const int method)
-{
-	typedef typename NearestNeighbourSearch<T>::Vector VectorT;
-	if (method < 0)
-	{
-		VectorT q = d.col(i % d.cols());
-		T absBound = 0;
-		for (int j = 0; j < q.size(); ++j)
-			absBound += kdt.maxBound(j) - kdt.minBound(j);
-		absBound /= 3 * (-method); // divided by -method
-		if (i < d.cols())
-			q.cwise() += absBound;
-		else
-			q.cwise() -= absBound;
-		return q;
-	}
-	else
-	{
-		VectorT q(kdt.minBound.size());
-		for (int j = 0; j < q.size(); ++j)
-			q(j) = kdt.minBound(j) + T(rand()) * (kdt.maxBound(j) - kdt.minBound(j)) / T(RAND_MAX);
-		return q;
-	}
-}
-
-template<typename T>
-typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNeighbourSearch<T>::Matrix& d, const int itCount, const int method)
-{
-	typedef typename NearestNeighbourSearch<T>::Matrix MatrixT;
-	typedef Nabo::BruteForceSearch<T> BFS;
-	MatrixT q(d.rows(), itCount);
-	BFS nns(d, numeric_limits<int>::max());
-	for (int i = 0; i < itCount; ++i)
-		q.col(i) = createQuery<T>(d, nns, i, method);
-	return q;
-}
 
 
 struct BenchResult
