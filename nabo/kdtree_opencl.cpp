@@ -40,9 +40,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <queue>
 #include <algorithm>
+#include <map>
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
+
 
 /*!	\file kdtree_opencl.cpp
  \ *brief kd-tree search, opencl implementation
@@ -94,114 +97,189 @@ namespace Nabo
 		}
 	};
 	
+	struct SourceCacher
+	{
+		typedef std::vector<cl::Device> Devices;
+		typedef std::map<std::string, cl::Program> ProgramCache;
+		
+		cl::Context context;
+		Devices devices;
+		ProgramCache cachedPrograms;
+		
+		SourceCacher(const cl_device_type deviceType)
+		{
+			// looking for platforms, AMD drivers do not like the default for creating context
+			vector<cl::Platform> platforms;
+			cl::Platform::get(&platforms);
+			if (platforms.empty())
+				throw runtime_error("No OpenCL platform found");
+			//for(vector<cl::Platform>::iterator i = platforms.begin(); i != platforms.end(); ++i)
+			//	cerr << "platform " << i - platforms.begin() << " is " << (*i).getInfo<CL_PLATFORM_VENDOR>() << endl;
+			cl::Platform platform = platforms[0];
+			const char *userDefinedPlatform(getenv("NABO_OPENCL_USE_PLATFORM"));
+			if (userDefinedPlatform)
+			{
+				size_t userDefinedPlatformId = atoi(userDefinedPlatform);
+				if (userDefinedPlatformId < platforms.size())
+					platform = platforms[userDefinedPlatformId];
+			}
+			
+			// create OpenCL contexts
+			cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platform(), 0 };
+			bool deviceFound = false;
+			try {
+				context = cl::Context(deviceType, properties);
+				deviceFound = true;
+			} catch (cl::Error e) {
+				cerr << "Cannot find device type " << deviceType << " for OpenCL, falling back to any device" << endl;
+			}
+			if (!deviceFound)
+				context = cl::Context(CL_DEVICE_TYPE_ALL, properties);
+			devices = context.getInfo<CL_CONTEXT_DEVICES>();
+			if (devices.empty())
+				throw runtime_error("No devices on OpenCL platform");
+		}
+		
+		~SourceCacher()
+		{
+			cerr << "Destroying source cacher containing " << cachedPrograms.size() << " cached programs" << endl;
+		}
+		
+		bool contains(const std::string& source)
+		{
+			return cachedPrograms.find(source) != cachedPrograms.end();
+		}
+	};
+	
+	class ContextManager
+	{
+	public:
+		typedef std::map<cl_device_type, SourceCacher*> Devices;
+		
+		ContextManager() {}
+		~ContextManager()
+		{
+			cerr << "Destroying CL context manager, used " << devices.size() << " contexts" << endl;
+			for (Devices::iterator it(devices.begin()); it != devices.end(); ++it)
+				delete it->second;
+		}
+		cl::Context& createContext(const cl_device_type deviceType)
+		{
+			boost::mutex::scoped_lock lock(mutex);
+			Devices::iterator it(devices.find(deviceType));
+			if (it == devices.end())
+			{
+				it = devices.insert(
+					pair<cl_device_type, SourceCacher*>(deviceType, new SourceCacher(deviceType))
+					).first;
+			}
+			return it->second->context;
+		}
+		SourceCacher* getSourceCacher(const cl_device_type deviceType)
+		{
+			boost::mutex::scoped_lock lock(mutex);
+			Devices::iterator it(devices.find(deviceType));
+			if (it == devices.end())
+				throw runtime_error("Attempt to get source cacher before creating a context");
+			return it->second;
+		}
+		
+	protected:
+		Devices devices;
+		boost::mutex mutex;
+	};
+	
+	static ContextManager contextManager;
+	
 	template<typename T>
-	OpenCLSearch<T>::OpenCLSearch(const Matrix& cloud, const Index dim):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim)
+	OpenCLSearch<T>::OpenCLSearch(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim),
+		deviceType(deviceType),
+		context(contextManager.createContext(deviceType))
 	{
 	}
 	
 	template<typename T>
-	void OpenCLSearch<T>::initOpenCL(const cl_device_type deviceType, const char* clFileName, const char* kernelName, const string& additionalDefines)
+	void OpenCLSearch<T>::initOpenCL(const char* clFileName, const char* kernelName, const string& additionalDefines)
 	{
-		// looking for platforms, AMD drivers do not like the default for creating context
-		vector<cl::Platform> platforms;
-		cl::Platform::get(&platforms);
-		if (platforms.empty())
-			throw runtime_error("No OpenCL platform found");
-		//for(vector<cl::Platform>::iterator i = platforms.begin(); i != platforms.end(); ++i)
-		//	cerr << "platform " << i - platforms.begin() << " is " << (*i).getInfo<CL_PLATFORM_VENDOR>() << endl;
-		cl::Platform platform = platforms[0];
-		const char *userDefinedPlatform(getenv("NABO_OPENCL_USE_PLATFORM"));
-		if (userDefinedPlatform)
-		{
-			size_t userDefinedPlatformId = atoi(userDefinedPlatform);
-			if (userDefinedPlatformId < platforms.size())
-				platform = platforms[userDefinedPlatformId];
-		}
-		
-		// create OpenCL contexts
-		cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platform(), 0 };
-		bool deviceFound = false;
-		try {
-			context = cl::Context(deviceType, properties);
-			deviceFound = true;
-		} catch (cl::Error e) {
-			cerr << "Cannot find device type " << deviceType << " for OpenCL, falling back to any device" << endl;
-		}
-		if (!deviceFound)
-			context = cl::Context(CL_DEVICE_TYPE_ALL, properties);
-		std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
-		if (devices.empty())
-			throw runtime_error("No devices on OpenCL platform");
+		SourceCacher* sourceCacher(contextManager.getSourceCacher(deviceType));
+		SourceCacher::Devices& devices(sourceCacher->devices);
 		
 		// build and load source files
 		cl::Program::Sources sources;
 		// build defines
 		ostringstream oss;
-		oss << EnableCLTypeSupport<T>::code(devices[0]);
+		oss << EnableCLTypeSupport<T>::code(devices.back());
 		oss << "#define EPSILON " << numeric_limits<T>::epsilon() << "\n";
 		oss << "#define DIM_COUNT " << dim << "\n";
-		oss << "#define CLOUD_POINT_COUNT " << cloud.cols() << "\n";
+		//oss << "#define CLOUD_POINT_COUNT " << cloud.cols() << "\n";
 		oss << "#define POINT_STRIDE " << cloud.stride() << "\n";
 		oss << "#define MAX_K " << MAX_K << "\n";
 		oss << additionalDefines;
-		cerr << "params:\n" << oss.str() << endl;
-		const size_t defLen(oss.str().length());
-		char *defContent(new char[defLen+1]);
-		strcpy(defContent, oss.str().c_str());
-		sources.push_back(std::make_pair(defContent, defLen));
-		string sourceFileName(OPENCL_SOURCE_DIR);
-		sourceFileName += clFileName;
-		// load files
-		const char* files[] = {
-			OPENCL_SOURCE_DIR "structure.cl",
-			OPENCL_SOURCE_DIR "heap.cl",
-			sourceFileName.c_str(),
-			NULL 
-		};
-		for (const char** file = files; *file != NULL; ++file)
-		{
-			std::ifstream stream(*file);
-			if (!stream.good())
-				throw runtime_error((string("cannot open file: ") + *file));
-			
-			stream.seekg(0, std::ios_base::end);
-			size_t size(stream.tellg());
-			stream.seekg(0, std::ios_base::beg);
-			
-			char* content(new char[size + 1]);
-			std::copy(std::istreambuf_iterator<char>(stream),
-						std::istreambuf_iterator<char>(), content);
-			content[size] = '\0';
-			
-			sources.push_back(std::make_pair(content, size));
-		}
-		cl::Program program(context, sources);
+		//cerr << "params:\n" << oss.str() << endl;
 		
-		// build
-		cl::Error error(CL_SUCCESS);
-		try {
-			program.build(devices);
-		} catch (cl::Error e) {
-			error = e;
-		}
-		
-		// dump
-		for (cl::Devices::const_iterator it = devices.begin(); it != devices.end(); ++it)
+		const std::string& source(oss.str());
+		if (!sourceCacher->contains(source))
 		{
-			cerr << "device : " << it->getInfo<CL_DEVICE_NAME>() << "\n";
-			cerr << "compilation log:\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*it) << endl;
+			const size_t defLen(source.length());
+			char *defContent(new char[defLen+1]);
+			strcpy(defContent, source.c_str());
+			sources.push_back(std::make_pair(defContent, defLen));
+			string sourceFileName(OPENCL_SOURCE_DIR);
+			sourceFileName += clFileName;
+			// load files
+			const char* files[] = {
+				OPENCL_SOURCE_DIR "structure.cl",
+				OPENCL_SOURCE_DIR "heap.cl",
+				sourceFileName.c_str(),
+				NULL 
+			};
+			for (const char** file = files; *file != NULL; ++file)
+			{
+				std::ifstream stream(*file);
+				if (!stream.good())
+					throw runtime_error((string("cannot open file: ") + *file));
+				
+				stream.seekg(0, std::ios_base::end);
+				size_t size(stream.tellg());
+				stream.seekg(0, std::ios_base::beg);
+				
+				char* content(new char[size + 1]);
+				std::copy(std::istreambuf_iterator<char>(stream),
+							std::istreambuf_iterator<char>(), content);
+				content[size] = '\0';
+				
+				sources.push_back(std::make_pair(content, size));
+			}
+			sourceCacher->cachedPrograms[source] = cl::Program(context, sources);
+			cl::Program& program = sourceCacher->cachedPrograms[source];
+			
+			// build
+			cl::Error error(CL_SUCCESS);
+			try {
+				program.build(devices);
+			} catch (cl::Error e) {
+				error = e;
+			}
+			
+			// dump
+			for (cl::Devices::const_iterator it = devices.begin(); it != devices.end(); ++it)
+			{
+				cerr << "device : " << it->getInfo<CL_DEVICE_NAME>() << "\n";
+				cerr << "compilation log:\n" << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(*it) << endl;
+			}
+			// cleanup sources
+			for (cl::Program::Sources::iterator it = sources.begin(); it != sources.end(); ++it)
+			{
+				delete[] it->first;
+			}
+			sources.clear();
+			
+			// make sure to stop if compilation failed
+			if (error.err() != CL_SUCCESS)
+				throw error;
 		}
-		// cleanup sources
-		for (cl::Program::Sources::iterator it = sources.begin(); it != sources.end(); ++it)
-		{
-			delete[] it->first;
-		}
-		sources.clear();
-		
-		// make sure to stop if compilation failed
-		if (error.err() != CL_SUCCESS)
-			throw error;
+		cl::Program& program = sourceCacher->cachedPrograms[source];
 		
 		// build kernel and command queue
 		knnKernel = cl::Kernel(program, kernelName); 
@@ -213,8 +291,6 @@ namespace Nabo
 		const size_t cloudCLSize(cloud.cols() * cloud.stride() * sizeof(T));
 		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
 		knnKernel.setArg(0, sizeof(cl_mem), &cloudCL);
-		
-		// TODO: optimise by caching context and programs
 	}
 	
 	template<typename T>
@@ -255,6 +331,7 @@ namespace Nabo
 		knnKernel.setArg(6, optionFlags);
 		knnKernel.setArg(7, indexStride);
 		knnKernel.setArg(8, dists2Stride);
+		knnKernel.setArg(9, cloud.cols());
 		
 		// execute query
 		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
@@ -265,7 +342,7 @@ namespace Nabo
 	
 	template<typename T>
 	BruteForceSearchOpenCL<T>::BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
-	OpenCLSearch<T>::OpenCLSearch(cloud, dim)
+	OpenCLSearch<T>::OpenCLSearch(cloud, dim, deviceType)
 	{
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
@@ -276,7 +353,7 @@ namespace Nabo
 		}
 		
 		// init openCL
-		initOpenCL(deviceType, "knn_bf.cl", "knnBruteForce");
+		initOpenCL("knn_bf.cl", "knnBruteForce");
 	}
 	
 	template struct BruteForceSearchOpenCL<float>;
@@ -378,7 +455,7 @@ namespace Nabo
 	
 	template<typename T>
 	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
-		OpenCLSearch<T>::OpenCLSearch(cloud, dim)
+		OpenCLSearch<T>::OpenCLSearch(cloud, dim, deviceType)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -397,12 +474,12 @@ namespace Nabo
 		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
 		
 		// init openCL
-		initOpenCL(deviceType, "knn_kdtree_pt_in_leaves.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
+		initOpenCL("knn_kdtree_pt_in_leaves.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
 		
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
-		knnKernel.setArg(9, sizeof(cl_mem), &nodesCL);
+		knnKernel.setArg(10, sizeof(cl_mem), &nodesCL);
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
@@ -491,7 +568,7 @@ namespace Nabo
 	
 	template<typename T>
 	KDTreeBalancedPtInNodesStackOpenCL<T>::KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType):
-	OpenCLSearch<T>::OpenCLSearch(cloud, dim)
+	OpenCLSearch<T>::OpenCLSearch(cloud, dim, deviceType)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -510,12 +587,12 @@ namespace Nabo
 		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
 		
 		// init openCL
-		initOpenCL(deviceType, "knn_kdtree_pt_in_nodes.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
+		initOpenCL("knn_kdtree_pt_in_nodes.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
 		
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
-		knnKernel.setArg(9, sizeof(cl_mem), &nodesCL);
+		knnKernel.setArg(10, sizeof(cl_mem), &nodesCL);
 	}
 	
 	template struct KDTreeBalancedPtInNodesStackOpenCL<float>;

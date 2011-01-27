@@ -164,13 +164,14 @@ namespace Nabo
 		using NearestNeighbourSearch<T>::checkSizesKnn;
 		
 	protected:
-		cl::Context context;
+		const cl_device_type deviceType;
+		cl::Context& context;
 		cl::Kernel knnKernel;
 		cl::CommandQueue queue;
 		cl::Buffer cloudCL;
 		
-		OpenCLSearch(const Matrix& cloud, const Index dim);
-		void initOpenCL(const cl_device_type deviceType, const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
+		OpenCLSearch(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
+		void initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
 	
 	public:
 		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);

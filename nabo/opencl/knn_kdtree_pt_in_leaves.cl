@@ -35,11 +35,12 @@ kernel void knnKDTree(	const global T* cloud,
 						const global T* query,
 						global int* indices,
 						global T* dists2,
-						uint K,
-						T maxError,
-						uint optionFlags,
-						uint indexStride,
-						uint dists2Stride,
+						const uint K,
+						const T maxError,
+						const uint optionFlags,
+						const uint indexStride,
+						const uint dists2Stride,
+						const uint pointCount,
 						const global Node* nodes
  					)
 {

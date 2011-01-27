@@ -2,11 +2,12 @@ kernel void knnBruteForce(const global T* cloud,
 						const global T* query,
 						global int* indices,
 						global T* dists2,
-						uint K,
-						T maxError,
-						uint optionFlags,
-						uint indexStride,
-						uint dists2Stride)
+						const uint K,
+						const T maxError,
+						const uint optionFlags,
+						const uint indexStride,
+						const uint dists2Stride,
+						const uint pointCount)
 {
 	HeapEntry heap[MAX_K];
 	heapInit(heap, K);
@@ -16,7 +17,7 @@ kernel void knnBruteForce(const global T* cloud,
 	const bool doSort = optionFlags & SORT_RESULTS;
 	const global T* q = &query[queryId * POINT_STRIDE];
 	
-	for (uint index = 0; index < CLOUD_POINT_COUNT; ++index)
+	for (uint index = 0; index < pointCount; ++index)
 	{
 		const global T* p = &cloud[index * POINT_STRIDE];
 		T dist = 0;
