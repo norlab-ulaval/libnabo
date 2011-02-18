@@ -65,17 +65,18 @@ void doTestEpsilon(const char *fileName, const int K, const int method, const in
 	IndexMatrix indexes_bf(K, q.cols());
 	Matrix dists2_bf(K, q.cols());
 	
-	NNS* nns = NNS::createKDTreeLinearHeap(d);
-	for (T epsilon = 0; epsilon < 1; epsilon += 0.005)
+	NNS* nns = NNS::createKDTreeLinearHeap(d, std::numeric_limits<typename NNS::Index>::max(), NNS::TOUCH_STATISTICS);
+	for (T epsilon = 0; epsilon < 2; epsilon += 0.01)
 	{
 		double duration(0);
+		double touchStats(0);
 		for (int s = 0; s < searchCount; ++s)
 		{
 			boost::timer t;
-			nns->knn(q, indexes_bf, dists2_bf, K, epsilon, NNS::ALLOW_SELF_MATCH);
+			touchStats += nns->knn(q, indexes_bf, dists2_bf, K, epsilon, NNS::ALLOW_SELF_MATCH);
 			duration += t.elapsed();
 		}
-		cout << epsilon << " " << duration/double(searchCount) << endl;
+		cout << epsilon << " " << duration/double(searchCount) << " " << touchStats/double(searchCount) << endl;
 	}
 	delete nns;
 }
@@ -95,7 +96,7 @@ int main(int argc, char* argv[])
 	
 	//cout << "Float: (epsilon, average duration)\n";
 	//doTestEpsilon<float>(argv[1], K, method, searchCount);
-	cout << "Double: (epsilon, average duration)\n";
+	cout << "epsilon average_duration search_count\n";
 	doTestEpsilon<double>(argv[1], K, method, searchCount);
 	
 	return 0;
