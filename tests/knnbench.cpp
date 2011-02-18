@@ -84,13 +84,13 @@ struct BenchResult
 {
 	double creationDuration;
 	double executionDuration;
-	//double visitCount;
+	double visitCount;
 	double totalCount;
 	
 	BenchResult():
 		creationDuration(0),
 		executionDuration(0),
-	//	visitCount(0),
+		visitCount(0),
 		totalCount(0)
 	{}
 	
@@ -98,7 +98,7 @@ struct BenchResult
 	{
 		creationDuration += that.creationDuration;
 		executionDuration += that.executionDuration;
-//		visitCount += that.visitCount;
+		visitCount += that.visitCount;
 		totalCount += that.totalCount;
 	}
 	
@@ -106,7 +106,7 @@ struct BenchResult
 	{
 		creationDuration /= factor;
 		executionDuration /= factor;
-//		visitCount /= factor;
+		visitCount /= factor;
 		totalCount /= factor;
 	}
 };
@@ -131,7 +131,13 @@ typedef vector<BenchResult> BenchResults;
 // }
 
 template<typename T>
-BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, const typename NearestNeighbourSearch<T>::Matrix& d, const typename NearestNeighbourSearch<T>::Matrix& q, const int K, const int itCount, const int searchCount)
+BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, 
+						const unsigned creationOptionFlags,
+						const typename NearestNeighbourSearch<T>::Matrix& d,
+						const typename NearestNeighbourSearch<T>::Matrix& q,
+						const int K,
+						const int itCount,
+						const int searchCount)
 {
 	typedef NearestNeighbourSearch<T> nnsT;
 	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
@@ -139,7 +145,7 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	
 	BenchResult result;
 	boost::timer t;
-	nnsT* nns(nnsT::create(d, d.rows(), type));
+	nnsT* nns(nnsT::create(d, d.rows(), type, creationOptionFlags));
 	result.creationDuration = t.elapsed();
 	
 	for (int s = 0; s < searchCount; ++s)
@@ -147,8 +153,9 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 		t.restart();
 		IndexMatrix indices(K, q.cols());
 		Matrix dists2(K, q.cols());
-		nns->knn(q, indices, dists2, K, 0, 0);
+		const unsigned long visitCount = nns->knn(q, indices, dists2, K, 0, 0);
 		result.executionDuration += t.elapsed();
+		result.visitCount += double(visitCount);
 	}
 	result.executionDuration /= double(searchCount);
 	
@@ -314,8 +321,10 @@ int main(int argc, char* argv[])
 		"Nabo, double, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, brute-force vector heap, opt",
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
+		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt, stats",
 		#ifdef HAVE_OPENCL
 		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
+		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio, stats",
 		//"Nabo, float, OpenCL, GPU, brute force",
 		#endif // HAVE_OPENCL
 		//"Nabo, unbalanced, points in leaves, stack, explicit bounds, ANN_KD_SL_MIDPT",
@@ -342,12 +351,14 @@ int main(int argc, char* argv[])
 		//results.at(i++) += doBench<KDTD4>(d, q, K, itCount, searchCount);
 		//results.at(i++) += doBench<KDTD5A>(d, q, K, itCount, searchCount);
 		//results.at(i++) += doBench<KDTD5B>(d, q, K, itCount, searchCount);
-		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_LINEAR_HEAP, dD, qD, K, itCount, searchCount);
-		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_TREE_HEAP, dD, qD, K, itCount, searchCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_LINEAR_HEAP, dF, qF, K, itCount, searchCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_LINEAR_HEAP, 0, dD, qD, K, itCount, searchCount);
+		results.at(i++) += doBenchType<double>(NNSearchD::KDTREE_TREE_HEAP, 0, dD, qD, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_LINEAR_HEAP, 0, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, 0, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, NNSearchF::TOUCH_STATISTICS, dF, qF, K, itCount, searchCount);
 		#ifdef HAVE_OPENCL
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, 0, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, NNSearchF::TOUCH_STATISTICS, dF, qF, K, itCount, searchCount);
 		//results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount, searchCount);
 		#endif // HAVE_OPENCL
 		#ifdef HAVE_ANN
@@ -370,9 +381,9 @@ int main(int argc, char* argv[])
 		cout << "  execution duration: " << results[i].executionDuration << "\n";
 		if (results[i].totalCount != 0)
 		{
-//			cout << "  visit count: " << results[i].visitCount << "\n";
+			cout << "  visit count: " << results[i].visitCount << "\n";
 			cout << "  total count: " << results[i].totalCount << "\n";
-//			cout << "  precentage visit: " << (results[i].visitCount * 100.) / results[i].totalCount << "\n";
+			cout << "  precentage visit: " << (results[i].visitCount * 100.) / results[i].totalCount << "\n";
 		}
 		else
 			cout << "  no stats for visits\n";

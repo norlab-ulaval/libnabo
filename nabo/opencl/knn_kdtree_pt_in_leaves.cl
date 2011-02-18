@@ -41,14 +41,19 @@ kernel void knnKDTree(	const global T* cloud,
 						const uint indexStride,
 						const uint dists2Stride,
 						const uint pointCount,
+#ifdef TOUCH_STATISTICS
+						global uint* touchStatistics,
+#endif
 						const global Node* nodes
  					)
 {
 	StackEntry stack[MAX_STACK_DEPTH];
 	HeapEntry heap[MAX_K];
 	T off[DIM_COUNT];
-	
-	uint stackPtr = 1;
+
+#ifdef TOUCH_STATISTICS
+	uint visitCount = 0;
+#endif
 
 	const size_t queryId = get_global_id(0);
 	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
@@ -58,6 +63,7 @@ kernel void knnKDTree(	const global T* cloud,
 	heapInit(heap, K);
 	offInit(off);
 	
+	uint stackPtr = 1;
 	stack[0].op = OP_BEGIN_FUNCTION;
 	stack[0].n = 0;
 	stack[0].rd = 0;
@@ -87,6 +93,9 @@ kernel void knnKDTree(	const global T* cloud,
 					if (dist < heapHeadValue(heap) &&
 						(allowSelfMatch || (dist > (T)EPSILON)))
 						heapHeadReplace(heap, index, dist, K);
+#ifdef TOUCH_STATISTICS
+					++visitCount;
+#endif
 				}
 			}
 			else
@@ -132,5 +141,8 @@ kernel void knnKDTree(	const global T* cloud,
 	if (doSort)
 		heapSort(heap);
 	heapCopy(&indices[queryId * indexStride], &dists2[queryId * dists2Stride], heap, K);
+#ifdef TOUCH_STATISTICS
+	touchStatistics[queryId] = visitCount;
+#endif
 }
 

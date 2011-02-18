@@ -42,8 +42,8 @@ namespace Nabo
 	using namespace std;
 	
 	template<typename T>
-	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud, const Index dim):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim)
+	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags)
 	{
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
@@ -56,11 +56,13 @@ namespace Nabo
 	
 
 	template<typename T>
-	void BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
+	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
+		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
 		
 		IndexHeapSTL<Index, T> heap(k);
 		
@@ -75,10 +77,14 @@ namespace Nabo
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())))
 					heap.replaceHead(i, dist);
 			}
-			if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
+			if (sortResults)
 				heap.sort();	
 			heap.getData(indices.col(c), dists2.col(c));
 		}
+		if (collectStatistics)
+			return (unsigned long)query.cols() * (unsigned long)this->cloud.cols();
+		else
+			return 0;
 	}
 	
 	template struct BruteForceSearch<float>;

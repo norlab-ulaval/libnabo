@@ -66,11 +66,12 @@ namespace Nabo
 		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 		
 		using NearestNeighbourSearch<T>::dim;
+		using NearestNeighbourSearch<T>::creationOptionFlags;
 		using NearestNeighbourSearch<T>::checkSizesKnn;
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		BruteForceSearch(const Matrix& cloud, const Index dim);
-		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
+		BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	//! KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT, optimised implementation
@@ -85,6 +86,7 @@ namespace Nabo
 		
 		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::creationOptionFlags;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
 		using NearestNeighbourSearch<T>::checkSizesKnn;
@@ -138,13 +140,13 @@ namespace Nabo
 		 * 	\param heap reference to heap
 		 * 	\param off reference to array of offsets
 		 * 	\param maxError error factor (1 + epsilon) */
-		template<bool allowSelfMatch>
-		void recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError);
+		template<bool allowSelfMatch, bool collectStatistics>
+		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError);
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim);
-		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
+		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	#ifdef HAVE_OPENCL
@@ -161,6 +163,7 @@ namespace Nabo
 		
 		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::creationOptionFlags;
 		using NearestNeighbourSearch<T>::checkSizesKnn;
 		
 	protected:
@@ -170,11 +173,11 @@ namespace Nabo
 		cl::CommandQueue queue;
 		cl::Buffer cloudCL;
 		
-		OpenCLSearch(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
+		OpenCLSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 		void initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
 	
 	public:
-		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
@@ -187,7 +190,7 @@ namespace Nabo
 		
 		using OpenCLSearch<T>::initOpenCL;
 		
-		BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
+		BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
@@ -202,6 +205,7 @@ namespace Nabo
 		
 		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::creationOptionFlags;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
 		
@@ -249,7 +253,7 @@ namespace Nabo
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
-		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
+		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
 	//! KDTree, balanced, points in nodes, stack, implicit bounds, balance aspect ratio
@@ -264,6 +268,7 @@ namespace Nabo
 		
 		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::cloud;
+		using NearestNeighbourSearch<T>::creationOptionFlags;
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
 		
@@ -305,7 +310,7 @@ namespace Nabo
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
-		KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const cl_device_type deviceType);
+		KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
 	#endif // HAVE_OPENCL

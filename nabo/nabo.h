@@ -172,10 +172,13 @@ namespace Nabo
 		const Matrix& cloud;
 		//! the dimensionality of the data-point cloud
 		const Index dim;
+		//! creation options
+		const unsigned creationOptionFlags;
 		//! the low bound of the search space (axis-aligned bounding box)
 		const Vector minBound;
 		//! the high bound of the search space (axis-aligned bounding box)
 		const Vector maxBound;
+		
 		
 		//! type of search
 		enum SearchType
@@ -188,7 +191,13 @@ namespace Nabo
 			SEARCH_TYPE_COUNT //!< number of search types
 		};
 		
-		//! option
+		//! creation option
+		enum CreationOptionFlags
+		{
+			TOUCH_STATISTICS = 1, //!< perform statistics on the number of points touched
+		};
+		
+		//! search option
 		enum SearchOptionFlags
 		{
 			ALLOW_SELF_MATCH = 1, //!< allows the return of the same point as the query, if this point is in the data cloud; forbidden by default
@@ -201,8 +210,10 @@ namespace Nabo
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
 		 *	\param optionFlags search options, must be a binary OR of SearchOptionFlags
 		 *	\param indices indices of nearest neighbours, must be of size k
-		 *	\param dists squared distances to nearest neighbours, must be of size k */
-		void knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
+		 *	\param dists squared distances to nearest neighbours, must be of size k
+		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
+		 */
+		unsigned long knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
 		
 		//! Find the k nearest neighbours for each point of query
 		/*!	\param query query points
@@ -210,37 +221,39 @@ namespace Nabo
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
 		 *	\param optionFlags search options, must be a binary OR of SearchOptionFlags
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
-		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() */
-		virtual void knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
+		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() 
+		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
+		 */
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
 		
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
 		 * 	\param preferedType type of search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP);
+		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using brute-force search, useful for comparison only
 		/*!	\param cloud data-point cloud in which to search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createBruteForce(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
+		static NearestNeighbourSearch* createBruteForce(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using a kd-tree with linear heap, good for small k (~up to 30)
 		/*!	\param cloud data-point cloud in which to search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
+		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using a kd-tree with tree heap, good for large k (~from 30)
 		/*!	\param cloud data-point cloud in which to search
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max());
+		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
 		//! virtual destructor
 		virtual ~NearestNeighbourSearch() {}
 		
 	protected:
 		//! constructor
-		NearestNeighbourSearch(const Matrix& cloud, const Index dim);
+		NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
 		
 		//! Make sure that the output matrices have the right sizes. Throw an exception otherwise.
 		/*!	\param query query points

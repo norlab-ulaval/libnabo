@@ -7,7 +7,12 @@ kernel void knnBruteForce(const global T* cloud,
 						const uint optionFlags,
 						const uint indexStride,
 						const uint dists2Stride,
-						const uint pointCount)
+						const uint pointCount
+#ifdef TOUCH_STATISTICS
+						,
+						global uint* touchStatistics
+#endif
+						)
 {
 	HeapEntry heap[MAX_K];
 	heapInit(heap, K);
@@ -34,4 +39,7 @@ kernel void knnBruteForce(const global T* cloud,
 	if (doSort)
 		heapSort(heap);
 	heapCopy(&indices[queryId * indexStride], &dists2[queryId * dists2Stride], heap, K);
+	#ifdef TOUCH_STATISTICS
+	touchStatistics[queryId] = pointCount;
+	#endif
 }
