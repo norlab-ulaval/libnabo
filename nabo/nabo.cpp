@@ -49,7 +49,7 @@ namespace Nabo
 	template<typename T>
 	NearestNeighbourSearch<T>::NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
 		cloud(cloud),
-		dim(min(dim, cloud.rows())),
+		dim(min(dim, int(cloud.rows()))),
 		creationOptionFlags(creationOptionFlags),
 		minBound(Vector::Constant(this->dim, numeric_limits<T>::max())),
 		maxBound(Vector::Constant(this->dim, numeric_limits<T>::min()))
@@ -60,7 +60,11 @@ namespace Nabo
 	template<typename T>
 	unsigned long NearestNeighbourSearch<T>::knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k, const T epsilon, const unsigned optionFlags)
 	{
+#ifdef EIGEN3_API
+		const Eigen::Map<const Matrix> queryMatrix(&query.coeff(0,0), dim, 1);
+#else // EIGEN3_API
 		const Eigen::Map<Matrix> queryMatrix(&query.coeff(0,0), dim, 1);
+#endif // EIGEN3_API
 		// note: this is inefficient, because we copy memory, due to the template-
 		// based abstraction of Eigen. High-performance implementation should
 		// take care of knnM and then implement knn on top of it.

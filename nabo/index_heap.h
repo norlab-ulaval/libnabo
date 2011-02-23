@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __INDEX_HEAP_H
 #define __INDEX_HEAP_H
 
-#include "Eigen/Core"
-#include "Eigen/Array"
+#include "nabo.h"
 #include <vector>
 #include <algorithm>
 #include <limits>

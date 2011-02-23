@@ -87,10 +87,17 @@ typename NearestNeighbourSearch<T>::Vector createQuery(const typename NearestNei
 		for (int j = 0; j < q.size(); ++j)
 			absBound += kdt.maxBound(j) - kdt.minBound(j);
 		absBound /= (-method); // divided by -method
+#ifdef EIGEN3_API
+		if (i < d.cols())
+			q.array() += absBound;
+		else
+			q.array() -= absBound;
+#else // EIGEN3_API
 		if (i < d.cols())
 			q.cwise() += absBound;
 		else
 			q.cwise() -= absBound;
+#endif // EIGEN3_API
 		return q;
 	}
 	else

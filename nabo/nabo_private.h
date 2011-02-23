@@ -68,6 +68,8 @@ namespace Nabo
 		using NearestNeighbourSearch<T>::dim;
 		using NearestNeighbourSearch<T>::creationOptionFlags;
 		using NearestNeighbourSearch<T>::checkSizesKnn;
+		using NearestNeighbourSearch<T>::minBound;
+		using NearestNeighbourSearch<T>::maxBound;
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);

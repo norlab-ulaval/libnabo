@@ -45,6 +45,10 @@ namespace Nabo
 	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
 		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags)
 	{
+#ifdef EIGEN3_API
+		const_cast<Vector&>(this->minBound) = cloud.topRows(this->dim).rowwise().minCoeff();
+		const_cast<Vector&>(this->maxBound) = cloud.topRows(this->dim).rowwise().maxCoeff();
+#else // EIGEN3_API
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
@@ -52,6 +56,7 @@ namespace Nabo
 			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
 			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
 		}
+#endif // EIGEN3_API
 	}
 	
 

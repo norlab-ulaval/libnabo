@@ -190,8 +190,13 @@ namespace Nabo
 		{
 			const Vector& v(cloud.block(0,i,this->dim,1));
 			buildPoints.push_back(i);
+#ifdef EIGEN3_API
+			const_cast<Vector&>(minBound) = minBound.array().min(v.array());
+			const_cast<Vector&>(maxBound) = maxBound.array().max(v.array());
+#else // EIGEN3_API
 			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+#endif // EIGEN3_API
 		}
 		
 		// create nodes

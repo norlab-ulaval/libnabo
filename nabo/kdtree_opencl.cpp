@@ -374,6 +374,10 @@ namespace Nabo
 	BruteForceSearchOpenCL<T>::BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 	OpenCLSearch<T>::OpenCLSearch(cloud, dim, creationOptionFlags, deviceType)
 	{
+#ifdef EIGEN3_API
+		const_cast<Vector&>(this->minBound) = cloud.topRows(this->dim).rowwise().minCoeff();
+		const_cast<Vector&>(this->maxBound) = cloud.topRows(this->dim).rowwise().maxCoeff();
+#else // EIGEN3_API
 		// compute bounds
 		for (int i = 0; i < cloud.cols(); ++i)
 		{
@@ -381,7 +385,7 @@ namespace Nabo
 			const_cast<Vector&>(this->minBound) = this->minBound.cwise().min(v);
 			const_cast<Vector&>(this->maxBound) = this->maxBound.cwise().max(v);
 		}
-		
+#endif // EIGEN3_API
 		// init openCL
 		initOpenCL("knn_bf.cl", "knnBruteForce");
 	}
