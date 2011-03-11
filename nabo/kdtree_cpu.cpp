@@ -157,6 +157,19 @@ namespace Nabo
 		else
 			leftCount = count / 2;
 		assert(leftCount > 0);
+		/*if (leftCount >= count)
+		{
+			cerr << "Error found in kdtree:" << endl;
+			cerr << "cloud size: " << cloud.cols() << endl;
+			cerr << "count:" << count << endl;
+			cerr << "leftCount: " << leftCount << endl;
+			cerr << "br1: " << br1 << endl;
+			cerr << "br2: " << br2 << endl;
+			cerr << "idealCutVal: " << idealCutVal << endl;
+			cerr << "cutVal: " << cutVal << endl;
+			cerr << "minMaxVals.first: " << minMaxVals.first << endl;
+			cerr << "minMaxVals.second: " << minMaxVals.second << endl;
+		}*/
 		assert(leftCount < count);
 		
 		// update bounds for left

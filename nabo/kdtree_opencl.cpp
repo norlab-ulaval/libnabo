@@ -491,6 +491,8 @@ namespace Nabo
 	KDTreeBalancedPtInLeavesStackOpenCL<T>::KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 		OpenCLSearch<T>::OpenCLSearch(cloud, dim, creationOptionFlags, deviceType)
 	{
+		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
+		
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
@@ -498,8 +500,13 @@ namespace Nabo
 		{
 			const Vector& v(cloud.block(0,i,this->dim,1));
 			buildPoints.push_back(BuildPoint(v, i));
+#ifdef EIGEN3_API
+			const_cast<Vector&>(minBound) = minBound.array().min(v.array());
+			const_cast<Vector&>(maxBound) = maxBound.array().max(v.array());
+#else // EIGEN3_API
 			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+#endif // EIGEN3_API
 		}
 		
 		// create nodes
@@ -513,7 +520,10 @@ namespace Nabo
 		// map nodes, for info about alignment, see sect 6.1.5 
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
-		knnKernel.setArg(10, sizeof(cl_mem), &nodesCL);
+		if (collectStatistics)
+			knnKernel.setArg(11, sizeof(cl_mem), &nodesCL);
+		else
+			knnKernel.setArg(10, sizeof(cl_mem), &nodesCL);
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
@@ -613,8 +623,13 @@ namespace Nabo
 		{
 			buildPoints.push_back(i);
 			const Vector& v(cloud.block(0,i,this->dim,1));
+#ifdef EIGEN3_API
+			const_cast<Vector&>(minBound) = minBound.array().min(v.array());
+			const_cast<Vector&>(maxBound) = maxBound.array().max(v.array());
+#else // EIGEN3_API
 			const_cast<Vector&>(minBound) = minBound.cwise().min(v);
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
+#endif // EIGEN3_API
 		}
 		
 		// create nodes

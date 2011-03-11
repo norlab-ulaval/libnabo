@@ -1,3 +1,5 @@
+include (CheckSymbolExists) 
+
 include_directories(..)
 
 add_executable(knnvalidate knnvalidate.cpp)
@@ -45,6 +47,11 @@ if (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 else (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 	message("FLANN not found, disabling it in benchmarks")
 endif (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
+
+check_symbol_exists(_POSIX_TIMERS "unistd.h;time.h" POSIX_TIMERS)
+if (POSIX_TIMERS)
+	set(EXTRA_LIBS ${EXTRA_LIBS} rt)
+endif (POSIX_TIMERS)
 
 include_directories(..)
 

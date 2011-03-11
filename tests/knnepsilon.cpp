@@ -34,7 +34,37 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-#include <boost/timer.hpp>
+
+#ifdef _POSIX_TIMERS 
+namespace boost
+{
+	/*
+		High-precision timer class, using gettimeofday().
+		The interface is a subset of the one boost::timer provides,
+		but the implementation is much more precise
+		on systems where clock() has low precision, such as glibc.
+	*/
+	struct timer
+	{
+		typedef unsigned long long Time;
+		
+		timer():_start_time(curTime()){ } 
+		void restart() { _start_time = curTime(); }
+		double elapsed() const                  // return elapsed time in seconds
+		{ return  double(curTime() - _start_time) / double(1000000000); }
+
+	private:
+		Time curTime() const {
+			struct timespec ts;
+			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+			return Time(ts.tv_sec) * Time(1000000000) + Time(ts.tv_nsec);
+		}
+		Time _start_time;
+	};
+}
+#else // _POSIX_TIMERS
+	#include <boost/timer.hpp>
+#endif // _POSIX_TIMERS
 
 using namespace std;
 using namespace Nabo;
