@@ -67,7 +67,7 @@ namespace boost
 	private:
 		Time curTime() const {
 			struct timespec ts;
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+			clock_gettime(CLOCK_REALTIME, &ts);
 			return Time(ts.tv_sec) * Time(1000000000) + Time(ts.tv_nsec);
 		}
 		Time _start_time;
@@ -192,10 +192,11 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 		result.visitCount += double(visitCount);
 	}
 	result.executionDuration /= double(searchCount);
+	result.visitCount /= double(searchCount);
 	
 	delete nns;
 	
-	result.totalCount = double(itCount) * double(d.cols());
+	result.totalCount = double(q.cols()) * double(d.cols());
 	
 	return result;
 }
@@ -357,7 +358,7 @@ int main(int argc, char* argv[])
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt",
 		"Nabo, float, unbalanced, stack, pt in leaves only, implicit bounds, ANN_KD_SL_MIDPT, STL heap, opt, stats",
 		#ifdef HAVE_OPENCL
-		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio",
+		"Nabo, float, OpenCL, GPU, balanced, points in nodes, stack, implicit bounds, balance aspect ratio, stats",
 		"Nabo, float, OpenCL, GPU, balanced, points in leaves, stack, implicit bounds, balance aspect ratio, stats",
 		//"Nabo, float, OpenCL, GPU, brute force",
 		#endif // HAVE_OPENCL
@@ -391,8 +392,8 @@ int main(int argc, char* argv[])
 		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, 0, dF, qF, K, itCount, searchCount);
 		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_TREE_HEAP, NNSearchF::TOUCH_STATISTICS, dF, qF, K, itCount, searchCount);
 		#ifdef HAVE_OPENCL
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, 0, dF, qF, K, itCount, searchCount);
-		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL, NNSearchF::TOUCH_STATISTICS, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL_PT_IN_NODES, NNSearchF::TOUCH_STATISTICS, dF, qF, K, itCount, searchCount);
+		results.at(i++) += doBenchType<float>(NNSearchF::KDTREE_CL_PT_IN_LEAVES, NNSearchF::TOUCH_STATISTICS, dF, qF, K, itCount, searchCount);
 		//results.at(i++) += doBenchType<float>(NNSearchF::BRUTE_FORCE_CL, dF, qF, K, itCount, searchCount);
 		#endif // HAVE_OPENCL
 		#ifdef HAVE_ANN

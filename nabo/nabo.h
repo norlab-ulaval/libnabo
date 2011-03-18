@@ -59,6 +59,7 @@ Its current CPU implementation is strongly inspired by \ref ANN, but with more c
 On the average, libnabo is 20% faster than \ref ANN.
 
 libnabo depends on \ref Eigen, a modern C++ matrix and linear-algebra library.
+libnabo works with either version 2 or 3 of Eigen.
 
 \section Compilation
 
@@ -191,8 +192,9 @@ namespace Nabo
 			BRUTE_FORCE = 0, //!< brute force, check distance to every point in the data
 			KDTREE_LINEAR_HEAP, //!< kd-tree with linear heap, good for small k (~up to 30)
 			KDTREE_TREE_HEAP, //!< kd-tree with tree heap, good for large k (~from 30)
-			KDTREE_CL, //!< kd-tree using openCL
-			BRUTE_FORCE_CL, //!< brute-force using openCL
+			KDTREE_CL_PT_IN_NODES, //!< kd-tree using openCL, pt in nodes, UNSTABLE API
+			KDTREE_CL_PT_IN_LEAVES, //!< kd-tree using openCL, pt in leaves, UNSTABLE API
+			BRUTE_FORCE_CL, //!< brute-force using openCL, UNSTABLE API
 			SEARCH_TYPE_COUNT //!< number of search types
 		};
 		
@@ -211,22 +213,22 @@ namespace Nabo
 		
 		//! Find the k nearest neighbours of query
 		/*!	\param query query point
+		 *	\param indices indices of nearest neighbours, must be of size k
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k
 		 *	\param k number of nearest neighbour requested
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
-		 *	\param optionFlags search options, must be a binary OR of SearchOptionFlags
-		 *	\param indices indices of nearest neighbours, must be of size k
-		 *	\param dists squared distances to nearest neighbours, must be of size k
+		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
 		unsigned long knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
 		
 		//! Find the k nearest neighbours for each point of query
 		/*!	\param query query points
+		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
 		 *	\param k number of nearest neighbour requested
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
-		 *	\param optionFlags search options, must be a binary OR of SearchOptionFlags
-		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
-		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() 
+		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
@@ -234,22 +236,32 @@ namespace Nabo
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
-		 * 	\param preferedType type of search
-		 * 	\return an object on which to run nearest neighbour queries */
+		 *	\param preferedType type of search, one of SearchType
+		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
+		 *	\return an object on which to run nearest neighbour queries */
 		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using brute-force search, useful for comparison only
-		/*!	\param cloud data-point cloud in which to search
-		 * 	\return an object on which to run nearest neighbour queries */
+		/*!	This is an helper function, you can also use create() with BRUTE_FORCE as preferedType
+		 *	\param cloud data-point cloud in which to search
+		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
+		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
+		 *	\return an object on which to run nearest neighbour queries */
 		static NearestNeighbourSearch* createBruteForce(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using a kd-tree with linear heap, good for small k (~up to 30)
-		/*!	\param cloud data-point cloud in which to search
+		/*!	This is an helper function, you can also use create() with KDTREE_LINEAR_HEAP as preferedType
+		 *	\param cloud data-point cloud in which to search
+		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
+		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
 		 * 	\return an object on which to run nearest neighbour queries */
 		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using a kd-tree with tree heap, good for large k (~from 30)
-		/*!	\param cloud data-point cloud in which to search
+		/*!	This is an helper function, you can also use create() with KDTREE_TREE_HEAP as preferedType
+		 *	\param cloud data-point cloud in which to search
+		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
+		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
 		 * 	\return an object on which to run nearest neighbour queries */
 		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
