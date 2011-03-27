@@ -48,7 +48,10 @@ if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 	add_definitions(-DHAVE_OPENCL)
 	set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
 	include_directories(${OPENCL_INCLUDE_DIR})
-  add_definitions(-DOPENCL_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}/nabo/opencl/\")
+	add_definitions(-DOPENCL_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}/nabo/opencl/\")
+	message("OpenCL found, enabling CL support")
+else (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
+	message("OpenCL not found, disabling CL support")
 endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 
 # include all libs so far

@@ -62,7 +62,7 @@ void validate(const char *fileName, const int K, const int method)
 	NNSV nnss;
 	unsigned searchTypeCount(NNS::SEARCH_TYPE_COUNT);
 	#ifndef HAVE_OPENCL
-	searchTypeCount -= 2;
+	searchTypeCount -= 3;
 	#endif // HAVE_OPENCL
 	for (unsigned i = 0; i < searchTypeCount; ++i)
 		nnss.push_back(NNS::create(d, d.rows(), typename NNS::SearchType(i)));
