@@ -101,6 +101,8 @@ namespace Nabo
 		//! const-iterator to indices of points during kd-tree construction
 		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
 		
+		struct BucketEntry;
+		
 		//! search node
 		struct Node
 		{
@@ -109,26 +111,44 @@ namespace Nabo
 				INVALID_CHILD = 0xffffffff,
 				INVALID_PT = 0
 			};
-			Index dim; //!< cut dimension for split nodes, index of point for leaf nodes
+			Index dim; //!< cut dimension for split nodes
 			unsigned rightChild; //!< index of right node, left index is current+1
 			union
 			{
 				T cutVal; //!< for split node, split value
-				const T* pt; //!< for leaf node, pointer to data-point coordinates
+				unsigned bucketIndex; //!< for leaf node, pointer to bucket
 			};
 			
 			//! construct a split node
-			Node(const Index dim, const T cutVal, unsigned rightChild):
+			Node(const Index dim, const T cutVal, const unsigned rightChild):
 				dim(dim), rightChild(rightChild), cutVal(cutVal) {}
 			//! construct a leaf node
-			Node(const Index index = 0, const T* pt = 0):
-				dim(index), rightChild(INVALID_CHILD), pt(pt) {}
+			Node(const unsigned bucketIndex = 0):
+				dim(0), rightChild(INVALID_CHILD), bucketIndex(bucketIndex) {}
 		};
 		//! dense vector of search nodes, provides better memory performances than many small objects
 		typedef std::vector<Node> Nodes;
 		
+		//! entry in a bucket
+		struct BucketEntry
+		{
+			const T* pt; //!< pointer to first value of point data, 0 if end of bucket
+			Index index; //!< index of point
+			
+			BucketEntry(const T* pt = 0, const Index index = 0): pt(pt), index(index) {}
+		};
+		
+		//! bucket data
+		typedef std::vector<BucketEntry> Buckets;
+		
 		//! search nodes
 		Nodes nodes;
+		
+		//! buckets
+		Buckets buckets;
+		
+		//! size of bucket
+		const unsigned bucketSize;
 		
 		//! return the bounds of points from [first..last[ on dimension dim
 		std::pair<T,T> getBounds(const BuildPointsIt first, const BuildPointsIt last, const unsigned dim);

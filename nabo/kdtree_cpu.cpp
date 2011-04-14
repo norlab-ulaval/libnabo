@@ -89,12 +89,24 @@ namespace Nabo
 	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
 	{
 		const int count(last - first);
+		assert(count >= 1);
 		const unsigned pos(nodes.size());
 		
 		//cerr << count << endl;
-		if (count == 1)
+		if (count <= int(bucketSize))
 		{
-			nodes.push_back(Node(*first, &cloud.coeff(0, *first)));
+			const size_t initBucketsSize(buckets.size());
+			//cerr << "creating bucket with " << count << " values" << endl;
+			for (int i = 0; i < count; ++i)
+			{
+				const Index index(*(first+i));
+				assert(index < cloud.cols());
+				buckets.push_back(BucketEntry(&cloud.coeff(0, index), index));
+				//cerr << "  " << &cloud.coeff(0, index) << ", " << index << endl;
+			}
+			buckets.push_back(BucketEntry()); // end of bucket
+			//cerr << "at address " << bucketStart << endl;
+			nodes.push_back(Node(initBucketsSize));
 			return pos;
 		}
 		
@@ -194,7 +206,8 @@ namespace Nabo
 
 	template<typename T, typename Heap>
 	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags)
+		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags),
+		bucketSize(8)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -275,22 +288,29 @@ namespace Nabo
 		
 		if (node.rightChild == Node::INVALID_CHILD)
 		{
-			//const T dist(dist2<T>(query, cloud.col(index)));
-			//const T dist((query - cloud.col(index)).squaredNorm());
-			T dist(0);
-			const T* qPtr(query);
-			const T* dPtr(node.pt);
-			for (int i = 0; i < this->dim; ++i)
+			//cerr << "entering bucket " << node.bucket << endl;
+			const BucketEntry* bucket(&buckets[node.bucketIndex]);
+			while (bucket->pt)
 			{
-				const T diff(*qPtr - *dPtr);
-				dist += diff*diff;
-				qPtr++; dPtr++;
+				//cerr << "  " << bucket-> pt << endl;
+				//const T dist(dist2<T>(query, cloud.col(index)));
+				//const T dist((query - cloud.col(index)).squaredNorm());
+				T dist(0);
+				const T* qPtr(query);
+				const T* dPtr(bucket->pt);
+				for (int i = 0; i < this->dim; ++i)
+				{
+					const T diff(*qPtr - *dPtr);
+					dist += diff*diff;
+					qPtr++; dPtr++;
+				}
+				if ((dist <= maxRadius2) &&
+					(dist < heap.headValue()) &&
+					(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
+				)
+					heap.replaceHead(bucket->index, dist);
+				++bucket;
 			}
-			if ((dist <= maxRadius2) &&
-				(dist < heap.headValue()) &&
-				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
-			)
-				heap.replaceHead(node.dim, dist);
 			return 1;
 		}
 		else
