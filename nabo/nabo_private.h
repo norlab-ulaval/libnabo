@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NABO_PRIVATE_H
 
 #include "nabo.h"
+#include <stdint.h>
 #ifdef HAVE_OPENCL
 #define __CL_ENABLE_EXCEPTIONS
 #include "CL/cl.hpp"
@@ -101,30 +102,39 @@ namespace Nabo
 		//! const-iterator to indices of points during kd-tree construction
 		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
 		
+		//! size of bucket
+		const unsigned bucketSize;
+		
+		//! number of bits required to store dimension index + number of dimensions
+		const uint32_t dimBitCount;
+		//! mask to access dim
+		const uint32_t dimMask;
+		
+		inline uint32_t createDimChild(const uint32_t dim, const uint32_t childIndex) const
+		{ return dim | (childIndex << dimBitCount); }
+		inline uint32_t getDim(const uint32_t dimChildBucketSize) const
+		{ return dimChildBucketSize & dimMask; }
+		inline uint32_t getChildBucketSize(const uint32_t dimChildBucketSize) const
+		{ return dimChildBucketSize >> dimBitCount; }
+		
 		struct BucketEntry;
 		
 		//! search node
 		struct Node
 		{
-			enum
-			{
-				INVALID_CHILD = 0xffffffff,
-				INVALID_PT = 0
-			};
-			Index dim; //!< cut dimension for split nodes
-			unsigned rightChild; //!< index of right node, left index is current+1
+			uint32_t dimChildBucketSize; //! cut dimension for split nodes (dimBitCount lsb), index of right node or number of bucket(rest). Note that left index is current+1
 			union
 			{
 				T cutVal; //!< for split node, split value
-				unsigned bucketIndex; //!< for leaf node, pointer to bucket
+				uint32_t bucketIndex; //!< for leaf node, pointer to bucket
 			};
 			
 			//! construct a split node
-			Node(const Index dim, const T cutVal, const unsigned rightChild):
-				dim(dim), rightChild(rightChild), cutVal(cutVal) {}
+			Node(const uint32_t dimChild, const T cutVal):
+				dimChildBucketSize(dimChild), cutVal(cutVal) {}
 			//! construct a leaf node
-			Node(const unsigned bucketIndex = 0):
-				dim(0), rightChild(INVALID_CHILD), bucketIndex(bucketIndex) {}
+			Node(const uint32_t bucketSize, const uint32_t bucketIndex):
+				dimChildBucketSize(bucketSize), bucketIndex(bucketIndex) {}
 		};
 		//! dense vector of search nodes, provides better memory performances than many small objects
 		typedef std::vector<Node> Nodes;
@@ -146,9 +156,6 @@ namespace Nabo
 		
 		//! buckets
 		Buckets buckets;
-		
-		//! size of bucket
-		const unsigned bucketSize;
 		
 		//! return the bounds of points from [first..last[ on dimension dim
 		std::pair<T,T> getBounds(const BuildPointsIt first, const BuildPointsIt last, const unsigned dim);

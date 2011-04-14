@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utility>
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
+#include <boost/format.hpp>
 
 /*!	\file kdtree_cpu.cpp
 	\brief kd-tree search, cpu implementation
@@ -51,6 +52,18 @@ namespace Nabo
 	//@{
 	
 	using namespace std;
+	
+	template<typename T>
+	T getStorageBitCount(T v)
+	{
+		for (T i = 0; i < 63; ++i)
+		{
+			if (v == 0)
+				return i;
+			v >>= 1;
+		}
+		return 64;
+	}
 	
 	template<typename T>
 	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
@@ -95,7 +108,7 @@ namespace Nabo
 		//cerr << count << endl;
 		if (count <= int(bucketSize))
 		{
-			const size_t initBucketsSize(buckets.size());
+			const uint32_t initBucketsSize(buckets.size());
 			//cerr << "creating bucket with " << count << " values" << endl;
 			for (int i = 0; i < count; ++i)
 			{
@@ -104,9 +117,8 @@ namespace Nabo
 				buckets.push_back(BucketEntry(&cloud.coeff(0, index), index));
 				//cerr << "  " << &cloud.coeff(0, index) << ", " << index << endl;
 			}
-			buckets.push_back(BucketEntry()); // end of bucket
 			//cerr << "at address " << bucketStart << endl;
-			nodes.push_back(Node(initBucketsSize));
+			nodes.push_back(Node(createDimChild(dim, count),initBucketsSize));
 			return pos;
 		}
 		
@@ -192,7 +204,7 @@ namespace Nabo
 		rightMinValues[cutDim] = cutVal;
 		
 		// add this
-		nodes.push_back(Node(cutDim, cutVal, 0));
+		nodes.push_back(Node(0, cutVal));
 		
 		// recurse
 		const unsigned __attribute__ ((unused)) leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
@@ -200,15 +212,24 @@ namespace Nabo
 		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
 		
 		// write right child index and return
-		nodes[pos].rightChild = rightChild;
+		nodes[pos].dimChildBucketSize = createDimChild(cutDim, rightChild);
 		return pos;
 	}
 
 	template<typename T, typename Heap>
 	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
 		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags),
-		bucketSize(8)
+		bucketSize(8),
+		dimBitCount(getStorageBitCount<uint32_t>(dim)),
+		dimMask((1<<dimBitCount)-1)
 	{
+		const uint32_t maxNodeCount((1 << (32-dimBitCount)) - 1);
+		const uint32_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
+		if (estimatedNodeCount > maxNodeCount)
+		{
+			throw runtime_error((boost::format("Cloud has a risk to have more nodes (%1%) than the kd-tree allows (%2%). The kd-tree has %3% bits for dimensions and %4% bits for node indices") % estimatedNodeCount % maxNodeCount % dimBitCount % (32-dimBitCount)).str());
+		}
+		
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
@@ -285,12 +306,14 @@ namespace Nabo
 	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2)
 	{
 		const Node& node(nodes[n]);
+		const uint32_t cd(getDim(node.dimChildBucketSize));
 		
-		if (node.rightChild == Node::INVALID_CHILD)
+		if (cd == uint32_t(dim))
 		{
 			//cerr << "entering bucket " << node.bucket << endl;
 			const BucketEntry* bucket(&buckets[node.bucketIndex]);
-			while (bucket->pt)
+			const uint32_t bucketSize(getChildBucketSize(node.dimChildBucketSize));
+			for (uint32_t i = 0; i < bucketSize; ++i)
 			{
 				//cerr << "  " << bucket-> pt << endl;
 				//const T dist(dist2<T>(query, cloud.col(index)));
@@ -311,12 +334,12 @@ namespace Nabo
 					heap.replaceHead(bucket->index, dist);
 				++bucket;
 			}
-			return 1;
+			return (unsigned long)(bucketSize);
 		}
 		else
 		{
+			const unsigned rightChild(getChildBucketSize(node.dimChildBucketSize));
 			unsigned long leafVisitedCount(0);
-			const Index cd(node.dim);
 			T& offcd(off[cd]);
 			//const T old_off(off.coeff(cd));
 			const T old_off(offcd);
@@ -324,9 +347,9 @@ namespace Nabo
 			if (new_off > 0)
 			{
 				if (collectStatistics)
-					leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
+					leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, rightChild, rd, heap, off, maxError, maxRadius2);
 				else
-					recurseKnn<allowSelfMatch, false>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
+					recurseKnn<allowSelfMatch, false>(query, rightChild, rd, heap, off, maxError, maxRadius2);
 				rd += - old_off*old_off + new_off*new_off;
 				if ((rd <= maxRadius2) &&
 					(rd * maxError < heap.headValue()))
@@ -351,9 +374,9 @@ namespace Nabo
 				{
 					offcd = new_off;
 					if (collectStatistics)
-						leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
+						leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, rightChild, rd, heap, off, maxError, maxRadius2);
 					else
-						recurseKnn<allowSelfMatch, false>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
+						recurseKnn<allowSelfMatch, false>(query, rightChild, rd, heap, off, maxError, maxRadius2);
 					offcd = old_off;
 				}
 			}
