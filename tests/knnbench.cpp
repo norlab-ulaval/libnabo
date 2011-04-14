@@ -211,7 +211,7 @@ BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, con
 	const double **pa = new const double *[d.cols()];
 	for (int i = 0; i < ptCount; ++i)
 		pa[i] = &d.coeff(0, i);
-	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
+	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows(), 8);
 	result.creationDuration = t.elapsed();
 	
 	for (int s = 0; s < searchCount; ++s)
@@ -245,7 +245,7 @@ BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, 
 	const double **pa = new const double *[d.cols()];
 	for (int i = 0; i < ptCount; ++i)
 		pa[i] = &d.coeff(0, i);
-	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows());
+	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows(), 8);
 	result.creationDuration = t.elapsed();
 	
 	for (int s = 0; s < searchCount; ++s)

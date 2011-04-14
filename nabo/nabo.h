@@ -212,26 +212,30 @@ namespace Nabo
 		};
 		
 		//! Find the k nearest neighbours of query
-		/*!	\param query query point
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0.
+		 *	\param query query point
 		 *	\param indices indices of nearest neighbours, must be of size k
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k
 		 *	\param k number of nearest neighbour requested
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
+		 *	\param maxRadius maximum radius in which to search, can be used to prune search, is not affected by epsilon
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
-		unsigned long knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0);
+		unsigned long knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0, const T maxRadius = std::numeric_limits<T>::infinity());
 		
 		//! Find the k nearest neighbours for each point of query
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0.
 		/*!	\param query query points
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
 		 *	\param k number of nearest neighbour requested
 		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
+		 *	\param maxRadius maximum radius in which to search, can be used to prune search, is not affected by epsilon
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) = 0;
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0, const T maxRadius = std::numeric_limits<T>::infinity()) = 0;
 		
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search

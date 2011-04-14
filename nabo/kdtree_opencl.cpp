@@ -298,7 +298,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	unsigned long OpenCLSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
+	unsigned long OpenCLSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius)
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
@@ -334,10 +334,11 @@ namespace Nabo
 		// set resulting parameters
 		knnKernel.setArg(4, k);
 		knnKernel.setArg(5, 1 + epsilon);
-		knnKernel.setArg(6, optionFlags);
-		knnKernel.setArg(7, indexStride);
-		knnKernel.setArg(8, dists2Stride);
-		knnKernel.setArg(9, cloud.cols());
+		knnKernel.setArg(6, maxRadius*maxRadius);
+		knnKernel.setArg(7, optionFlags);
+		knnKernel.setArg(8, indexStride);
+		knnKernel.setArg(9, dists2Stride);
+		knnKernel.setArg(10, cl_uint(cloud.cols()));
 		
 		// if required, map visit count
 		vector<cl_uint> visitCounts;
@@ -347,7 +348,7 @@ namespace Nabo
 		{
 			visitCounts.resize(query.cols());
 			visitCountCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, visitCountCLSize, &visitCounts[0]);
-			knnKernel.setArg(10, sizeof(cl_mem), &visitCountCL);
+			knnKernel.setArg(11, sizeof(cl_mem), &visitCountCL);
 		}
 		
 		// execute query
@@ -521,9 +522,9 @@ namespace Nabo
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
 		if (collectStatistics)
-			knnKernel.setArg(11, sizeof(cl_mem), &nodesCL);
+			knnKernel.setArg(12, sizeof(cl_mem), &nodesCL);
 		else
-			knnKernel.setArg(10, sizeof(cl_mem), &nodesCL);
+			knnKernel.setArg(11, sizeof(cl_mem), &nodesCL);
 	}
 
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float>;
@@ -644,9 +645,9 @@ namespace Nabo
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
 		if (collectStatistics)
-			knnKernel.setArg(11, sizeof(cl_mem), &nodesCL);
+			knnKernel.setArg(12, sizeof(cl_mem), &nodesCL);
 		else
-			knnKernel.setArg(10, sizeof(cl_mem), &nodesCL);
+			knnKernel.setArg(11, sizeof(cl_mem), &nodesCL);
 	}
 	
 	template struct KDTreeBalancedPtInNodesStackOpenCL<float>;

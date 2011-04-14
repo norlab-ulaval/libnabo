@@ -73,7 +73,7 @@ namespace Nabo
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
 	};
 	
 	//! KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT, optimised implementation
@@ -143,12 +143,12 @@ namespace Nabo
 		 * 	\param off reference to array of offsets
 		 * 	\param maxError error factor (1 + epsilon) */
 		template<bool allowSelfMatch, bool collectStatistics>
-		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError);
+		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2);
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
 	};
 	
 	#ifdef HAVE_OPENCL
@@ -179,7 +179,7 @@ namespace Nabo
 		void initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
 	
 	public:
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio

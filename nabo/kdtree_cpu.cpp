@@ -222,13 +222,14 @@ namespace Nabo
 	}
 	
 	template<typename T, typename Heap>
-	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags)
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius)
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
+		const T maxRadius2(maxRadius * maxRadius);
 		assert(nodes.size() > 0);
 		
 		assert(nodes.size() > 0);
@@ -247,16 +248,16 @@ namespace Nabo
 			if (allowSelfMatch)
 			{
 				if (collectStatistics)
-					leafTouchedCount += recurseKnn<true, true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
+					leafTouchedCount += recurseKnn<true, true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
 				else
-					recurseKnn<true, false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
+					recurseKnn<true, false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
 			}
 			else
 			{
 				if (collectStatistics)
-					leafTouchedCount += recurseKnn<false, true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
+					leafTouchedCount += recurseKnn<false, true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
 				else
-					recurseKnn<false, false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon);
+					recurseKnn<false, false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
 			}
 			
 			if (sortResults)
@@ -268,7 +269,7 @@ namespace Nabo
 	}
 	
 	template<typename T, typename Heap> template<bool allowSelfMatch, bool collectStatistics>
-	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError)
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2)
 	{
 		const Node& node(nodes[n]);
 		
@@ -285,7 +286,8 @@ namespace Nabo
 				dist += diff*diff;
 				qPtr++; dPtr++;
 			}
-			if ((dist < heap.headValue()) &&
+			if ((dist <= maxRadius2) &&
+				(dist < heap.headValue()) &&
 				(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 			)
 				heap.replaceHead(node.dim, dist);
@@ -302,34 +304,36 @@ namespace Nabo
 			if (new_off > 0)
 			{
 				if (collectStatistics)
-					leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, node.rightChild, rd, heap, off, maxError);
+					leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
 				else
-					recurseKnn<allowSelfMatch, false>(query, node.rightChild, rd, heap, off, maxError);
+					recurseKnn<allowSelfMatch, false>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.headValue())
+				if ((rd <= maxRadius2) &&
+					(rd * maxError < heap.headValue()))
 				{
 					offcd = new_off;
 					if (collectStatistics)
-						leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, n + 1, rd, heap, off, maxError);
+						leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, n + 1, rd, heap, off, maxError, maxRadius2);
 					else
-						recurseKnn<allowSelfMatch, false>(query, n + 1, rd, heap, off, maxError);
+						recurseKnn<allowSelfMatch, false>(query, n + 1, rd, heap, off, maxError, maxRadius2);
 					offcd = old_off;
 				}
 			}
 			else
 			{
 				if (collectStatistics)
-					leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, n+1, rd, heap, off, maxError);
+					leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, n+1, rd, heap, off, maxError, maxRadius2);
 				else
-					recurseKnn<allowSelfMatch, false>(query, n+1, rd, heap, off, maxError);
+					recurseKnn<allowSelfMatch, false>(query, n+1, rd, heap, off, maxError, maxRadius2);
 				rd += - old_off*old_off + new_off*new_off;
-				if (rd * maxError < heap.headValue())
+				if ((rd <= maxRadius2) &&
+					(rd * maxError < heap.headValue()))
 				{
 					offcd = new_off;
 					if (collectStatistics)
-						leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, node.rightChild, rd, heap, off, maxError);
+						leafVisitedCount += recurseKnn<allowSelfMatch, true>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
 					else
-						recurseKnn<allowSelfMatch, false>(query, node.rightChild, rd, heap, off, maxError);
+						recurseKnn<allowSelfMatch, false>(query, node.rightChild, rd, heap, off, maxError, maxRadius2);
 					offcd = old_off;
 				}
 			}

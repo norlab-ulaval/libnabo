@@ -4,6 +4,7 @@ kernel void knnBruteForce(const global T* cloud,
 						global T* dists2,
 						const uint K,
 						const T maxError,
+						const T maxRadius2,
 						const uint optionFlags,
 						const uint indexStride,
 						const uint dists2Stride,
@@ -31,8 +32,9 @@ kernel void knnBruteForce(const global T* cloud,
 			const T diff = q[i] - p[i];
 			dist += diff * diff;
 		}
-		if (dist < heapHeadValue(heap) &&
-			(allowSelfMatch || (dist > (T)EPSILON)))
+		if ((dist <= maxRadius2) &&
+			(dist < heapHeadValue(heap) &&
+			(allowSelfMatch || (dist > (T)EPSILON))))
 			heapHeadReplace(heap, index, dist, K);
 	}
 	

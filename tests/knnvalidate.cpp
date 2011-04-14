@@ -40,7 +40,7 @@ using namespace std;
 using namespace Nabo;
 
 template<typename T>
-void validate(const char *fileName, const int K, const int method)
+void validate(const char *fileName, const int K, const int method, const T maxRadius)
 {
 	typedef Nabo::NearestNeighbourSearch<T> NNS;
 	typedef vector<NNS*> NNSV;
@@ -118,13 +118,13 @@ void validate(const char *fileName, const int K, const int method)
 	Matrix q(createQuery<T>(d, itCount, method));
 	IndexMatrix indexes_bf(K, q.cols());
 	Matrix dists2_bf(K, q.cols());
-	nnss[0]->knn(q, indexes_bf, dists2_bf, K, 0, NNS::SORT_RESULTS);
+	nnss[0]->knn(q, indexes_bf, dists2_bf, K, 0, NNS::SORT_RESULTS, maxRadius);
 	assert(indexes_bf.cols() == q.cols());
 	for (size_t j = 1; j < nnss.size(); ++j)
 	{
 		IndexMatrix indexes_kdtree(K, q.cols());
 		Matrix dists2_kdtree(K, q.cols());
-		nnss[j]->knn(q, indexes_kdtree, dists2_kdtree, K, 0, NNS::SORT_RESULTS);
+		nnss[j]->knn(q, indexes_kdtree, dists2_kdtree, K, 0, NNS::SORT_RESULTS, maxRadius);
 		if (indexes_bf.rows() != K)
 		{
 			cerr << "Different number of points found between brute force and request" << endl;
@@ -140,6 +140,8 @@ void validate(const char *fileName, const int K, const int method)
 		{
 			for (size_t k = 0; k < size_t(K); ++k)
 			{
+				if (dists2_bf(k,i) == numeric_limits<float>::infinity())
+					continue;
 				const int pbfi(indexes_bf(k,i));
 				const Vector pbf(d.col(pbfi));
 				const int pkdt(indexes_kdtree(k,i));
@@ -187,16 +189,17 @@ void validate(const char *fileName, const int K, const int method)
 
 int main(int argc, char* argv[])
 {
-	if (argc != 4)
+	if (argc < 4)
 	{
-		cerr << "Usage " << argv[0] << " DATA K METHOD" << endl;
+		cerr << "Usage " << argv[0] << " DATA K METHOD [MAX_RADIUS]" << endl;
 		return 1;
 	}
 	
 	const int K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
+	const float maxRadius(argc >= 5 ? float(atof(argv[4])) : numeric_limits<float>::infinity());
 	
-	validate<float>(argv[1], K, method);
+	validate<float>(argv[1], K, method, maxRadius);
 	//validate<double>(argv[1], K, method);
 	
 	return 0;

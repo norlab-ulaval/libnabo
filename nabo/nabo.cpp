@@ -58,7 +58,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	unsigned long NearestNeighbourSearch<T>::knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k, const T epsilon, const unsigned optionFlags)
+	unsigned long NearestNeighbourSearch<T>::knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius)
 	{
 #ifdef EIGEN3_API
 		const Eigen::Map<const Matrix> queryMatrix(&query.coeff(0,0), dim, 1);
@@ -71,7 +71,7 @@ namespace Nabo
 		// C++0x should solve this with rvalue
 		IndexMatrix indexMatrix(k, 1);
 		Matrix dists2Matrix(k, 1);
-		const unsigned long stats = knn(queryMatrix, indexMatrix, dists2Matrix, k, epsilon, optionFlags);
+		const unsigned long stats = knn(queryMatrix, indexMatrix, dists2Matrix, k, epsilon, optionFlags, maxRadius);
 		indices = indexMatrix.col(0);
 		dists2 = dists2Matrix.col(0);
 		return stats;

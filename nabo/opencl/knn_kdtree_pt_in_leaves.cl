@@ -37,6 +37,7 @@ kernel void knnKDTree(	const global T* cloud,
 						global T* dists2,
 						const uint K,
 						const T maxError,
+						const T maxRadius2,
 						const uint optionFlags,
 						const uint indexStride,
 						const uint dists2Stride,
@@ -90,8 +91,9 @@ kernel void knnKDTree(	const global T* cloud,
 						const T diff = q[i] - p[i];
 						dist += diff * diff;
 					}
-					if (dist < heapHeadValue(heap) &&
-						(allowSelfMatch || (dist > (T)EPSILON)))
+					if ((dist <= maxRadius2) &&
+						(dist < heapHeadValue(heap) &&
+						(allowSelfMatch || (dist > (T)EPSILON))))
 						heapHeadReplace(heap, index, dist, K);
 #ifdef TOUCH_STATISTICS
 					++visitCount;
@@ -120,15 +122,19 @@ kernel void knnKDTree(	const global T* cloud,
 			break;
 			
 			case OP_REC1:
-			s->rd += - (s->old_off*s->old_off) + (s->new_off*s->new_off);
-			if (s->rd * maxError < heapHeadValue(heap))
 			{
-				off[cd] = s->new_off;
-				(s+1)->op = OP_BEGIN_FUNCTION;
-				(s+1)->n = s->other_n;
-				(s+1)->rd = s->rd;
-				s->op = OP_REC2;
-				stackPtr+=2;
+				T rdE;
+				s->rd += - (s->old_off*s->old_off) + (s->new_off*s->new_off);
+				if ((s->rd <= maxRadius2) &&
+					(s->rd * maxError < heapHeadValue(heap)))
+				{
+					off[cd] = s->new_off;
+					(s+1)->op = OP_BEGIN_FUNCTION;
+					(s+1)->n = s->other_n;
+					(s+1)->rd = s->rd;
+					s->op = OP_REC2;
+					stackPtr+=2;
+				}
 			}
 			break;
 			
