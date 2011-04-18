@@ -53,6 +53,10 @@ namespace Nabo
 	
 	using namespace std;
 	
+	//! Return the number of bit required to store a value
+	/** \param v value to store
+	 * \return number of bits required
+	 */
 	template<typename T>
 	T getStorageBitCount(T v)
 	{
@@ -65,6 +69,10 @@ namespace Nabo
 		return 64;
 	}
 	
+	//! Return the index of the maximum value of a vector
+	/** \param v vector
+	 * \return index of maximum value, 0 if the vector is empty
+	 */
 	template<typename T>
 	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
 	{

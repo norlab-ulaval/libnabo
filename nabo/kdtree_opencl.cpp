@@ -54,6 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace cl
 {
+	//! Vector of device
 	typedef std::vector<Device> Devices;
 }
 
@@ -67,19 +68,25 @@ namespace Nabo
 	
 	using namespace std;
 	
+	//! Template to retrieve type-specific code for CL support
 	template<typename T>
 	struct EnableCLTypeSupport {};
 	
+	//! CL support code for float
 	template<> struct EnableCLTypeSupport<float>
 	{
+		//! Return CL code to enable float support and set it for use by our CL code
 		static string code(const cl::Device& device)
 		{
 			return "typedef float T;\n";
 		}
 	};
 	
+	//! CL support code for double
 	template<> struct EnableCLTypeSupport<double>
 	{
+		//! Return CL code to enable double support and set it for use by our CL code.
+		/** This is more complex than float as double is not supported by default. */
 		static string code(const cl::Device& device)
 		{
 			string s;
@@ -97,15 +104,19 @@ namespace Nabo
 		}
 	};
 	
+	//! Cache CL source code (including defines and support code)
 	struct SourceCacher
 	{
+		//! Vector of devices
 		typedef std::vector<cl::Device> Devices;
+		//! Map of cached programmes
 		typedef std::map<std::string, cl::Program> ProgramCache;
 		
-		cl::Context context;
-		Devices devices;
-		ProgramCache cachedPrograms;
+		cl::Context context; //!< context in which programs are cached
+		Devices devices; //!< devices linked to the context
+		ProgramCache cachedPrograms; //!< cached programs
 		
+		//! Create a source cacher for a given device type, retrieves a list of devices
 		SourceCacher(const cl_device_type deviceType)
 		{
 			// looking for platforms, AMD drivers do not like the default for creating context
@@ -140,29 +151,34 @@ namespace Nabo
 				throw runtime_error("No devices on OpenCL platform");
 		}
 		
+		//! Destroy the cache, programs will be released automatically
 		~SourceCacher()
 		{
 			cerr << "Destroying source cacher containing " << cachedPrograms.size() << " cached programs" << endl;
 		}
 		
+		//! Return whether program source is cached
 		bool contains(const std::string& source)
 		{
 			return cachedPrograms.find(source) != cachedPrograms.end();
 		}
 	};
 	
+	//! Create and manage CL contexts and corresponding source caches
 	class ContextManager
 	{
 	public:
+		//! A map from device to caches
 		typedef std::map<cl_device_type, SourceCacher*> Devices;
 		
-		ContextManager() {}
+		//! Destroy the manager and all caches
 		~ContextManager()
 		{
 			cerr << "Destroying CL context manager, used " << devices.size() << " contexts" << endl;
 			for (Devices::iterator it(devices.begin()); it != devices.end(); ++it)
 				delete it->second;
 		}
+		//! Create a new contexc for a given type of device
 		cl::Context& createContext(const cl_device_type deviceType)
 		{
 			boost::mutex::scoped_lock lock(mutex);
@@ -175,6 +191,7 @@ namespace Nabo
 			}
 			return it->second->context;
 		}
+		//! Return the cache for a given type of device
 		SourceCacher* getSourceCacher(const cl_device_type deviceType)
 		{
 			boost::mutex::scoped_lock lock(mutex);
@@ -185,10 +202,11 @@ namespace Nabo
 		}
 		
 	protected:
-		Devices devices;
-		boost::mutex mutex;
+		Devices devices; //!< devices with caches
+		boost::mutex mutex; //!< mutex to protect concurrent accesses to devices
 	};
 	
+	//! Static instance of context manager
 	static ContextManager contextManager;
 	
 	template<typename T>
@@ -200,7 +218,7 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void OpenCLSearch<T>::initOpenCL(const char* clFileName, const char* kernelName, const string& additionalDefines)
+	void OpenCLSearch<T>::initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines)
 	{
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
 		

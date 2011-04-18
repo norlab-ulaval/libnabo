@@ -148,8 +148,8 @@ namespace Nabo
 			const T* pt; //!< pointer to first value of point data, 0 if end of bucket
 			Index index; //!< index of point
 			
-			/*! create a new bucket entry for a point in the data
-			 * \param pt pointer to first component of the point, components must be continuous
+			//! create a new bucket entry for a point in the data
+			/** \param pt pointer to first component of the point, components must be continuous
 			 * \param index index of the point in the data
 			 */
 			BucketEntry(const T* pt = 0, const Index index = 0): pt(pt), index(index) {}
@@ -205,13 +205,19 @@ namespace Nabo
 		using NearestNeighbourSearch<T>::checkSizesKnn;
 		
 	protected:
-		const cl_device_type deviceType;
-		cl::Context& context;
-		cl::Kernel knnKernel;
-		cl::CommandQueue queue;
-		cl::Buffer cloudCL;
+		const cl_device_type deviceType; //!< the type of device to run CL code on (CL_DEVICE_TYPE_CPU or CL_DEVICE_TYPE_GPU)
+		cl::Context& context; //!< the CL context
+		cl::Kernel knnKernel; //!< the kernel to perform knnSearch
+		cl::CommandQueue queue; //!< the command queue
+		cl::Buffer cloudCL; //!< the buffer for the input data
 		
+		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		OpenCLSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
+		//! Initialize CL support
+		/** \param clFileName name of file containing CL code
+		 * \param kernelName name of the CL kernel function
+		 * \param additionalDefines additional CL code to pass to compiler
+		 */
 		void initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
 	
 	public:
@@ -228,6 +234,7 @@ namespace Nabo
 		
 		using OpenCLSearch<T>::initOpenCL;
 		
+		//! constructor, calls OpenCLSearch<T>(cloud, ...)
 		BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
@@ -253,44 +260,57 @@ namespace Nabo
 		using OpenCLSearch<T>::initOpenCL;
 		
 	protected:
+		//! Point during kd-tree construction
 		struct BuildPoint
 		{
-			Vector pos;
-			size_t index;
+			Vector pos; //!< point
+			size_t index; //!< index of point in cloud
+			//! Construct a build point, at a given pos with a specific index
 			BuildPoint(const Vector& pos =  Vector(), const size_t index = 0): pos(pos), index(index) {}
 		};
+		//! points during kd-tree construction
 		typedef std::vector<BuildPoint> BuildPoints;
+		//! iterator to points during kd-tree construction
 		typedef typename BuildPoints::iterator BuildPointsIt;
+		//! const-iterator to points during kd-tree construction
 		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
 		
+		//! Functor to compare point values on a given dimension
 		struct CompareDim
 		{
-			size_t dim;
+			size_t dim; //!< dimension on which to compare
+			//! Build the functor for a specific dimension
 			CompareDim(const size_t dim):dim(dim){}
+			//! Compare the values of p0 and p1 on dim, and return whether p0[dim] < p1[dim]
 			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return p0.pos(dim) < p1.pos(dim); }
 		};
 		
+		//! Tree node for CL
 		struct Node
 		{
-			int dim; // -1 == invalid, <= -2 = index of pt
-			T cutVal;
-			Node(const int dim = -1, const T cutVal = 0):
-			dim(dim), cutVal(cutVal) {}
+			int dim; //!< dimension of the cut, or, if negative, index of the point: -1 == invalid, <= -2 = index of pt
+			T cutVal; //!< value of the cut
+			//! Build a tree node, with a given dimension and value to cut on, or, if leaf and dim <= -2, the index of the point as (-dim-2)
+			Node(const int dim = -1, const T cutVal = 0):dim(dim), cutVal(cutVal) {}
 		};
+		//! dense vector of search nodes
 		typedef std::vector<Node> Nodes;
 		
-		Nodes nodes;
+		Nodes nodes; //!< search nodes
+		cl::Buffer nodesCL; //!< CL buffer for search nodes
 		
-		cl::Buffer nodesCL;
 		
-		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
-		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
-		inline size_t parent(size_t pos) const { return (pos-1)/2; }
-		size_t getTreeDepth(size_t size) const;
-		size_t getTreeSize(size_t size) const;
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; } //!< Return the left child of pos
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; } //!< Return the right child of pos
+		inline size_t parent(size_t pos) const { return (pos-1)/2; } //!< Return the parent of pos
+		size_t getTreeDepth(size_t size) const; //!< Return the max depth of a tree of a given size
+		size_t getTreeSize(size_t size) const; //!< Return the storage size of tree of a given size
+		
+		//! Recurse to build nodes
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
+		//! constructor, calls OpenCLSearch<T>(cloud, ...)
 		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
@@ -316,38 +336,52 @@ namespace Nabo
 		using OpenCLSearch<T>::initOpenCL;
 		
 	protected:
+		//! a point during kd-tree construction is just its index
 		typedef Index BuildPoint;
+		//! points during kd-tree construction
 		typedef std::vector<BuildPoint> BuildPoints;
+		//! iterator to points during kd-tree construction
 		typedef typename BuildPoints::iterator BuildPointsIt;
+		//! const-iterator to points during kd-tree construction
 		typedef typename BuildPoints::const_iterator BuildPointsCstIt;
 		
+		//! Functor to compare point values on a given dimension
 		struct CompareDim
 		{
-			const Matrix& cloud;
-			size_t dim;
+			const Matrix& cloud; //!< reference to data points used to compare
+			size_t dim; //!< dimension on which to compare
+			//! Build the functor for a specific dimension on a specific cloud
 			CompareDim(const Matrix& cloud, const size_t dim): cloud(cloud), dim(dim){}
+			//! Compare the values of p0 and p1 on dim, and return whether p0[dim] < p1[dim]
 			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return cloud.coeff(dim, p0) < cloud.coeff(dim, p1); }
 		};
 		
+		//! Tree node for CL
 		struct Node
 		{
-			int dim; // >=0 cut dim, -1 == leaf, -2 == invalid
-			Index index;
+			int dim; //!< dimension of the cut, or, if -1 == leaf, -2 == invalid
+			Index index; //!< index of the point to cut
+			//! Build a tree node, with a given index and a given dimension to cut on
 			Node(const int dim = -2, const Index index = 0):dim(dim), index(index) {}
 		};
+		//! dense vector of search nodes
 		typedef std::vector<Node> Nodes;
 		
-		Nodes nodes;
-		cl::Buffer nodesCL;
+		Nodes nodes; //!< search nodes
+		cl::Buffer nodesCL;  //!< CL buffer for search nodes
 		
-		inline size_t childLeft(size_t pos) const { return 2*pos + 1; }
-		inline size_t childRight(size_t pos) const { return 2*pos + 2; }
-		inline size_t parent(size_t pos) const { return (pos-1)/2; }
-		size_t getTreeDepth(size_t size) const;
-		size_t getTreeSize(size_t size) const;
+		
+		inline size_t childLeft(size_t pos) const { return 2*pos + 1; } //!< Return the left child of pos
+		inline size_t childRight(size_t pos) const { return 2*pos + 2; } //!< Return the right child of pos
+		inline size_t parent(size_t pos) const { return (pos-1)/2; } //!< Return the parent of pos
+		size_t getTreeDepth(size_t size) const; //!< Return the max depth of a tree of a given size
+		size_t getTreeSize(size_t size) const; //!< Return the storage size of tree of a given size
+		
+		//! Recurse to build nodes
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
+		//! constructor, calls OpenCLSearch<T>(cloud, ...)
 		KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	

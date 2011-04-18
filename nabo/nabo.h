@@ -170,13 +170,13 @@ namespace Nabo
 	{
 		//! Create an empty parameter vector
 		Parameters(){}
-		/*! Create a parameter vector with a single entry
-		 * \param key entry key
+		//! Create a parameter vector with a single entry
+		/** \param key entry key
 		 * \param value entry value
 		 */
 		Parameters(const std::string& key, const boost::any& value){(*this)[key] = value;}
-		/*! Get the value of a key, return defaultValue if the key does not exist
-		 * \param key requested key
+		//! Get the value of a key, return defaultValue if the key does not exist
+		/** \param key requested key
 		 * \param defaultValue value to return if the key does not exist
 		 * \return value of the key, or defaultValue if the key does not exist
 		 */
