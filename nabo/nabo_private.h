@@ -110,10 +110,13 @@ namespace Nabo
 		//! mask to access dim
 		const uint32_t dimMask;
 		
-		inline uint32_t createDimChild(const uint32_t dim, const uint32_t childIndex) const
+		//! create the compound index containing the dimension and the index of the child or the bucket size
+		inline uint32_t createDimChildBucketSize(const uint32_t dim, const uint32_t childIndex) const
 		{ return dim | (childIndex << dimBitCount); }
+		//! get the dimension out of the compound index
 		inline uint32_t getDim(const uint32_t dimChildBucketSize) const
 		{ return dimChildBucketSize & dimMask; }
+		//! get the child index or the bucket size out of the coumpount index
 		inline uint32_t getChildBucketSize(const uint32_t dimChildBucketSize) const
 		{ return dimChildBucketSize >> dimBitCount; }
 		
@@ -122,7 +125,7 @@ namespace Nabo
 		//! search node
 		struct Node
 		{
-			uint32_t dimChildBucketSize; //! cut dimension for split nodes (dimBitCount lsb), index of right node or number of bucket(rest). Note that left index is current+1
+			uint32_t dimChildBucketSize; //!< cut dimension for split nodes (dimBitCount lsb), index of right node or number of bucket(rest). Note that left index is current+1
 			union
 			{
 				T cutVal; //!< for split node, split value
@@ -145,6 +148,10 @@ namespace Nabo
 			const T* pt; //!< pointer to first value of point data, 0 if end of bucket
 			Index index; //!< index of point
 			
+			/*! create a new bucket entry for a point in the data
+			 * \param pt pointer to first component of the point, components must be continuous
+			 * \param index index of the point in the data
+			 */
 			BucketEntry(const T* pt = 0, const Index index = 0): pt(pt), index(index) {}
 		};
 		
@@ -168,13 +175,15 @@ namespace Nabo
 		 * 	\param rd squared dist to this rect
 		 * 	\param heap reference to heap
 		 * 	\param off reference to array of offsets
-		 * 	\param maxError error factor (1 + epsilon) */
+		 * 	\param maxError error factor (1 + epsilon) 
+		 *	\param maxRadius2 square of maximum radius
+		 */
 		template<bool allowSelfMatch, bool collectStatistics>
 		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2);
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
+		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters);
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
 	};
 	

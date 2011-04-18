@@ -118,7 +118,7 @@ namespace Nabo
 				//cerr << "  " << &cloud.coeff(0, index) << ", " << index << endl;
 			}
 			//cerr << "at address " << bucketStart << endl;
-			nodes.push_back(Node(createDimChild(dim, count),initBucketsSize));
+			nodes.push_back(Node(createDimChildBucketSize(dim, count),initBucketsSize));
 			return pos;
 		}
 		
@@ -212,14 +212,14 @@ namespace Nabo
 		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
 		
 		// write right child index and return
-		nodes[pos].dimChildBucketSize = createDimChild(cutDim, rightChild);
+		nodes[pos].dimChildBucketSize = createDimChildBucketSize(cutDim, rightChild);
 		return pos;
 	}
 
 	template<typename T, typename Heap>
-	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters):
 		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags),
-		bucketSize(8),
+		bucketSize(additionalParameters.get<unsigned>("bucketSize", 8)),
 		dimBitCount(getStorageBitCount<uint32_t>(dim)),
 		dimMask((1<<dimBitCount)-1)
 	{

@@ -40,6 +40,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include "Eigen/Array"
 #endif
 #include <vector>
+#include <map>
+#include <boost/any.hpp>
 
 /*! 
 	\file nabo.h
@@ -87,6 +89,10 @@ Here is a slightly more complex example:
 
 \include usage.cpp
 
+\section ConstructionParameters Construction parameters
+
+The following additional construction parameters are available in KDTREE_ algorithms:
+- \c bucketSize (\c unsigned): bucket size, defaults to 8
 
 \section UnitTesting Unit testing
 
@@ -137,7 +143,7 @@ libnabo differs from \ref ANN on the following points:
 - do not store bounds in nodes (that is, I do it like in ANN's article instead of like in ANN's source code)
 
 * performances
-- about 20% faster than ANN (both -O3 -NDEBUG)
+- about 5% to 20% faster than ANN (both -O3 -NDEBUG)
 - clearly memory-bound, neither OpenMP nor boost::thread improve performances 
 
 \section References
@@ -158,6 +164,32 @@ namespace Nabo
 	#define NABO_VERSION "0.9.0"
 	//! version of the Nabo library as an int
 	#define NABO_VERSION_INT "9000"
+	
+	//! Parameter vector
+	struct Parameters: public std::map<std::string, boost::any>
+	{
+		//! Create an empty parameter vector
+		Parameters(){}
+		/*! Create a parameter vector with a single entry
+		 * \param key entry key
+		 * \param value entry value
+		 */
+		Parameters(const std::string& key, const boost::any& value){(*this)[key] = value;}
+		/*! Get the value of a key, return defaultValue if the key does not exist
+		 * \param key requested key
+		 * \param defaultValue value to return if the key does not exist
+		 * \return value of the key, or defaultValue if the key does not exist
+		 */
+		template<typename  T>
+		T get(const std::string& key, const T& defaultValue) const
+		{
+			const_iterator it(find(key));
+			if (it != end())
+				return boost::any_cast<T>(it->second);
+			else
+				return defaultValue;
+		}
+	};
 	
 	//! Nearest neighbour search interface, templatized on scalar type
 	template<typename T>
@@ -242,8 +274,9 @@ namespace Nabo
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
 		 *	\param preferedType type of search, one of SearchType
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
+		 *	\param additionalParameters additional parameters, currently only useful for KDTREE_
 		 *	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0);
+		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
 		
 		//! Create a nearest-neighbour search, using brute-force search, useful for comparison only
 		/*!	This is an helper function, you can also use create() with BRUTE_FORCE as preferedType
@@ -258,16 +291,18 @@ namespace Nabo
 		 *	\param cloud data-point cloud in which to search
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
+		 *	\param additionalParameters additional parameters
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
+		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
 		
 		//! Create a nearest-neighbour search, using a kd-tree with tree heap, good for large k (~from 30)
 		/*!	This is an helper function, you can also use create() with KDTREE_TREE_HEAP as preferedType
 		 *	\param cloud data-point cloud in which to search
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
+		 *	\param additionalParameters additional parameters
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
+		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
 		
 		//! virtual destructor
 		virtual ~NearestNeighbourSearch() {}
@@ -280,7 +315,7 @@ namespace Nabo
 		/*!	\param query query points
 		 *	\param k number of nearest neighbour requested
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
-		 *	\param dists squared distances to nearest neighbours, must be of size k x query.cols() */
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() */
 		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k);
 	};
 	

@@ -1,7 +1,7 @@
 libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
 It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
 Its current CPU implementation is strongly inspired by [ANN], but with more compact data types.
-On the average, libnabo is 20% faster than [ANN].
+On the average, libnabo is 5% to 20% faster than [ANN].
 
 libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
@@ -41,6 +41,9 @@ libnabo is easy to use. For example, assuming that you are working with floats a
 In this example, `M` is an [Eigen] (refering to the software, not to the math) matrix (column major, float) and `q` is an [Eigen] vector (float).
 The results `indices` and `dists2` are [Eigen] vectors of indices and squared distances refering to the columns of `M`.
 See `examples/trivial.cpp` for a compilable version of this example, and `examples/usage.cpp` for a slightly more complex example involving multi-point queries.
+
+Running `make doc` in your build directory will generate a browsable documentation in `doc/html`.
+The main page `doc/html/index.html` contains a detailed overview of the usage of libnabo.
 
 
 Unit testing
