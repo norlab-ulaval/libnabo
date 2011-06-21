@@ -264,7 +264,7 @@ namespace Nabo
 	}
 	
 	template<typename T, typename Heap>
-	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius)
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		
@@ -311,7 +311,7 @@ namespace Nabo
 	}
 	
 	template<typename T, typename Heap> template<bool allowSelfMatch, bool collectStatistics>
-	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2)
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2) const
 	{
 		const Node& node(nodes[n]);
 		const uint32_t cd(getDim(node.dimChildBucketSize));

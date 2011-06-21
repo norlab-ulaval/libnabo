@@ -74,7 +74,7 @@ namespace Nabo
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
 	};
 	
 	//! KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT, optimised implementation
@@ -179,12 +179,12 @@ namespace Nabo
 		 *	\param maxRadius2 square of maximum radius
 		 */
 		template<bool allowSelfMatch, bool collectStatistics>
-		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2);
+		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2) const;
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters);
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
 	};
 	
 	#ifdef HAVE_OPENCL
@@ -207,7 +207,7 @@ namespace Nabo
 	protected:
 		const cl_device_type deviceType; //!< the type of device to run CL code on (CL_DEVICE_TYPE_CPU or CL_DEVICE_TYPE_GPU)
 		cl::Context& context; //!< the CL context
-		cl::Kernel knnKernel; //!< the kernel to perform knnSearch
+		mutable cl::Kernel knnKernel; //!< the kernel to perform knnSearch, mutable because it is stateful, but conceptually const
 		cl::CommandQueue queue; //!< the command queue
 		cl::Buffer cloudCL; //!< the buffer for the input data
 		
@@ -221,7 +221,7 @@ namespace Nabo
 		void initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines = "");
 	
 	public:
-		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius);
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio

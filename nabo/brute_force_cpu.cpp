@@ -61,7 +61,7 @@ namespace Nabo
 	
 
 	template<typename T>
-	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius)
+	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		
