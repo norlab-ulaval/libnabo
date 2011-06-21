@@ -228,7 +228,7 @@ namespace Nabo
 	KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters):
 		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags),
 		bucketSize(additionalParameters.get<unsigned>("bucketSize", 8)),
-		dimBitCount(getStorageBitCount<uint32_t>(dim)),
+		dimBitCount(getStorageBitCount<uint32_t>(this->dim)),
 		dimMask((1<<dimBitCount)-1)
 	{
 		const uint32_t maxNodeCount((1 << (32-dimBitCount)) - 1);
@@ -277,7 +277,7 @@ namespace Nabo
 		assert(nodes.size() > 0);
 		Heap heap(k);
 		
-		std::vector<T> off(this->dim, 0);
+		std::vector<T> off(dim, 0);
 		
 		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
