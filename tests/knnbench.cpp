@@ -41,7 +41,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef HAVE_FLANN
 	#include "flann/flann.hpp"
 #endif // HAVE_FLANN
-#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>

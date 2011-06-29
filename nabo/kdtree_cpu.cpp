@@ -215,7 +215,7 @@ namespace Nabo
 		nodes.push_back(Node(0, cutVal));
 		
 		// recurse
-		const unsigned __attribute__ ((unused)) leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
+		const unsigned _UNUSED leftChild = buildNodes(first, first + leftCount, minValues, leftMaxValues);
 		assert(leftChild == pos + 1);
 		const unsigned rightChild = buildNodes(first + leftCount, last, rightMinValues, maxValues);
 		

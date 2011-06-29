@@ -17,7 +17,15 @@ include(UseDoxygen)
 # Compilation
 add_definitions(-Wall)
 
-find_package(Boost REQUIRED)
+# Boost required for cstdint
+find_package(Boost)
+if (Boost_FOUND)
+	add_definitions(-DBOOST_FOUND)
+else (Boost_FOUND)
+	if(MSVC AND (MSVC_VERSION LESS 1600))
+		message(SEND_ERROR "Your MSVC version does not provide stdint, please use Boost")
+	endif(MSVC AND (MSVC_VERSION LESS 1600))
+endif (Boost_FOUND)
 
 # openmp
 # find_package(OpenMP)

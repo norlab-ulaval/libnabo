@@ -33,11 +33,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NABO_PRIVATE_H
 
 #include "nabo.h"
-#include <stdint.h>
+
+#ifdef BOOST_FOUND
+	#include <boost/cstdint.hpp>
+#else
+	#include <stdint.h>
+#endif
+
+// OpenCL
 #ifdef HAVE_OPENCL
 #define __CL_ENABLE_EXCEPTIONS
 #include "CL/cl.hpp"
 #endif // HAVE_OPENCL
+
+// Unused macro
+#if defined(__GNUC__)
+	#define _UNUSED __attribute__ ((unused))
+#else
+	#define _UNUSED
+#endif
 
 /*!	\file nabo_private.h
 	\brief header for implementation
