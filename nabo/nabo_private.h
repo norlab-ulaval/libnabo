@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef BOOST_FOUND
 	#include <boost/cstdint.hpp>
+	using boost::uint32_t;
 #else
 	#include <stdint.h>
 #endif
