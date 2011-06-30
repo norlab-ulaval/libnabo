@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2010, Stephane Magnenat, ASL, ETHZ, Switzerland
+Copyright (c) 2010--2011, Stephane Magnenat, ASL, ETHZ, Switzerland
 You can contact the author at <stephane at magnenat dot net>
 
 All rights reserved.
