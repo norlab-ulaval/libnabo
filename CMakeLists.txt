@@ -37,6 +37,7 @@ endif (Boost_FOUND)
 find_path(EIGEN_INCLUDE_DIR Eigen/Core
 	/usr/local/include/eigen
 	/usr/include/eigen
+	/opt/ros/diamondback/stacks/geometry/eigen/include
 )
 
 # opencl
