@@ -30,6 +30,9 @@ Under Unix, assuming that [Eigen] is installed system-wide, you can compile (wit
 	BUILD_DIR=${SRC_DIR}/build
 	mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
+	# if Eigen is not available system-wide, run at that point: 
+	#   cmake-gui .
+	# cmake-gui allows you to tell the location of Eigen
 	make
 	sudo make install
 
