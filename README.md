@@ -30,7 +30,8 @@ Under Unix, assuming that [Eigen] is installed system-wide, you can compile (wit
 These lines will compile libnabo in a `build` sub-directory and therefore keep your source tree clean.
 Note that you could compile libnabo anywhere you have write access, such as in `/tmp/libnabo`.
 This out-of-source build is a nice feature of [CMake] under Unixes.
-If [Eigen] is not installed system wide, you might have to tell [CMake] where to find it.
+
+If [Eigen] is not installed system-wide, you might have to tell [CMake] where to find it.
 You can do this with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
 
