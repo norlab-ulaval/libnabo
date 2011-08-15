@@ -15,6 +15,12 @@ libnabo uses [CMake] as build system.
 The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows).
 You will find a nice introductory tutorial in [this video](http://www.youtube.com/watch?v=CLvZTyji_Uw).
 
+Prerequisites
+-------------
+
+If your operating system does not provide it, you must get [Eigen].
+It only needs to be downloaded and extracted.
+
 Quick compilation and installation under Unix
 ---------------------------------------------
 
