@@ -21,13 +21,14 @@ Quick compilation and installation under Unix
 Under Unix, assuming that [Eigen] is installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands run in the top-level directory of libnabo's sources:
 
 	SRC_DIR=`pwd`
-	COMPILATION_DIR=/tmp
-	cd $COMPILATION_DIR && mkdir -p libnabo && cd libnabo
-	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo $SRC_DIR
+	BUILD_DIR=${SRC_DIR}/build
+	mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
+	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
 	make
 	sudo make install
 
-These lines will compile libnabo in `/tmp/libnabo`, and therefore keep your source tree clean.
+These lines will compile libnabo in a `build` sub-directory and therefore keep your source tree clean.
+Note that you could compile libnabo anywhere you have write access, such as in `/tmp/libnabo`.
 This out-of-source build is a nice feature of [CMake] under Unixes.
 If [Eigen] is not installed system wide, you might have to tell [CMake] where to find it.
 You can do this with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
