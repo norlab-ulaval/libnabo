@@ -12,13 +12,13 @@ Compilation
 ===========
 
 libnabo uses [CMake] as build system.
-The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows)
+The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows).
 You will find a nice introductory tutorial in [this video](http://www.youtube.com/watch?v=CLvZTyji_Uw).
 
 Quick compilation and installation under Unix
 ---------------------------------------------
 
-Under Unix, assuming that [Eigen] is installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands in the top-level directory of libnabo's sources:
+Under Unix, assuming that [Eigen] is installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands run in the top-level directory of libnabo's sources:
 
 	SRC_DIR=`pwd`
 	COMPILATION_DIR=/tmp
@@ -27,10 +27,10 @@ Under Unix, assuming that [Eigen] is installed system-wide, you can compile (wit
 	make
 	sudo make install
 
-These lines will compile libnabo in `/tmp`, and therefore keep your source tree clean.
+These lines will compile libnabo in `/tmp/libnabo`, and therefore keep your source tree clean.
 This out-of-source build is a nice feature of [CMake] under Unixes.
 If [Eigen] is not installed system wide, you might have to tell [CMake] where to find it.
-You can do this with a command-line tool, `ccmake`, or with a graphical tool `cmake-gui`.
+You can do this with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
 
 
