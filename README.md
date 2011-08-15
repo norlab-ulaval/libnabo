@@ -9,20 +9,33 @@ libnabo is being developed by Stéphane Magnenat as part of his work at [ASL-ETH
 
 
 Compilation
------------
+===========
 
 libnabo uses [CMake] as build system.
-Just create a directory, go inside it and type:
+The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows)
+You will find a nice introductory tutorial in [this video](http://www.youtube.com/watch?v=CLvZTyji_Uw).
 
-	cmake LIBNABO_SRC_DIR
-    
-where `LIBNABO_SRC_DIR` is the top-level directory of libnabo's sources.
+Quick compilation and installation under Unix
+---------------------------------------------
+
+Under Unix, assuming that [Eigen] is installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands in the top-level directory of libnabo's sources:
+
+	SRC_DIR=`pwd`
+	COMPILATION_DIR=/tmp
+	cd $COMPILATION_DIR && mkdir -p libnabo && cd libnabo
+	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo $SRC_DIR
+	make
+	sudo make install
+
+These lines will compile libnabo in `/tmp`, and therefore keep your source tree clean.
+This out-of-source build is a nice feature of [CMake] under Unixes.
 If [Eigen] is not installed system wide, you might have to tell [CMake] where to find it.
-Please read the [CMake documentation].
+You can do this with a command-line tool, `ccmake`, or with a graphical tool `cmake-gui`.
+Please read the [CMake documentation] for more information.
 
 
 Usage
------
+=====
 
 libnabo is easy to use. For example, assuming that you are working with floats and that you have a point set `M` and a query point `q`, you can find the `K` nearest neighbours of `q` in `M`:
 
@@ -47,7 +60,7 @@ The main page `doc/html/index.html` contains a detailed overview of the usage of
 
 
 Unit testing
-------------
+============
 
 The distribution of libnabo integrates a unit test module, based on CTest.
 Just type:
@@ -61,12 +74,13 @@ If [ANN] or [FLANN] are detected when compiling libnabo, `make test` will also p
 
 
 Bug reporting
--------------
+=============
 
 Please use [github's issue tracker](http://github.com/ethz-asl/libnabo/issues) to report bugs.
 
+
 License
--------
+=======
 
 libnabo is released under a permissive BSD license.
 
