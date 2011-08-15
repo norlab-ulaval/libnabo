@@ -5,7 +5,7 @@ On the average, libnabo is 5% to 20% faster than [ANN].
 
 libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
-libnabo is being developed by Stéphane Magnenat as part of his work at [ASL-ETH](http://www.asl.ethz.ch).
+libnabo is being developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch).
 
 
 Compilation
