@@ -231,6 +231,10 @@ namespace Nabo
 		dimBitCount(getStorageBitCount<uint32_t>(this->dim)),
 		dimMask((1<<dimBitCount)-1)
 	{
+		if (bucketSize < 2)
+			throw runtime_error((boost::format("Requested bucket size %1%, but must be larger than 2") % bucketSize).str());
+		if (bucketSize >= cloud.cols())
+			throw runtime_error((boost::format("Requested bucket size %1%, but must be smaller than the number of points %2%") % bucketSize % cloud.cols()).str());
 		const uint32_t maxNodeCount((1 << (32-dimBitCount)) - 1);
 		const uint32_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
 		if (estimatedNodeCount > maxNodeCount)
