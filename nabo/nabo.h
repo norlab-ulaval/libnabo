@@ -58,23 +58,50 @@ ASL-ETHZ, Switzerland (http://www.asl.ethz.ch)
 libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
 It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
 Its current CPU implementation is strongly inspired by \ref ANN, but with more compact data types.
-On the average, libnabo is 20% faster than \ref ANN.
+On the average, libnabo is 5% to 20% faster than \ref ANN.
 
 libnabo depends on \ref Eigen, a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
+libnabo also depends on \ref Boost, a C++ general library.
 
 \section Compilation
 
 libnabo uses \ref CMake as build system.
-Just create a directory, go inside it and type:
+The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows).
+You will find a nice introductory tutorial in this you tube video: http://www.youtube.com/watch?v=CLvZTyji_Uw.
 
+\subsection Prerequisites
+
+If your operating system does not provide it, you must get \ref Eigen and \ref Boost.
+\ref Eigen only needs to be downloaded and extracted.
+
+\subsection QuickCompilationUnix Quick compilation and installation under Unix
+
+Under Unix, assuming that \ref Eigen and \ref Boost are installed system-wide, you can compile (with optimisation and debug information) and install libnabo in \c /usr/local with the following commands run in the top-level directory of libnabo's sources:
 \code
-cmake LIBNABO_SRC_DIR
+SRC_DIR=`pwd`
+BUILD_DIR=${SRC_DIR}/build
+mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
+# if Eigen or Boost are not available system-wide, run at that point: 
+#   cmake-gui .
+# cmake-gui allows you to tell the location of Eigen or Boost
+make
+sudo make install
 \endcode
 
-where \c LIBNABO_SRC_DIR is the top-level directory of libnabo's sources.
-If \ref Eigen is not installed system wide, you might have to tell \ref CMake where to find it.
-Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMake documentation</a>.
+These lines will compile libnabo in a \c build sub-directory and therefore keep your source tree clean.
+Note that you could compile libnabo anywhere you have write access, such as in \c /tmp/libnabo.
+This out-of-source build is a nice feature of \ref CMake.
+
+If \ref Eigen or \ref Boost are not installed system-wide, you might have to tell \ref CMake where to find them.
+You can do this with a command-line tool, \c ccmake, or with a graphical tool, \c cmake-gui.
+Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMake documentation</a> for more information.
+
+You can generate the documentation by typing:
+\code
+make doc
+\endcode
 
 \section Usage
 
@@ -111,7 +138,7 @@ If \ref ANN is detected when compiling libnabo, \c make \c test will also perfor
 
 \section BugReporting Bug reporting
 
-Please use <a href="http://github.com/stephanemagnenat/libnabo/issues">github's issue tracker</a> to report bugs.
+Please use <a href="http://github.com/ethz-asl/libnabo/issues">github's issue tracker</a> to report bugs.
 
 \section License
 
@@ -124,26 +151,25 @@ libnabo is released under a permissive BSD license.
 libnabo differs from \ref ANN on the following points:
 
 * API
-- templates for scalar types
+- templates for scalar type
 - self-match option as execution-time (instead of compile-time) parameter
-- Eigen library [2] for vector and matrixes
+- range search instead of radius search
+- \ref Eigen library for vector and matrixes
 - reentrant
 
 * limitations
-- currently no radius search
-- currently only euclidean distance
-- currently only one-point buckets
-- currently only KD-tree, no BD-tree
-- currently only ANN_KD_SL_MIDPT splitting rules
+- only euclidean distance
+- only KD-tree, no BD-tree
+- only ANN_KD_SL_MIDPT splitting rules
 
 * implementation
 - optional O(log(n)) tree heap instead of O(n) vector heap
-- compact memory representation, one memory allocation for all nodes
+- compact memory representation, one memory allocation for all nodes, 5-fold smaller memory footprint compared than ANN
 - implicit reference to left child (always next node in array)
 - do not store bounds in nodes (that is, I do it like in ANN's article instead of like in ANN's source code)
 
 * performances
-- about 5% to 20% faster than ANN (both -O3 -NDEBUG)
+- about 5% to 20% faster than ANN (both -O3 -NDEBUG), probably due to the smaller memory footprint
 - clearly memory-bound, neither OpenMP nor boost::thread improve performances 
 
 \section References
@@ -151,6 +177,7 @@ libnabo differs from \ref ANN on the following points:
 \li \anchor Eigen Eigen: http://eigen.tuxfamily.org
 \li \anchor ANN ANN: http://www.cs.umd.edu/~mount/ANN
 \li \anchor CMake CMake: http://www.cmake.org
+\li \anchor Boost Boost: http://www.boost.org
 
 */
 
@@ -161,9 +188,9 @@ namespace Nabo
 	//@{
 	
 	//! version of the Nabo library as string
-	#define NABO_VERSION "0.9.1"
+	#define NABO_VERSION "1.0.0"
 	//! version of the Nabo library as an int
-	#define NABO_VERSION_INT "901"
+	#define NABO_VERSION_INT "10000"
 	
 	//! Parameter vector
 	struct Parameters: public std::map<std::string, boost::any>
@@ -217,16 +244,15 @@ namespace Nabo
 		//! the high bound of the search space (axis-aligned bounding box)
 		const Vector maxBound;
 		
-		
 		//! type of search
 		enum SearchType
 		{
 			BRUTE_FORCE = 0, //!< brute force, check distance to every point in the data
 			KDTREE_LINEAR_HEAP, //!< kd-tree with linear heap, good for small k (~up to 30)
 			KDTREE_TREE_HEAP, //!< kd-tree with tree heap, good for large k (~from 30)
-			KDTREE_CL_PT_IN_NODES, //!< kd-tree using openCL, pt in nodes, UNSTABLE API
-			KDTREE_CL_PT_IN_LEAVES, //!< kd-tree using openCL, pt in leaves, UNSTABLE API
-			BRUTE_FORCE_CL, //!< brute-force using openCL, UNSTABLE API
+			KDTREE_CL_PT_IN_NODES, //!< kd-tree using openCL, pt in nodes, only available if OpenCL enabled, UNSTABLE API
+			KDTREE_CL_PT_IN_LEAVES, //!< kd-tree using openCL, pt in leaves, only available if OpenCL enabled, UNSTABLE API
+			BRUTE_FORCE_CL, //!< brute-force using openCL, only available if OpenCL enabled, UNSTABLE API
 			SEARCH_TYPE_COUNT //!< number of search types
 		};
 		

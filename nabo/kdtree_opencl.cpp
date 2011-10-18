@@ -60,6 +60,10 @@ namespace cl
 
 namespace Nabo
 {
+	// argmax is already defined in kdtree_cpu.cpp, which is always compiled
+	template<typename T>
+	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v);
+	
 	//! \ingroup private
 	//@{
 	
@@ -412,9 +416,7 @@ namespace Nabo
 	template struct BruteForceSearchOpenCL<float>;
 	template struct BruteForceSearchOpenCL<double>;
 	
-	// argmax is already defined in kdtree_cpu.cpp, which is always compiled
-	template<typename T>
-	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v);
+	
 
 	template<typename T>
 	size_t KDTreeBalancedPtInLeavesStackOpenCL<T>::getTreeSize(size_t elCount) const

@@ -34,20 +34,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "nabo.h"
 
-#ifdef BOOST_FOUND
+#ifdef BOOST_STDINT
 	#include <boost/cstdint.hpp>
 	using boost::uint32_t;
-#else
+#else // BOOST_STDINT
 	#include <stdint.h>
-#endif
+#endif // BOOST_STDINT
 
 // OpenCL
 #ifdef HAVE_OPENCL
-#define __CL_ENABLE_EXCEPTIONS
-#include "CL/cl.hpp"
+	#define __CL_ENABLE_EXCEPTIONS
+	#include "CL/cl.hpp"
 #endif // HAVE_OPENCL
 
-// Unused macro
+// Unused macro, add support for your favorite compiler
 #if defined(__GNUC__)
 	#define _UNUSED __attribute__ ((unused))
 #else

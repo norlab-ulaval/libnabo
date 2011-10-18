@@ -5,6 +5,8 @@ On the average, libnabo is 5% to 20% faster than [ANN].
 
 libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
+libnabo also depends on [Boost], a C++ general library.
+
 libnabo is being developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch).
 
 
@@ -18,32 +20,35 @@ You will find a nice introductory tutorial in [this video](http://www.youtube.co
 Prerequisites
 -------------
 
-If your operating system does not provide it, you must get [Eigen].
+If your operating system does not provide it, you must get [Eigen] and [Boost].
 It only needs to be downloaded and extracted.
 
 Quick compilation and installation under Unix
 ---------------------------------------------
 
-Under Unix, assuming that [Eigen] is installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands run in the top-level directory of libnabo's sources:
+Under Unix, assuming that [Eigen] and [Boost] are installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands run in the top-level directory of libnabo's sources:
 
 	SRC_DIR=`pwd`
 	BUILD_DIR=${SRC_DIR}/build
 	mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
-	# if Eigen is not available system-wide, run at that point: 
+	# if Eigen or Boost are not available system-wide, run at that point: 
 	#   cmake-gui .
-	# cmake-gui allows you to tell the location of Eigen
+	# cmake-gui allows you to tell the location of Eigen or Boost
 	make
 	sudo make install
 
 These lines will compile libnabo in a `build` sub-directory and therefore keep your source tree clean.
 Note that you could compile libnabo anywhere you have write access, such as in `/tmp/libnabo`.
-This out-of-source build is a nice feature of [CMake] under Unixes.
+This out-of-source build is a nice feature of [CMake].
 
-If [Eigen] is not installed system-wide, you might have to tell [CMake] where to find it.
+If [Eigen] or [Boost] are not installed system-wide, you might have to tell [CMake] where to find them.
 You can do this with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
 
+You can generate the documentation by typing:
+
+	make doc
 
 Usage
 =====
@@ -101,3 +106,4 @@ libnabo is released under a permissive BSD license.
 [CMake]: http://www.cmake.org
 [CMake documentation]: http://www.cmake.org/cmake/help/cmake2.6docs.html
 [Eigen]: http://eigen.tuxfamily.org
+[Boost]: http://www.boost.org
