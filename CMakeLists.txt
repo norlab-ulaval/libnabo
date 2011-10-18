@@ -12,6 +12,7 @@ execute_process(
 )
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
 
+set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
 # Compilation

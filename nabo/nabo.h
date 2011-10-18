@@ -116,6 +116,8 @@ Here is a slightly more complex example:
 
 \include usage.cpp
 
+Note that the matrix-based interface for query is more efficient than the vector-based one, because some sanity checks can be done only once. Therefore, if you have multiple points to query, we warmly suggest to pass them as a matrix instead of calling \c knn() multiple times.
+
 \section ConstructionParameters Construction parameters
 
 The following additional construction parameters are available in KDTREE_ algorithms:
