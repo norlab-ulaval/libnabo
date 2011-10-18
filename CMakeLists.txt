@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(libnabo)
+set(LIB_NAME nabo1)
+project("lib${LIB_NAME}")
 
 # Documentation, extract version from header
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
@@ -42,7 +43,7 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 )
 
 # optionally, opencl
-set(USE_OPEN_CL "OFF" CACHE BOOL "Set to ON to look for OpenCL")
+set(USE_OPEN_CL "false" CACHE BOOL "Set to ON to look for OpenCL")
 if (USE_OPEN_CL)
 	find_path(OPENCL_INCLUDE_DIR CL/cl.h
 		/usr/local/include
@@ -73,17 +74,40 @@ endif(USE_OPEN_CL)
 include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
 # main nabo lib
-add_library(nabo 
+set(NABO_SRC
 	nabo/nabo.cpp
 	nabo/brute_force_cpu.cpp
 	nabo/kdtree_cpu.cpp
 	nabo/kdtree_opencl.cpp
 )
-install(TARGETS nabo ARCHIVE DESTINATION lib)
+set(SHARED_LIBS "false" CACHE BOOL "To build shared (on) or static (off) library")
+if (SHARED_LIBS)
+	add_library(${LIB_NAME} SHARED ${NABO_SRC})
+	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
+else(SHARED_LIBS)
+	add_library(${LIB_NAME} ${NABO_SRC})
+	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
+endif(SHARED_LIBS)
+set_target_properties(${LIB_NAME} PROPERTIES VERSION 1.0.0 SOVERSION 1)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
+install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
 
 enable_testing()
 
 add_subdirectory(examples)
 add_subdirectory(tests)
 
+# CPack for release
+set(CPACK_PACKAGE_NAME "${PROJECT_NAME}-dev")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_CONTACT "Stéphane Magnenat <stephane@nospam.magnenat.net>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Libnabo is a fast K Nearset Neighbor library for low-dimensional spaces")
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION
+"libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
+ It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
+ templates. Its current CPU implementation is strongly inspired by ANN, 
+ but with more compact data types. On the average, libnabo is 5% to 20% 
+ faster than ANN.")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libgcc1, libboost-dev, libeigen2-dev | libeigen3-dev")
+include(CPack)

@@ -3,7 +3,7 @@ include (CheckSymbolExists)
 include_directories(..)
 
 add_executable(knnvalidate knnvalidate.cpp)
-target_link_libraries(knnvalidate nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnvalidate ${LIB_NAME}  ${EXTRA_LIBS} ${Boost_LIBRARIES})
 # disable as experimental is broken target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_test(validation-2D-exhaustive ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 -1)
@@ -59,7 +59,7 @@ endif (POSIX_TIMERS)
 include_directories(..)
 
 add_executable(knnbench knnbench.cpp)
-target_link_libraries(knnbench nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnbench ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
 # disable as experimental is broken target_link_libraries(knnbench naboexperimental nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_test(bench-3D-large-exhaustive-10000-K1 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 1 -10000 3 5)
@@ -76,7 +76,7 @@ add_test(bench-3D-large-exhaustive-100-K30 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${
 add_test(bench-3D-large-random-K30 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 30 40000 3 5)
 
 add_executable(knnepsilon knnepsilon.cpp)
-target_link_libraries(knnepsilon nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnepsilon ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_executable(knnbucketsize knnbucketsize.cpp)
-target_link_libraries(knnbucketsize nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnbucketsize ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
