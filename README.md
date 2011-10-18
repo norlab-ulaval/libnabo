@@ -73,7 +73,7 @@ See `examples/trivial.cpp` for a compilable version of this example, and `exampl
 
 Running `make doc` in your build directory will generate a browsable documentation in `doc/html`.
 The main page `doc/html/index.html` contains a detailed overview of the usage of libnabo.
-
+This documentation is also available online at http://ethz-asl.github.com/libnabo/releases/releases/1.0.0/doc/index.html
 
 Unit testing
 ============
