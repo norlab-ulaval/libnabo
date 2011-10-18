@@ -80,7 +80,7 @@ set(NABO_SRC
 	nabo/kdtree_cpu.cpp
 	nabo/kdtree_opencl.cpp
 )
-set(SHARED_LIBS "false" CACHE BOOL "To build shared (on) or static (off) library")
+set(SHARED_LIBS "false" CACHE BOOL "To build shared (true) or static (false) library")
 if (SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
@@ -96,18 +96,3 @@ enable_testing()
 
 add_subdirectory(examples)
 add_subdirectory(tests)
-
-# CPack for release
-set(CPACK_PACKAGE_NAME "${PROJECT_NAME}-dev")
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set(CPACK_PACKAGE_CONTACT "Stéphane Magnenat <stephane@nospam.magnenat.net>")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Libnabo is a fast K Nearset Neighbor library for low-dimensional spaces")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION
-"libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
- It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
- templates. Its current CPU implementation is strongly inspired by ANN, 
- but with more compact data types. On the average, libnabo is 5% to 20% 
- faster than ANN.")
-set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libgcc1, libboost-dev, libeigen2-dev | libeigen3-dev")
-include(CPack)

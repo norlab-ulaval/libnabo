@@ -9,6 +9,9 @@ libnabo also depends on [Boost], a C++ general library.
 
 libnabo is being developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch).
 
+Download
+========
+
 
 Compilation
 ===========
