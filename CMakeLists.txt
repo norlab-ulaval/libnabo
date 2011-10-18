@@ -89,8 +89,14 @@ else(SHARED_LIBS)
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
 endif(SHARED_LIBS)
 set_target_properties(${LIB_NAME} PROPERTIES VERSION 1.0.0 SOVERSION 1)
+
+# create doc before installing
+set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
+message(${DOC_INSTALL_TARGET})
+add_dependencies(${LIB_NAME} doc)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
 install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${DOC_INSTALL_TARGET})
 
 enable_testing()
 
