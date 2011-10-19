@@ -13,6 +13,8 @@ Download
 ========
 
 Ubuntu builds are available on my PPA at: https://launchpad.net/~stephane.magnenat
+They provide a package with the shared library, another with the development headers and a third with the documentation.
+
 The source code is available from github, you can clone the git tree by doing:
 
 	git clone git://github.com/ethz-asl/libnabo.git
@@ -85,7 +87,6 @@ See `examples/trivial.cpp` for a compilable version of this example, and `exampl
 
 Running `make doc` in your build directory will generate a browsable documentation in `doc/html`.
 The main page `doc/html/index.html` contains a detailed overview of the usage of libnabo.
-This documentation is also available online at http://ethz-asl.github.com/libnabo/releases/releases/1.0.0/doc/index.html
 
 Unit testing
 ============
