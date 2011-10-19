@@ -11,7 +11,8 @@ Vcs-Browser: https://github.com/ethz-asl/libnabo
 Package: libnabo-dev
 Section: libdevel
 Architecture: any
-Depends: libnabo1 (= ${binary:Version}), libboost-dev, libeigen2-dev | libeigen3-dev
+Depends: libnabo1 (= ${binary:Version}), libboost-dev, libeigen3-dev
+Suggests: libnabo-doc
 Description: A fast K Nearset Neighbor library for low-dimensional spaces.
  libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
  It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
@@ -29,3 +30,15 @@ Description: A fast K Nearset Neighbor library for low-dimensional spaces.
  templates. Its current CPU implementation is strongly inspired by ANN, 
  but with more compact data types. On the average, libnabo is 5% to 20% 
  faster than ANN.
+
+Package: libnabo-doc
+Section: doc
+Architecture: all
+Description: A fast K Nearset Neighbor library for low-dimensional spaces.
+ libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
+ It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
+ templates. Its current CPU implementation is strongly inspired by ANN, 
+ but with more compact data types. On the average, libnabo is 5% to 20% 
+ faster than ANN.
+ 
+ This package contains the API documentation for libnabo
