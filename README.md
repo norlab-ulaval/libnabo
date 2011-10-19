@@ -35,7 +35,7 @@ Prerequisites
 -------------
 
 If your operating system does not provide it, you must get [Eigen] and [Boost].
-It only needs to be downloaded and extracted.
+[Eigen] only needs to be downloaded and extracted.
 
 Quick compilation and installation under Unix
 ---------------------------------------------
