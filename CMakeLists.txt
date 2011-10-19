@@ -92,7 +92,6 @@ set_target_properties(${LIB_NAME} PROPERTIES VERSION 1.0.0 SOVERSION 1)
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
-message(${DOC_INSTALL_TARGET})
 add_dependencies(${LIB_NAME} doc)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
 install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
