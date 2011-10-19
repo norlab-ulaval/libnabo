@@ -37,6 +37,15 @@ Prerequisites
 If your operating system does not provide it, you must get [Eigen] and [Boost].
 [Eigen] only needs to be downloaded and extracted.
 
+Compilation options
+-------------------
+
+libnabo provides the following compilation options, available through [CMake]:
+ * `SHARED_LIBS` (boolean, default: `false`): if `true`, build a shared library, otherwise build a static library
+ * `USE_OPEN_CL` (boolean, default: `false`): if `true`, enable experimental OpenCL support
+You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
+Please read the [CMake documentation] for more information.
+
 Quick compilation and installation under Unix
 ---------------------------------------------
 
@@ -55,10 +64,7 @@ Under Unix, assuming that [Eigen] and [Boost] are installed system-wide, you can
 These lines will compile libnabo in a `build` sub-directory and therefore keep your source tree clean.
 Note that you could compile libnabo anywhere you have write access, such as in `/tmp/libnabo`.
 This out-of-source build is a nice feature of [CMake].
-
-If [Eigen] or [Boost] are not installed system-wide, you might have to tell [CMake] where to find them.
-You can do this with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
-Please read the [CMake documentation] for more information.
+If [Eigen] or [Boost] are not installed system-wide, you might have to tell [CMake] where to find them (using `ccmake` or `cmake-gui`).
 
 You can generate the documentation by typing:
 

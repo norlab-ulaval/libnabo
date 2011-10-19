@@ -75,6 +75,15 @@ You will find a nice introductory tutorial in this you tube video: http://www.yo
 If your operating system does not provide it, you must get \ref Eigen and \ref Boost.
 \ref Eigen only needs to be downloaded and extracted.
 
+\subsection CompilationOptions Compilation options
+
+libnabo provides the following compilation options, available through \ref CMake :
+ - \c SHARED_LIBS (boolean, default: \c false): if \c true, build a shared library, otherwise build a static library
+ - \c USE_OPEN_CL (boolean, default: \c false): if \c true, enable experimental OpenCL support
+
+You specify them with a command-line tool, \c ccmake, or with a graphical tool, \c cmake-gui.
+Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMake documentation</a> for more information.
+
 \subsection QuickCompilationUnix Quick compilation and installation under Unix
 
 Under Unix, assuming that \ref Eigen and \ref Boost are installed system-wide, you can compile (with optimisation and debug information) and install libnabo in \c /usr/local with the following commands run in the top-level directory of libnabo's sources:
@@ -93,10 +102,7 @@ sudo make install
 These lines will compile libnabo in a \c build sub-directory and therefore keep your source tree clean.
 Note that you could compile libnabo anywhere you have write access, such as in \c /tmp/libnabo.
 This out-of-source build is a nice feature of \ref CMake.
-
-If \ref Eigen or \ref Boost are not installed system-wide, you might have to tell \ref CMake where to find them.
-You can do this with a command-line tool, \c ccmake, or with a graphical tool, \c cmake-gui.
-Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMake documentation</a> for more information.
+If \ref Eigen or \ref Boost are not installed system-wide, you might have to tell \ref CMake where to find them (using \c ccmake or \c cmake-gui).
 
 You can generate the documentation by typing:
 \code

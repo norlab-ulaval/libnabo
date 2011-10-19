@@ -1,7 +1,7 @@
 Source: libnabo
 Priority: extra
 Maintainer: Stéphane Magnenat <stephane@nospam.magnenat.net>
-Build-Depends: debhelper (>= 7.0.50~), cmake, doxygen, cdbs
+Build-Depends: debhelper (>= 7.0.50~), cmake, doxygen, cdbs, libboost-dev, libeigen3-dev
 Standards-Version: 3.9.1
 Section: libs
 Homepage: https://github.com/ethz-asl/libnabo
