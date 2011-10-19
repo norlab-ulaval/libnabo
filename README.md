@@ -12,6 +12,15 @@ libnabo is being developed by [Stéphane Magnenat](http://stephane.magnenat.net)
 Download
 ========
 
+Ubuntu builds are available on my PPA at: https://launchpad.net/~stephane.magnenat
+The source code is available from github, you can clone the git tree by doing:
+
+	git clone git://github.com/ethz-asl/libnabo.git
+
+You can checkout a specific branch, for instance to checkout version 1.0.0, do:
+
+	cd libnabo
+	git checkout 1.0.0
 
 Compilation
 ===========
