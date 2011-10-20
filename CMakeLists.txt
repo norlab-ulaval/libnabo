@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 set(LIB_NAME nabo)
 project("lib${LIB_NAME}")
 
-# Documentation, extract version from header
+# Extract version from header
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 execute_process(
 	COMMAND grep "NABO_VERSION " nabo/nabo.h
@@ -13,6 +13,7 @@ execute_process(
 )
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
 
+# Documentation
 set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
@@ -88,7 +89,7 @@ else(SHARED_LIBS)
 	add_library(${LIB_NAME} ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
 endif(SHARED_LIBS)
-set_target_properties(${LIB_NAME} PROPERTIES VERSION 1.0.0 SOVERSION 1)
+set_target_properties(${LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
