@@ -35,7 +35,7 @@ Package: libnabo1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: A fast K Nearset Neighbor library, library, library version 1.
+Description: A fast K Nearset Neighbor library, version 1.
  libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
  It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
  templates. Its current CPU implementation is strongly inspired by ANN, 
