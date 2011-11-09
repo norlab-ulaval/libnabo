@@ -21,7 +21,7 @@ include(UseDoxygen)
 add_definitions(-Wall)
 
 # Boost required for any and cstdint on MSVC < 2010
-find_package(Boost REQUIRED)
+find_package(Boost COMPONENTS REQUIRED)
 if(MSVC AND (MSVC_VERSION LESS 1600))
 	add_definitions(-DBOOST_STDINT)
 endif(MSVC AND (MSVC_VERSION LESS 1600))
@@ -102,3 +102,4 @@ enable_testing()
 
 add_subdirectory(examples)
 add_subdirectory(tests)
+add_subdirectory(python)
