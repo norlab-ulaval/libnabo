@@ -1,7 +1,7 @@
 Source: libnabo
 Priority: extra
 Maintainer: Stéphane Magnenat <stephane@nospam.magnenat.net>
-Build-Depends: debhelper (>= 7.0.50~), cmake, doxygen, cdbs, libboost-dev, libeigen3-dev
+Build-Depends: debhelper (>= 7.0.50~), cmake, doxygen, cdbs, libboost-dev, libboost-python-dev, libeigen3-dev, python-dev, python-numpy
 Standards-Version: 3.9.1
 Section: libs
 Homepage: https://github.com/ethz-asl/libnabo
@@ -52,3 +52,14 @@ Description: A fast K Nearset Neighbor library, API documentation.
  but with more compact data types. On the average, libnabo is 5% to 20% 
  faster than ANN.
  This package contains the API documentation for libnabo
+
+Package: python-nabo
+Section: python
+Architecture: any
+Depends: libnabo1 (= ${binary:Version}), python, python-numpy
+Description: Python bindings for libnabo, a fast K Nearset Neighbor library.
+ libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
+ It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
+ templates. Its current CPU implementation is strongly inspired by ANN, 
+ but with more compact data types. On the average, libnabo is 5% to 20% 
+ faster than ANN.
