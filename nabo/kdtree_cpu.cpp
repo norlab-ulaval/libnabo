@@ -162,7 +162,7 @@ namespace Nabo
 		}
 		const int br1 = l;	// now: points[0..br1-1] < cutVal <= points[br1..count-1]
 		r = count-1;
-		// partition points[br1..count-1] around cv
+		// partition points[br1..count-1] around cutVal
 		while (1)
 		{
 			while (l < count && cloud.coeff(cutDim, *(first+l)) <= cutVal)
@@ -174,7 +174,7 @@ namespace Nabo
 			swap(*(first+l), *(first+r));
 			++l; --r;
 		}
-		const int br2 = l; // now: points[br1..br2-1] == cv < points[br2..count-1]
+		const int br2 = l; // now: points[br1..br2-1] == cutVal < points[br2..count-1]
 		
 		// find best split index
 		int leftCount;
@@ -233,8 +233,15 @@ namespace Nabo
 	{
 		if (bucketSize < 2)
 			throw runtime_error((boost::format("Requested bucket size %1%, but must be larger than 2") % bucketSize).str());
-		if (bucketSize >= cloud.cols())
-			throw runtime_error((boost::format("Requested bucket size %1%, but must be smaller than the number of points %2%") % bucketSize % cloud.cols()).str());
+		if (cloud.cols() <= bucketSize)
+		{
+			// make a single-bucket tree
+			for (int i = 0; i < cloud.cols(); ++i)
+				buckets.push_back(BucketEntry(&cloud.coeff(0, i), i));
+			nodes.push_back(Node(createDimChildBucketSize(this->dim, cloud.cols()),uint32_t(0)));
+			return;
+		}
+		
 		const uint32_t maxNodeCount((1 << (32-dimBitCount)) - 1);
 		const uint32_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
 		if (estimatedNodeCount > maxNodeCount)
