@@ -143,7 +143,7 @@ protected:
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(knn_overloads, knn, 1, 4)
 
-BOOST_PYTHON_MODULE(nabo)
+BOOST_PYTHON_MODULE(pynabo)
 {
 	import_array();
 	
