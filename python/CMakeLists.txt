@@ -40,6 +40,8 @@ if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 			python_add_module(pynabo ${PYTHON_SRC})
 			target_link_libraries(pynabo ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 		endif (SHARED_LIBS)
+		# fix for old python_add_module
+		set_target_properties(pynabo PROPERTIES PREFIX "")
 		if (PYTHON_DEB_INSTALL_TARGET)
 			set(PYTHON_COMMAND "import sys; print '/usr/lib/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/dist-packages'")
 		else (PYTHON_DEB_INSTALL_TARGET)
