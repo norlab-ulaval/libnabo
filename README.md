@@ -101,7 +101,9 @@ Python bindings
 
 libnabo includes python bindings that are compiled if python is available.
 The resulting module is called pynabo, you can see an example in `python/test.py`.
-This module uses numpy, 
+You can find more information in the docstring-based documentation:
+
+	python -c "import pynabo; help(pynabo.NearestNeighbourSearch)"
 
 Unit testing
 ============

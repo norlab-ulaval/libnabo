@@ -4,7 +4,7 @@ import numpy as np
 x = np.array([[0.,3.], [1,2], [4,5]])
 print x
 
-nns = NearestNeighbourSearch(SearchType.KDTREE_LINEAR_HEAP, x)
+nns = NearestNeighbourSearch(x)
 q = np.array([[1.1, 2.]])
 print q
 
