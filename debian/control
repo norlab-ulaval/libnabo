@@ -13,7 +13,7 @@ Section: libdevel
 Architecture: any
 Depends: libnabo1 (= ${binary:Version}), libboost-dev, libeigen3-dev
 Suggests: libnabo-doc
-Description: A fast K Nearset Neighbor library, development headers.
+Description: Development headers of libnabo, a fast K Nearset Neighbor library.
  libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
  It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
  templates. Its current CPU implementation is strongly inspired by ANN, 
@@ -35,7 +35,7 @@ Package: libnabo1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: A fast K Nearset Neighbor library, version 1.
+Description: Version 1 of libnabo, a fast K Nearset Neighbor library.
  libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
  It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
  templates. Its current CPU implementation is strongly inspired by ANN, 
@@ -45,7 +45,7 @@ Description: A fast K Nearset Neighbor library, version 1.
 Package: libnabo-doc
 Section: doc
 Architecture: all
-Description: A fast K Nearset Neighbor library, API documentation.
+Description: API documentation of libnabo, a fast K Nearset Neighbor library.
  libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
  It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ 
  templates. Its current CPU implementation is strongly inspired by ANN, 
