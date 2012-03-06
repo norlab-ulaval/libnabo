@@ -251,7 +251,16 @@ namespace Nabo
 		const Vector minBound;
 		//! the high bound of the search space (axis-aligned bounding box)
 		const Vector maxBound;
-		
+	  
+	  //! the minimum time difference permitted between matches
+	  T minTimeDiff;
+	  
+	  //! Pointer to a vector of times for each data point in the cloud
+	  Vector *timesPtr;
+	  
+	  //! Set the times for the data and the minimum time difference permitted
+	  void setTimes(Vector* times, const T& timeDiff){ this->timesPtr = times; this->minTimeDiff = timeDiff; };
+
 		//! type of search
 		enum SearchType
 		{
@@ -343,7 +352,7 @@ namespace Nabo
 		
 	protected:
 		//! constructor
-		NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
+	        NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
 		
 		//! Make sure that the output matrices have the right sizes. Throw an exception otherwise.
 		/*!	\param query query points

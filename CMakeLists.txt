@@ -17,7 +17,7 @@ set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
 # Compilation
-add_definitions(-Wall)
+add_definitions(-Wall -O3 -DNDEBUG)
 
 # Boost required for any and cstdint on MSVC < 2010
 find_package(Boost REQUIRED)
@@ -80,7 +80,7 @@ set(NABO_SRC
 	nabo/kdtree_cpu.cpp
 	nabo/kdtree_opencl.cpp
 )
-set(SHARED_LIBS "false" CACHE BOOL "To build shared (true) or static (false) library")
+set(SHARED_LIBS "true" CACHE BOOL "To build shared (true) or static (false) library")
 if (SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)

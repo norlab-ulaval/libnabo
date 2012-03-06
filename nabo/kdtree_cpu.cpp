@@ -319,7 +319,6 @@ namespace Nabo
 	{
 		const Node& node(nodes[n]);
 		const uint32_t cd(getDim(node.dimChildBucketSize));
-		
 		if (cd == uint32_t(dim))
 		{
 			//cerr << "entering bucket " << node.bucket << endl;
@@ -333,17 +332,20 @@ namespace Nabo
 				T dist(0);
 				const T* qPtr(query);
 				const T* dPtr(bucket->pt);
-				for (int i = 0; i < this->dim; ++i)
+				for (int ii = 0; ii < this->dim; ++ii)
 				{
 					const T diff(*qPtr - *dPtr);
 					dist += diff*diff;
 					qPtr++; dPtr++;
 				}
+				// qPtr at this stage now points to dim+1, which may store the time information if used
 				if ((dist <= maxRadius2) &&
 					(dist < heap.headValue()) &&
-					(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
-				)
+					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())) &&
+				    (!this->timesPtr || fabs((*(this->timesPtr))[bucket->index]-*qPtr)>this->minTimeDiff )
+				    ){
 					heap.replaceHead(bucket->index, dist);
+				}
 				++bucket;
 			}
 			return (unsigned long)(bucketSize);

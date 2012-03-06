@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <stdexcept>
 #include <boost/format.hpp>
+#include <iostream>
 
 /*!	\file nabo.cpp
 	\brief implementation of public interface
@@ -52,7 +53,9 @@ namespace Nabo
 		dim(min(dim, int(cloud.rows()))),
 		creationOptionFlags(creationOptionFlags),
 		minBound(Vector::Constant(this->dim, numeric_limits<T>::max())),
-		maxBound(Vector::Constant(this->dim, numeric_limits<T>::min()))
+		maxBound(Vector::Constant(this->dim, numeric_limits<T>::min())),
+		minTimeDiff(std::numeric_limits<T>::infinity()),
+		timesPtr(NULL)
 	{
 		
 	}

@@ -286,8 +286,9 @@ namespace Nabo
 		//! reset to the empty heap
 		inline void reset()
 		{
-			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
+		  for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
 				it->value = std::numeric_limits<VT>::infinity();
+		  
 		}
 		
 		//! get the largest value of the heap
