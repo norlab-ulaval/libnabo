@@ -52,7 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*!
 \mainpage libnabo
 
-from http://github.com/stephanemagnenat/libnabo by Stéphane Magnenat (http://stephane.magnenat.net),
+from http://github.com/ethz-asl/libnabo by Stéphane Magnenat (http://stephane.magnenat.net),
 ASL-ETHZ, Switzerland (http://www.asl.ethz.ch)
 
 libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
