@@ -78,18 +78,20 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void NearestNeighbourSearch<T>::checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k) const
+	void NearestNeighbourSearch<T>::checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const Vector* maxRadii) const
 	{
 		if (query.rows() < dim)
 			throw runtime_error((boost::format("Query has less dimensions (%1%) than requested for cloud (%2%)") % query.rows() % dim).str());
 		if (indices.rows() != k)
-			throw runtime_error((boost::format("Index matrix has less rows (%1%) than k (%2%)") % indices.rows() % k).str());
+			throw runtime_error((boost::format("Index matrix has a different number of rows (%1%) than k (%2%)") % indices.rows() % k).str());
 		if (indices.cols() != query.cols())
-			throw runtime_error((boost::format("Index matrix has less columns (%1%) than query (%2%)") % indices.rows() % query.cols()).str());
+			throw runtime_error((boost::format("Index matrix has a different number of columns (%1%) than query (%2%)") % indices.rows() % query.cols()).str());
 		if (dists2.rows() != k)
-			throw runtime_error((boost::format("Distance matrix has less rows (%1%) than k (%2%)") % dists2.rows() % k).str());
+			throw runtime_error((boost::format("Distance matrix has a different number of rows (%1%) than k (%2%)") % dists2.rows() % k).str());
 		if (dists2.cols() != query.cols())
-			throw runtime_error((boost::format("Distance matrix has less columns (%1%) than query (%2%)") % dists2.rows() % query.cols()).str());
+			throw runtime_error((boost::format("Distance matrix has a different number of columns (%1%) than query (%2%)") % dists2.rows() % query.cols()).str());
+		if (maxRadii && (maxRadii->size() != query.cols()))
+			throw runtime_error((boost::format("Maximum radii vector has not the same length (%1%) than query has columns (%2%)") % maxRadii->size() % k).str());
 	}
 	
 	

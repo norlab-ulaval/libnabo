@@ -90,6 +90,7 @@ namespace Nabo
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
 	
 	//! KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT, optimised implementation
@@ -184,6 +185,21 @@ namespace Nabo
 		//! construct nodes for points [first..last[ inside the hyperrectangle [minValues..maxValues]
 		unsigned buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues);
 		
+		//! search one point, call recurseKnn with the correct template parameters
+		/** \param query pointer to query coordinates 
+		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
+		 *	\param i index of point to search
+		 * 	\param heap reference to heap
+		 * 	\param off reference to array of offsets
+		 *	\param maxError error factor (1 + epsilon) 
+		 *	\param maxRadius2 square of maximum radius
+		 *	\param allowSelfMatch whether to allow self match
+		 *	\param collectStatistics whether to collect statistics
+		 *	\param sortResults wether to sort results
+		 */
+		unsigned long onePointKnn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, int i, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2, const bool allowSelfMatch, const bool collectStatistics, const bool sortResults) const;
+		
 		//! recursive search, strongly inspired by ANN and [Arya & Mount, Algorithms for fast vector quantization, 1993]
 		/**	\param query pointer to query coordinates 
 		 * 	\param n index of node to visit
@@ -200,6 +216,7 @@ namespace Nabo
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
 		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters);
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
 	
 	#ifdef HAVE_OPENCL

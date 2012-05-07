@@ -266,12 +266,8 @@ namespace Nabo
 		}
 		
 		// create nodes
-		//nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), minBound, maxBound);
 		buildPoints.clear();
-		//for (size_t i = 0; i < nodes.size(); ++i)
-		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
-		
 	}
 	
 	template<typename T, typename Heap>
@@ -283,11 +279,9 @@ namespace Nabo
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
 		const T maxRadius2(maxRadius * maxRadius);
-		assert(nodes.size() > 0);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
-		
 		std::vector<T> off(dim, 0);
 		
 		IndexMatrix result(k, query.cols());
@@ -295,29 +289,62 @@ namespace Nabo
 		unsigned long leafTouchedCount(0);
 		for (int i = 0; i < colCount; ++i)
 		{
-			fill(off.begin(), off.end(), 0);
-			heap.reset();
-			
-			if (allowSelfMatch)
-			{
-				if (collectStatistics)
-					leafTouchedCount += recurseKnn<true, true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
-				else
-					recurseKnn<true, false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
-			}
-			else
-			{
-				if (collectStatistics)
-					leafTouchedCount += recurseKnn<false, true>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
-				else
-					recurseKnn<false, false>(&query.coeff(0, i), 0, 0, heap, off, 1+epsilon, maxRadius2);
-			}
-			
-			if (sortResults)
-				heap.sort();
-			
-			heap.getData(indices.col(i), dists2.col(i));
+			leafTouchedCount += onePointKnn(query, indices, dists2, i, heap, off, 1+epsilon, maxRadius2, allowSelfMatch, collectStatistics, sortResults);
 		}
+		return leafTouchedCount;
+	}
+	
+	template<typename T, typename Heap>
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	{
+		checkSizesKnn(query, indices, dists2, k, &maxRadii);
+		
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
+		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
+		
+		assert(nodes.size() > 0);
+		Heap heap(k);
+		std::vector<T> off(dim, 0);
+		
+		IndexMatrix result(k, query.cols());
+		const int colCount(query.cols());
+		unsigned long leafTouchedCount(0);
+		for (int i = 0; i < colCount; ++i)
+		{
+			const T maxRadius(maxRadii[i]);
+			const T maxRadius2(maxRadius * maxRadius);
+			leafTouchedCount += onePointKnn(query, indices, dists2, i, heap, off, 1+epsilon, maxRadius2, allowSelfMatch, collectStatistics, sortResults);
+		}
+		return leafTouchedCount;
+	}
+	
+	template<typename T, typename Heap>
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::onePointKnn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, int i, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2, const bool allowSelfMatch, const bool collectStatistics, const bool sortResults) const
+	{
+		fill(off.begin(), off.end(), 0);
+		heap.reset();
+		unsigned long leafTouchedCount(0);
+		
+		if (allowSelfMatch)
+		{
+			if (collectStatistics)
+				leafTouchedCount += recurseKnn<true, true>(&query.coeff(0, i), 0, 0, heap, off, maxError, maxRadius2);
+			else
+				recurseKnn<true, false>(&query.coeff(0, i), 0, 0, heap, off, maxError, maxRadius2);
+		}
+		else
+		{
+			if (collectStatistics)
+				leafTouchedCount += recurseKnn<false, true>(&query.coeff(0, i), 0, 0, heap, off, maxError, maxRadius2);
+			else
+				recurseKnn<false, false>(&query.coeff(0, i), 0, 0, heap, off, maxError, maxRadius2);
+		}
+		
+		if (sortResults)
+			heap.sort();
+		
+		heap.getData(indices.col(i), dists2.col(i));
 		return leafTouchedCount;
 	}
 	

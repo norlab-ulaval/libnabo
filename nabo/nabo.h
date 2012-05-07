@@ -278,7 +278,7 @@ namespace Nabo
 		};
 		
 		//! Find the k nearest neighbours of query
-		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0.
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0. If you must query more than one point at once, use the version of the knn() function taking matrices as input, because it is much faster.
 		 *	\param query query point
 		 *	\param indices indices of nearest neighbours, must be of size k
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k
@@ -302,6 +302,19 @@ namespace Nabo
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0, const T maxRadius = std::numeric_limits<T>::infinity()) const = 0;
+		
+		//! Find the k nearest neighbours for each point of query
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0.
+		 *	\param query query points
+		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
+		 *	\param maxRadii vector of maximum radii in which to search, used to prune search, is not affected by epsilon
+		 *	\param k number of nearest neighbour requested
+		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
+		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
+		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
+		 */
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const = 0;
 		
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search
@@ -349,8 +362,9 @@ namespace Nabo
 		/*!	\param query query points
 		 *	\param k number of nearest neighbour requested
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
-		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() */
-		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k) const;
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
+			\param maxRadii if non 0, maximum radii, must be of size k */
+		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const Vector* maxRadii = 0) const;
 	};
 	
 	// Convenience typedefs
