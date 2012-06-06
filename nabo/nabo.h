@@ -254,12 +254,10 @@ namespace Nabo
 	  
 	  //! the minimum time difference permitted between matches
 	  T minTimeDiff;
-	  
-	  //! Pointer to a vector of times for each data point in the cloud
-	  Vector *timesPtr;
-	  
+	  bool useTimes;
+
 	  //! Set the times for the data and the minimum time difference permitted
-	  void setTimes(Vector* times, const T& timeDiff){ this->timesPtr = times; this->minTimeDiff = timeDiff; };
+	  void setTimes(const T& timeDiff){ this->useTimes=true; this->minTimeDiff = timeDiff; };
 
 		//! type of search
 		enum SearchType

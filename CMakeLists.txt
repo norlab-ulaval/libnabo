@@ -17,7 +17,7 @@ set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
 # Compilation
-add_definitions(-Wall -O3 -DNDEBUG)
+add_definitions(-Wall -O3 -DNDEBUG -fopenmp)
 
 # Boost required for any and cstdint on MSVC < 2010
 find_package(Boost REQUIRED)
@@ -26,10 +26,11 @@ if(MSVC AND (MSVC_VERSION LESS 1600))
 endif(MSVC AND (MSVC_VERSION LESS 1600))
 
 # openmp
-# find_package(OpenMP)
-# if (OPENMP_FOUND)
-# 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
-# endif(OPENMP_FOUND)
+ find_package(OpenMP)
+ if (OPENMP_FOUND)
+ 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+ endif(OPENMP_FOUND)
+
 
 # eigen 2 or 3
 find_path(EIGEN_INCLUDE_DIR Eigen/Core
@@ -72,6 +73,8 @@ endif(USE_OPEN_CL)
 
 # include all libs so far
 include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
+
 
 # main nabo lib
 set(NABO_SRC
