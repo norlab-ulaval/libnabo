@@ -108,7 +108,6 @@ namespace Nabo
 		using NearestNeighbourSearch<T>::minBound;
 		using NearestNeighbourSearch<T>::maxBound;
 		using NearestNeighbourSearch<T>::checkSizesKnn;
-		using NearestNeighbourSearch<T>::timesPtr;
 		using NearestNeighbourSearch<T>::minTimeDiff;
 		
 	protected:
