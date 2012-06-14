@@ -12,7 +12,7 @@
 #%:
 #	dh $@ 
 
-DEB_CMAKE_EXTRA_FLAGS=-DSHARED_LIBS=true -DDOC_INSTALL_TARGET="share/doc/libnabo-doc/api"
+DEB_CMAKE_EXTRA_FLAGS=-DSHARED_LIBS=true -DDOC_INSTALL_TARGET="share/doc/libnabo-doc/api" -DPYTHON_DEB_INSTALL_TARGET=true
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/cmake.mk
