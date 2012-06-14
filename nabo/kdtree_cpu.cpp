@@ -76,7 +76,7 @@ namespace Nabo
 	template<typename T>
 	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
 	{
-		T maxVal(0);
+		T maxVal(boost::numeric::bounds<T>::lowest());
 		size_t maxIdx(0);
 		for (int i = 0; i < v.size(); ++i)
 		{
@@ -272,20 +272,25 @@ namespace Nabo
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		
+		IndexMatrix result(k, query.cols());
+		unsigned long leafTouchedCount(0);
+
+#pragma omp parallel 
+		{
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
 		const T maxRadius2(maxRadius * maxRadius);
-		assert(nodes.size() > 0);
+
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
 		
 		std::vector<T> off(dim, 0);
 		
-		IndexMatrix result(k, query.cols());
 		const int colCount(query.cols());
-		unsigned long leafTouchedCount(0);
+
+#pragma omp for reduction(+:leafTouchedCount) schedule(guided,32)
 		for (int i = 0; i < colCount; ++i)
 		{
 			fill(off.begin(), off.end(), 0);
@@ -310,6 +315,8 @@ namespace Nabo
 				heap.sort();
 			
 			heap.getData(indices.col(i), dists2.col(i));
+		}
+
 		}
 		return leafTouchedCount;
 	}
