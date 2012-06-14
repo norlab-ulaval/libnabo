@@ -96,6 +96,15 @@ See `examples/trivial.cpp` for a compilable version of this example, and `exampl
 Running `make doc` in your build directory will generate a browsable documentation in `doc/html`.
 The main page `doc/html/index.html` contains a detailed overview of the usage of libnabo.
 
+Python bindings
+===============
+
+libnabo includes python bindings that are compiled if python is available.
+The resulting module is called pynabo, you can see an example in `python/test.py`.
+You can find more information in the docstring-based documentation:
+
+	python -c "import pynabo; help(pynabo.NearestNeighbourSearch)"
+
 Unit testing
 ============
 
