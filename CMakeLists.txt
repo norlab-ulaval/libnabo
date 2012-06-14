@@ -18,7 +18,7 @@ set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
 # Compilation
-add_definitions(-Wall -O3 -DNDEBUG)
+add_definitions(-Wall -O3 -DNDEBUG -fopenmp)
 
 # Boost required for any and cstdint on MSVC < 2010
 find_package(Boost COMPONENTS REQUIRED)
@@ -74,6 +74,8 @@ endif(USE_OPEN_CL)
 
 # include all libs so far
 include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
+
 
 # main nabo lib
 set(NABO_SRC

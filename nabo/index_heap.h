@@ -106,16 +106,16 @@ namespace Nabo
 		 * 	\param value new distance value */
 		inline void replaceHead(const Index index, const Value value)
 		{
-			std::pop_heap(data.begin(), data.end());
+		        std::pop_heap(data.begin(), data.end());
 			insertIt->index = index;
 			insertIt->value = value;
-			push_heap(data.begin(), data.end());
+			std::push_heap(data.begin(), data.end());
 		}
 		
 		//! sort the entries, from the smallest to the largest
 		inline void sort()
 		{
-			sort_heap (data.begin(), data.end());
+		        std::sort_heap (data.begin(), data.end());
 		}
 		
 		//! get the data from the heap

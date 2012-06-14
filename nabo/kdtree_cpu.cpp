@@ -356,7 +356,7 @@ namespace Nabo
 				if ((dist <= maxRadius2) &&
 					(dist < heap.headValue()) &&
 					(allowSelfMatch || (dist > numeric_limits<T>::epsilon())) &&
-				    (!this->timesPtr || fabs((*(this->timesPtr))[bucket->index]-*qPtr)>this->minTimeDiff )
+				        (!this->useTimes || fabs(*dPtr-*qPtr)>this->minTimeDiff )  // added by Mike and Rob to enforce min time diff constraint
 				    ){
 					heap.replaceHead(bucket->index, dist);
 				}
