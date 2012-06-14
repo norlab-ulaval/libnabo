@@ -54,7 +54,8 @@ namespace Nabo
 		creationOptionFlags(creationOptionFlags),
 		minBound(Vector::Constant(this->dim, numeric_limits<T>::max())),
 		maxBound(Vector::Constant(this->dim, numeric_limits<T>::min())),
-		minTimeDiff(std::numeric_limits<T>::infinity())
+		minTimeDiff(std::numeric_limits<T>::infinity()),
+		useTimes(false)
 	{
 		
 	}
