@@ -191,11 +191,11 @@ namespace Nabo
 		 * 	\param rd squared dist to this rect
 		 * 	\param heap reference to heap
 		 * 	\param off reference to array of offsets
-		 * 	\param maxError error factor (1 + epsilon) 
+		 * 	\param maxError2 error factor (1 + epsilon)^2 
 		 *	\param maxRadius2 square of maximum radius
 		 */
 		template<bool allowSelfMatch, bool collectStatistics>
-		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError, const T maxRadius2) const;
+		unsigned long recurseKnn(const T* query, const unsigned n, T rd, Heap& heap, std::vector<T>& off, const T maxError2, const T maxRadius2) const;
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
