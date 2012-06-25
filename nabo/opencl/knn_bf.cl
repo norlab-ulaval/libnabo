@@ -34,7 +34,7 @@ kernel void knnBruteForce(const global T* cloud,
 		}
 		if ((dist <= maxRadius2) &&
 			(dist < heapHeadValue(heap) &&
-			(allowSelfMatch || (dist > (T)EPSILON))))
+			(allowSelfMatch || (dist > 0)))
 			heapHeadReplace(heap, index, dist, K);
 	}
 	

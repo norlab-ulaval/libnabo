@@ -355,7 +355,7 @@ namespace Nabo
 		
 		// set resulting parameters
 		knnKernel.setArg(4, k);
-		knnKernel.setArg(5, 1 + epsilon);
+		knnKernel.setArg(5, (1 + epsilon)*(1 + epsilon));
 		knnKernel.setArg(6, maxRadius*maxRadius);
 		knnKernel.setArg(7, optionFlags);
 		knnKernel.setArg(8, indexStride);
