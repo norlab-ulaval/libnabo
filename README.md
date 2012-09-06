@@ -118,7 +118,7 @@ Their outputs are available in the `Testing` directory.
 These consist of validation and benchmarking tests.
 If [ANN] or [FLANN] are detected when compiling libnabo, `make test` will also perform comparative benchmarks.
 
-Citing libnabe
+Citing libnabo
 ==============
 
 If you use libnabo in the academic context, please cite this paper that evaluates its performances in the contex of ICP:
