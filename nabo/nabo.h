@@ -143,6 +143,21 @@ Their outputs are available in the \c Testing directory.
 These consist of validation and benchmarking tests.
 If \ref ANN is detected when compiling libnabo, \c make \c test will also perform comparative benchmarks.
 
+\section Citing Citing libnabo
+
+If you use libnabo in the academic context, please cite this paper that evaluates its performances in the contex of ICP:
+\code
+@article{elsebergcomparison,
+	title={Comparison of nearest-neighbor-search strategies and implementations for efficient shape registration},
+	author={Elseberg, J. and Magnenat, S. and Siegwart, R. and N{\"u}chter, A.},
+	journal={Journal of Software Engineering for Robotics (JOSER)},
+	pages={2--12},
+	volume={3},
+	number={1},
+	year={2012},
+	issn={2035-3928}
+}
+\endcode
 
 \section BugReporting Bug reporting
 
