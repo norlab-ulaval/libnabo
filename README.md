@@ -43,7 +43,6 @@ Compilation options
 libnabo provides the following compilation options, available through [CMake]:
 
  * `SHARED_LIBS` (boolean, default: `false`): if `true`, build a shared library, otherwise build a static library
- * `USE_OPEN_CL` (boolean, default: `false`): if `true`, enable experimental OpenCL support
 
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.

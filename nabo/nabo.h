@@ -79,7 +79,6 @@ If your operating system does not provide it, you must get \ref Eigen and \ref B
 
 libnabo provides the following compilation options, available through \ref CMake :
  - \c SHARED_LIBS (boolean, default: \c false): if \c true, build a shared library, otherwise build a static library
- - \c USE_OPEN_CL (boolean, default: \c false): if \c true, enable experimental OpenCL support
 
 You specify them with a command-line tool, \c ccmake, or with a graphical tool, \c cmake-gui.
 Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMake documentation</a> for more information.
