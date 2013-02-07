@@ -60,7 +60,7 @@ namespace Nabo
 	template<typename T>
 	T getStorageBitCount(T v)
 	{
-		for (T i = 0; i < 63; ++i)
+		for (T i = 0; i < 64; ++i)
 		{
 			if (v == 0)
 				return i;
@@ -242,8 +242,8 @@ namespace Nabo
 			return;
 		}
 		
-		const uint32_t maxNodeCount((1 << (32-dimBitCount)) - 1);
-		const uint32_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
+		const uint64_t maxNodeCount((1 << (32-dimBitCount)) - 1);
+		const uint64_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
 		if (estimatedNodeCount > maxNodeCount)
 		{
 			throw runtime_error((boost::format("Cloud has a risk to have more nodes (%1%) than the kd-tree allows (%2%). The kd-tree has %3% bits for dimensions and %4% bits for node indices") % estimatedNodeCount % maxNodeCount % dimBitCount % (32-dimBitCount)).str());
