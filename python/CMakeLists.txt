@@ -1,6 +1,10 @@
-find_package(PythonLibs)
+# find Python, make sure we use the same version for interpreter and libraries
 find_package(PythonInterp)
+message(${PYTHON_VERSION_STRING})
+set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
+find_package(PythonLibs)
 
+# helper function to search for a module
 function(find_python_module module)
 	string(TOUPPER ${module} module_upper)
 	if(NOT PY_${module_upper})
@@ -21,6 +25,7 @@ function(find_python_module module)
 	endif(NOT PY_${module_upper})
 endfunction(find_python_module)
 
+# make sure we have the right modules
 if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 	message("Python libs and executable found, looking for numpy and boost::python")
 	find_package(Boost COMPONENTS python)
