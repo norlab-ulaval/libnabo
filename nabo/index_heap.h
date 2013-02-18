@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <iostream>
 
 /*!	\file index_heap.h
 	\brief implementation of index heaps
@@ -63,7 +64,7 @@ namespace Nabo
 			
 			//! create a new entry
 			Entry(const IT index, const VT value): index(index), value(value) {}
-			//! return true if e0 is smaller than e1, false otherwise
+			//! return true if e0 is of lower value than e1, false otherwise
 			friend bool operator<(const Entry& e0, const Entry& e1) { return e0.value < e1.value; }
 		};
 		//! vector of entry, type for the storage of the tree
@@ -76,39 +77,50 @@ namespace Nabo
 		//! storage for the tree
 		Entries data;
 		//! reference to the largest value in the tree, to optimise access speed
-		const VT& headValueRef;
-		//! iterator to the insertion position in the tree, to optimise access speed
-		const typename Entries::iterator insertIt;
+		VT* headValuePtr;
+		//! number of neighbors requested
+		size_t nb_neighbors;
+
 		
 		//! Constructor
 		/*! \param size number of elements in the heap */
 		IndexHeapSTL(const size_t size):
-			data(size, Entry(0, std::numeric_limits<VT>::infinity())),
-			headValueRef(data.begin()->value),
-			insertIt(data.end() - 1)
+			data(1, Entry(0, std::numeric_limits<VT>::infinity())),
+			headValuePtr(0),
+			nb_neighbors(size)
 		{
-			std::make_heap(data.begin(), data.end());
+			data.reserve(size);
+			headValuePtr = &(data.begin()->value);
 		}
 		
 		//! reset to the empty heap
 		inline void reset()
 		{
-			std::fill(data.begin(), data.end(), Entry(0, std::numeric_limits<VT>::infinity()));
-			std::make_heap(data.begin(), data.end());
+			// reserve and stuff should be useless
+			data.resize(1, Entry(0, std::numeric_limits<VT>::infinity()));
+			data[0] = Entry(0, std::numeric_limits<VT>::infinity());
 		}
 		
 		//! get the largest value of the heap
-		/** \return the smallest value in the heap */
-		inline const VT& headValue() const { return headValueRef; }
+		/** \return the largest value in the heap */
+		inline const VT& headValue() const { return *headValuePtr; }
 		
-		//! replace the largest value of the heap
+		//! put value into heap, replace the largest value if full
 		/** \param index new point index
 		 * 	\param value new distance value */
 		inline void replaceHead(const Index index, const Value value)
 		{
-			std::pop_heap(data.begin(), data.end());
-			insertIt->index = index;
-			insertIt->value = value;
+
+			if (data.size() == nb_neighbors)
+			{	// we have enough neighbors to discard largest
+				pop_heap(data.begin(), data.end());
+				data.back() = Entry(index, value);
+			}
+			else
+			{	// missing neighbors
+				data.push_back(Entry(index, value));
+			}
+			// ensure heap
 			push_heap(data.begin(), data.end());
 		}
 		
@@ -128,10 +140,16 @@ namespace Nabo
 			// C++0x will solve this with rvalue
 			// see: http://eigen.tuxfamily.org/dox-devel/TopicFunctionTakingEigenTypes.html
 			// for more informations
-			for (size_t i = 0; i < data.size(); ++i)
+			size_t i = 0;
+			for (; i < data.size(); ++i)
 			{
 				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = data[i].index;
 				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = data[i].value;
+			}
+			for (; i < nb_neighbors; ++i)
+			{
+				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = 0;
+				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = std::numeric_limits<VT>::infinity();
 			}
 		}
 		
@@ -140,9 +158,12 @@ namespace Nabo
 		/** \return the indices */
 		inline IndexVector getIndexes() const
 		{
-			IndexVector indexes(data.size());
-			for (size_t i = 0; i < data.size(); ++i)
+			IndexVector indexes(data.capacity());
+			size_t i = 0;
+			for (; i < data.size(); ++i)
 				indexes.coeffRef(i) = data[i].index;
+			for (; i < data.capacity(); ++i)
+				indexes.coeffRef(i) = 0;
 			return indexes;
 		}
 #endif
