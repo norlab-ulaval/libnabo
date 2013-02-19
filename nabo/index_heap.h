@@ -77,7 +77,7 @@ namespace Nabo
 		//! storage for the tree
 		Entries data;
 		//! number of neighbours requested
-		size_t nbNeighbours;
+		const size_t nbNeighbours;
 
 		
 		//! Constructor
