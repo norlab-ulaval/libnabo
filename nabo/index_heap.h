@@ -76,34 +76,29 @@ namespace Nabo
 		
 		//! storage for the tree
 		Entries data;
-		//! reference to the largest value in the tree, to optimise access speed
-		VT* headValuePtr;
-		//! number of neighbors requested
-		size_t nb_neighbors;
+		//! number of neighbours requested
+		size_t nbNeighbours;
 
 		
 		//! Constructor
 		/*! \param size number of elements in the heap */
 		IndexHeapSTL(const size_t size):
 			data(1, Entry(0, std::numeric_limits<VT>::infinity())),
-			headValuePtr(0),
-			nb_neighbors(size)
+			nbNeighbours(size)
 		{
 			data.reserve(size);
-			headValuePtr = &(data.begin()->value);
 		}
 		
 		//! reset to the empty heap
 		inline void reset()
 		{
-			// reserve and stuff should be useless
-			data.resize(1, Entry(0, std::numeric_limits<VT>::infinity()));
-			data[0] = Entry(0, std::numeric_limits<VT>::infinity());
+			data.clear();
+			data.push_back(Entry(0, std::numeric_limits<VT>::infinity()));
 		}
 		
 		//! get the largest value of the heap
 		/** \return the largest value in the heap */
-		inline const VT& headValue() const { return *headValuePtr; }
+		inline const VT& headValue() const { return data.front().value; }
 		
 		//! put value into heap, replace the largest value if full
 		/** \param index new point index
@@ -111,13 +106,13 @@ namespace Nabo
 		inline void replaceHead(const Index index, const Value value)
 		{
 
-			if (data.size() == nb_neighbors)
-			{	// we have enough neighbors to discard largest
+			if (data.size() == nbNeighbours)
+			{	// we have enough neighbours to discard largest
 				pop_heap(data.begin(), data.end());
 				data.back() = Entry(index, value);
 			}
 			else
-			{	// missing neighbors
+			{	// missing neighbours
 				data.push_back(Entry(index, value));
 			}
 			// ensure heap
@@ -146,7 +141,7 @@ namespace Nabo
 				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = data[i].index;
 				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = data[i].value;
 			}
-			for (; i < nb_neighbors; ++i)
+			for (; i < nbNeighbours; ++i)
 			{
 				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = 0;
 				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = std::numeric_limits<VT>::infinity();
