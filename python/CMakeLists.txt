@@ -1,6 +1,6 @@
 # find Python, make sure we use the same version for interpreter and libraries
 find_package(PythonInterp)
-message(${PYTHON_VERSION_STRING})
+message("Python version from interpreter is ${PYTHON_VERSION_STRING}")
 set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
 find_package(PythonLibs)
 
