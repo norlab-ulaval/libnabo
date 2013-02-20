@@ -297,7 +297,7 @@ namespace Nabo
 		 *	\param indices indices of nearest neighbours, must be of size k
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k
 		 *	\param k number of nearest neighbour requested
-		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
+		 *	\param epsilon maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\param maxRadius maximum radius in which to search, can be used to prune search, is not affected by epsilon
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
@@ -310,7 +310,7 @@ namespace Nabo
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
 		 *	\param k number of nearest neighbour requested
-		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
+		 *	\param epsilon maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\param maxRadius maximum radius in which to search, can be used to prune search, is not affected by epsilon
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
@@ -324,7 +324,7 @@ namespace Nabo
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
 		 *	\param maxRadii vector of maximum radii in which to search, used to prune search, is not affected by epsilon
 		 *	\param k number of nearest neighbour requested
-		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
+		 *	\param epsilon maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
