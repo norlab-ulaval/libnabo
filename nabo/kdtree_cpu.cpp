@@ -60,7 +60,7 @@ namespace Nabo
 	template<typename T>
 	T getStorageBitCount(T v)
 	{
-		for (T i = 0; i < 63; ++i)
+		for (T i = 0; i < 64; ++i)
 		{
 			if (v == 0)
 				return i;
@@ -242,8 +242,8 @@ namespace Nabo
 			return;
 		}
 		
-		const uint32_t maxNodeCount((1 << (32-dimBitCount)) - 1);
-		const uint32_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
+		const uint64_t maxNodeCount((1 << (32-dimBitCount)) - 1);
+		const uint64_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
 		if (estimatedNodeCount > maxNodeCount)
 		{
 			throw runtime_error((boost::format("Cloud has a risk to have more nodes (%1%) than the kd-tree allows (%2%). The kd-tree has %3% bits for dimensions and %4% bits for node indices") % estimatedNodeCount % maxNodeCount % dimBitCount % (32-dimBitCount)).str());
@@ -266,12 +266,8 @@ namespace Nabo
 		}
 		
 		// create nodes
-		//nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), minBound, maxBound);
 		buildPoints.clear();
-		//for (size_t i = 0; i < nodes.size(); ++i)
-		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
-		
 	}
 	
 	template<typename T, typename Heap>
@@ -279,53 +275,91 @@ namespace Nabo
 	{
 		checkSizesKnn(query, indices, dists2, k);
 		
-		IndexMatrix result(k, query.cols());
-		unsigned long leafTouchedCount(0);
-
-#pragma omp parallel 
-		{
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
 		const T maxRadius2(maxRadius * maxRadius);
-
+		const T maxError2((1+epsilon)*(1+epsilon));
+		const int colCount(query.cols());
 		
 		assert(nodes.size() > 0);
+
+		IndexMatrix result(k, query.cols());
+		unsigned long leafTouchedCount(0);
+
+#pragma omp parallel 
+		{		
+
 		Heap heap(k);
-		
 		std::vector<T> off(dim, 0);
-		
-		const int colCount(query.cols());
 
 #pragma omp for reduction(+:leafTouchedCount) schedule(guided,32)
 		for (int i = 0; i < colCount; ++i)
 		{
-       		        T maxError2 = (1+epsilon)*(1+epsilon);
-			fill(off.begin(), off.end(), 0);
-			heap.reset();
-			
-			if (allowSelfMatch)
-			{
-				if (collectStatistics)
-					leafTouchedCount += recurseKnn<true, true>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
-				else
-					recurseKnn<true, false>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
-			}
-			else
-			{
-				if (collectStatistics)
-					leafTouchedCount += recurseKnn<false, true>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
-				else
-					recurseKnn<false, false>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
-			}
-			
-			if (sortResults)
-				heap.sort();
-			
-			heap.getData(indices.col(i), dists2.col(i));
+			leafTouchedCount += onePointKnn(query, indices, dists2, i, heap, off, maxError2, maxRadius2, allowSelfMatch, collectStatistics, sortResults);
 		}
+		}
+		return leafTouchedCount;
+	}
+	
+	template<typename T, typename Heap>
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	{
+		checkSizesKnn(query, indices, dists2, k, &maxRadii);
+		
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
+		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
+		const T maxError2((1+epsilon)*(1+epsilon));
+		const int colCount(query.cols());
+		
+		assert(nodes.size() > 0);
+		IndexMatrix result(k, query.cols());
+		unsigned long leafTouchedCount(0);
 
+#pragma omp parallel 
+		{		
+
+		Heap heap(k);
+		std::vector<T> off(dim, 0);
+		
+#pragma omp for reduction(+:leafTouchedCount) schedule(guided,32)
+		for (int i = 0; i < colCount; ++i)
+		{
+			const T maxRadius(maxRadii[i]);
+			const T maxRadius2(maxRadius * maxRadius);
+			leafTouchedCount += onePointKnn(query, indices, dists2, i, heap, off, maxError2, maxRadius2, allowSelfMatch, collectStatistics, sortResults);
 		}
+		}
+		return leafTouchedCount;
+	}
+	
+	template<typename T, typename Heap>
+	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::onePointKnn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, int i, Heap& heap, std::vector<T>& off, const T maxError2, const T maxRadius2, const bool allowSelfMatch, const bool collectStatistics, const bool sortResults) const
+	{
+		fill(off.begin(), off.end(), 0);
+		heap.reset();
+		unsigned long leafTouchedCount(0);
+		
+		if (allowSelfMatch)
+		{
+			if (collectStatistics)
+				leafTouchedCount += recurseKnn<true, true>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
+			else
+				recurseKnn<true, false>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
+		}
+		else
+		{
+			if (collectStatistics)
+				leafTouchedCount += recurseKnn<false, true>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
+			else
+				recurseKnn<false, false>(&query.coeff(0, i), 0, 0, heap, off, maxError2, maxRadius2);
+		}
+		
+		if (sortResults)
+			heap.sort();
+		
+		heap.getData(indices.col(i), dists2.col(i));
 		return leafTouchedCount;
 	}
 	
@@ -334,6 +368,7 @@ namespace Nabo
 	{
 		const Node& node(nodes[n]);
 		const uint32_t cd(getDim(node.dimChildBucketSize));
+		
 		if (cd == uint32_t(dim))
 		{
 			//cerr << "entering bucket " << node.bucket << endl;

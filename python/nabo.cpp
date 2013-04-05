@@ -186,7 +186,7 @@ BOOST_PYTHON_MODULE(pynabo)
 			"Arguments:\n"
 			"    query -- query points, must be a numpy array\n"
 			"    k -- number of nearest neighbour requested, default: 1\n"
-			"    epsilon -- maximal percentage of error for approximate search, 0 for exact search, default: 0.\n"
+			"    epsilon -- maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested; default: 0.\n"
 			"    optionFlags -- search options, a bitwise OR of elements of SearchOptionFlags, default: 0\n"
 			"    maxRadius -- maximum radius in which to search, can be used to prune search, is not affected by epsilon, default: inf\n\n"
 			"Returns:\n"

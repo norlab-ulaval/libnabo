@@ -63,17 +63,25 @@ namespace Nabo
 	template<typename T>
 	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
-		checkSizesKnn(query, indices, dists2, k);
+		const Vector maxRadii(Vector::Constant(query.cols(), maxRadius));
+		return knn(query, indices, dists2, maxRadii, k, epsilon, optionFlags);
+	}
+	
+	template<typename T>
+	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	{
+		checkSizesKnn(query, indices, dists2, k, &maxRadii);
 		
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
-		const T maxRadius2(maxRadius * maxRadius);
 		
 		IndexHeapSTL<Index, T> heap(k);
 		
 		for (int c = 0; c < query.cols(); ++c)
 		{
+			const T maxRadius(maxRadii[c]);
+			const T maxRadius2(maxRadius * maxRadius);
 			const Vector& q(query.block(0,c,dim,1));
 			heap.reset();
 			for (int i = 0; i < this->cloud.cols(); ++i)

@@ -19,10 +19,10 @@ The source code is available from github, you can clone the git tree by doing:
 
 	git clone git://github.com/ethz-asl/libnabo.git
 
-You can then checkout a specific branch, for instance to checkout version 1.0.0, do:
+You can then checkout a specific branch, for instance to checkout version 1.0.2, do:
 
 	cd libnabo
-	git checkout 1.0.0
+	git checkout 1.0.2
 
 Compilation
 ===========
@@ -43,7 +43,6 @@ Compilation options
 libnabo provides the following compilation options, available through [CMake]:
 
  * `SHARED_LIBS` (boolean, default: `false`): if `true`, build a shared library, otherwise build a static library
- * `USE_OPEN_CL` (boolean, default: `false`): if `true`, enable experimental OpenCL support
 
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
@@ -117,6 +116,22 @@ Just type:
 Their outputs are available in the `Testing` directory.
 These consist of validation and benchmarking tests.
 If [ANN] or [FLANN] are detected when compiling libnabo, `make test` will also perform comparative benchmarks.
+
+Citing libnabo
+==============
+
+If you use libnabo in the academic context, please cite this paper that evaluates its performances in the contex of ICP:
+
+	@article{elsebergcomparison,
+		title={Comparison of nearest-neighbor-search strategies and implementations for efficient shape registration},
+		author={Elseberg, J. and Magnenat, S. and Siegwart, R. and N{\"u}chter, A.},
+		journal={Journal of Software Engineering for Robotics (JOSER)},
+		pages={2--12},
+		volume={3},
+		number={1},
+		year={2012},
+		issn={2035-3928}
+	}
 
 
 Bug reporting

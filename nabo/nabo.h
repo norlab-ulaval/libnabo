@@ -52,7 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*!
 \mainpage libnabo
 
-from http://github.com/stephanemagnenat/libnabo by Stéphane Magnenat (http://stephane.magnenat.net),
+from http://github.com/ethz-asl/libnabo by Stéphane Magnenat (http://stephane.magnenat.net),
 ASL-ETHZ, Switzerland (http://www.asl.ethz.ch)
 
 libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
@@ -79,7 +79,6 @@ If your operating system does not provide it, you must get \ref Eigen and \ref B
 
 libnabo provides the following compilation options, available through \ref CMake :
  - \c SHARED_LIBS (boolean, default: \c false): if \c true, build a shared library, otherwise build a static library
- - \c USE_OPEN_CL (boolean, default: \c false): if \c true, enable experimental OpenCL support
 
 You specify them with a command-line tool, \c ccmake, or with a graphical tool, \c cmake-gui.
 Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMake documentation</a> for more information.
@@ -143,6 +142,21 @@ Their outputs are available in the \c Testing directory.
 These consist of validation and benchmarking tests.
 If \ref ANN is detected when compiling libnabo, \c make \c test will also perform comparative benchmarks.
 
+\section Citing Citing libnabo
+
+If you use libnabo in the academic context, please cite this paper that evaluates its performances in the contex of ICP:
+\code
+@article{elsebergcomparison,
+	title={Comparison of nearest-neighbor-search strategies and implementations for efficient shape registration},
+	author={Elseberg, J. and Magnenat, S. and Siegwart, R. and N{\"u}chter, A.},
+	journal={Journal of Software Engineering for Robotics (JOSER)},
+	pages={2--12},
+	volume={3},
+	number={1},
+	year={2012},
+	issn={2035-3928}
+}
+\endcode
 
 \section BugReporting Bug reporting
 
@@ -196,9 +210,9 @@ namespace Nabo
 	//@{
 	
 	//! version of the Nabo library as string
-	#define NABO_VERSION "1.0.1"
+	#define NABO_VERSION "1.0.2"
 	//! version of the Nabo library as an int
-	#define NABO_VERSION_INT "10001"
+	#define NABO_VERSION_INT 10002
 	
 	//! Parameter vector
 	struct Parameters: public std::map<std::string, boost::any>
@@ -285,12 +299,12 @@ namespace Nabo
 		};
 		
 		//! Find the k nearest neighbours of query
-		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0.
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0. If you must query more than one point at once, use the version of the knn() function taking matrices as input, because it is much faster.
 		 *	\param query query point
 		 *	\param indices indices of nearest neighbours, must be of size k
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k
 		 *	\param k number of nearest neighbour requested
-		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
+		 *	\param epsilon maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\param maxRadius maximum radius in which to search, can be used to prune search, is not affected by epsilon
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
@@ -303,12 +317,25 @@ namespace Nabo
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
 		 *	\param k number of nearest neighbour requested
-		 *	\param epsilon maximal percentage of error for approximate search, 0 for exact search
+		 *	\param epsilon maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested
 		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
 		 *	\param maxRadius maximum radius in which to search, can be used to prune search, is not affected by epsilon
 		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
 		 */
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0, const T maxRadius = std::numeric_limits<T>::infinity()) const = 0;
+		
+		//! Find the k nearest neighbours for each point of query
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with 0.
+		 *	\param query query points
+		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
+		 *	\param maxRadii vector of maximum radii in which to search, used to prune search, is not affected by epsilon
+		 *	\param k number of nearest neighbour requested
+		 *	\param epsilon maximal ratio of error for approximate search, 0 for exact search; has no effect if the number of neighbour found is smaller than the number requested
+		 *	\param optionFlags search options, a bitwise OR of elements of SearchOptionFlags
+		 *	\return if creationOptionFlags contains TOUCH_STATISTICS, return the number of point touched, otherwise return 0
+		 */
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const = 0;
 		
 		//! Create a nearest-neighbour search
 		/*!	\param cloud data-point cloud in which to search
@@ -356,8 +383,9 @@ namespace Nabo
 		/*!	\param query query points
 		 *	\param k number of nearest neighbour requested
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
-		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() */
-		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k) const;
+		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
+			\param maxRadii if non 0, maximum radii, must be of size k */
+		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const Vector* maxRadii = 0) const;
 	};
 	
 	// Convenience typedefs
