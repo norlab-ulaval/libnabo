@@ -145,6 +145,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(knn_overloads, knn, 1, 5)
 
 BOOST_PYTHON_MODULE(pynabo)
 {
+        Py_Initialize();
 	import_array();
 	
 	enum_<SearchType>("SearchType", "Type of algorithm used for search.")

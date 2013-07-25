@@ -75,7 +75,7 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 
 # include all libs so far
 include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
-set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
+#set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
 
 
 # main nabo lib
@@ -85,7 +85,7 @@ set(NABO_SRC
 	nabo/kdtree_cpu.cpp
 	nabo/kdtree_opencl.cpp
 )
-set(SHARED_LIBS "true" CACHE BOOL "To build shared (true) or static (false) library")
+set(SHARED_LIBS "false" CACHE BOOL "To build shared (true) or static (false) library")
 if (SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
