@@ -90,7 +90,7 @@ else(SHARED_LIBS)
 	add_library(${LIB_NAME} ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
 endif(SHARED_LIBS)
-set_target_properties(${LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
+set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
