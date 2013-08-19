@@ -273,7 +273,7 @@ namespace Nabo
 	template<typename T, typename Heap>
 	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
-		checkSizesKnn(query, indices, dists2, k);
+		checkSizesKnn(query, indices, dists2, k, optionFlags);
 		
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
@@ -298,7 +298,7 @@ namespace Nabo
 	template<typename T, typename Heap>
 	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
 	{
-		checkSizesKnn(query, indices, dists2, k, &maxRadii);
+		checkSizesKnn(query, indices, dists2, k, optionFlags, &maxRadii);
 		
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);

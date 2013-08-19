@@ -54,7 +54,10 @@ namespace Nabo
 		minBound(Vector::Constant(this->dim, numeric_limits<T>::max())),
 		maxBound(Vector::Constant(this->dim, numeric_limits<T>::min()))
 	{
-		
+		if (cloud.cols() == 0)
+			throw runtime_error("Cloud has no points");
+		if (cloud.rows() == 0)
+			throw runtime_error("Cloud has 0 dimensions");
 	}
 	
 	template<typename T>
@@ -78,8 +81,19 @@ namespace Nabo
 	}
 	
 	template<typename T>
-	void NearestNeighbourSearch<T>::checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const Vector* maxRadii) const
+	void NearestNeighbourSearch<T>::checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const unsigned optionFlags, const Vector* maxRadii) const
 	{
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		if (allowSelfMatch)
+		{
+			if (k > cloud.cols())
+				throw runtime_error((boost::format("Requesting more points (%1%) than available in cloud (%2%)") % k % cloud.cols()).str());
+		}
+		else
+		{
+			if (k > cloud.cols()-1)
+				throw runtime_error((boost::format("Requesting more points (%1%) than available in cloud minus 1 (%2%) (as self match is forbidden)") % k % (cloud.cols()-1)).str());
+		}
 		if (query.rows() < dim)
 			throw runtime_error((boost::format("Query has less dimensions (%1%) than requested for cloud (%2%)") % query.rows() % dim).str());
 		if (indices.rows() != k)
