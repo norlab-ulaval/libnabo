@@ -52,9 +52,9 @@ else (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 endif (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 
 check_symbol_exists(_POSIX_TIMERS "unistd.h;time.h" POSIX_TIMERS)
-if (POSIX_TIMERS)
+if (POSIX_TIMERS AND NOT APPLE)
 	set(EXTRA_LIBS ${EXTRA_LIBS} rt)
-endif (POSIX_TIMERS)
+endif (POSIX_TIMERS AND NOT APPLE)
 
 include_directories(..)
 
