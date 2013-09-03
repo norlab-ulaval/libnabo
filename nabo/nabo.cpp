@@ -106,6 +106,9 @@ namespace Nabo
 			throw runtime_error((boost::format("Distance matrix has a different number of columns (%1%) than query (%2%)") % dists2.rows() % query.cols()).str());
 		if (maxRadii && (maxRadii->size() != query.cols()))
 			throw runtime_error((boost::format("Maximum radii vector has not the same length (%1%) than query has columns (%2%)") % maxRadii->size() % k).str());
+		const unsigned maxOptionFlagsValue(ALLOW_SELF_MATCH|SORT_RESULTS);
+		if (optionFlags > maxOptionFlagsValue)
+			throw runtime_error((boost::format("OR-ed value of option flags (%1%) is larger than maximal valid value (%2%)") % optionFlags % maxOptionFlagsValue).str());
 	}
 	
 	
