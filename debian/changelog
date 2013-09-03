@@ -1,3 +1,9 @@
+libnabo (1.0.4) precise; urgency=low
+
+  * Latest upstream
+
+ -- Stéphane Magnenat <stephane@nospam.magnenat.net>  Tue, 03 Sep 2013 14:01:26 +0200
+
 libnabo (1.0.1) natty; urgency=low
 
   * Latest upstream (including python bindings)
