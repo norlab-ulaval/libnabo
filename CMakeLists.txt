@@ -103,7 +103,7 @@ install(FILES nabo/nabo.h DESTINATION include/nabo)
 install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
 if (DOXYGEN_FOUND)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${DOC_INSTALL_TARGET})
-endif()
+endif(DOXYGEN_FOUND)
 
 enable_testing()
 
