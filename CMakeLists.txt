@@ -8,9 +8,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 execute_process(
 	COMMAND grep "NABO_VERSION " nabo/nabo.h
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	RESULT_VARIABLE GREP_VERSION_RESULT
 	OUTPUT_VARIABLE PROJECT_VERSION
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+if (NOT GREP_VERSION_RESULT EQUAL 0)
+	message(SEND_ERROR "Cannot grep version number: ${GREP_VERSION_RESULT}")
+endif (NOT GREP_VERSION_RESULT EQUAL 0)
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
 
 # Documentation
@@ -93,14 +97,16 @@ else(SHARED_LIBS)
 	add_library(${LIB_NAME} ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
 endif(SHARED_LIBS)
-set_target_properties(${LIB_NAME} PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
+set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 add_dependencies(${LIB_NAME} doc)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
 install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${DOC_INSTALL_TARGET})
+if (DOXYGEN_FOUND)
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${DOC_INSTALL_TARGET})
+endif(DOXYGEN_FOUND)
 
 enable_testing()
 

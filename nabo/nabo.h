@@ -210,9 +210,9 @@ namespace Nabo
 	//@{
 	
 	//! version of the Nabo library as string
-	#define NABO_VERSION "1.0.2"
+	#define NABO_VERSION "1.0.4"
 	//! version of the Nabo library as an int
-	#define NABO_VERSION_INT 10002
+	#define NABO_VERSION_INT 10004
 	
 	//! Parameter vector
 	struct Parameters: public std::map<std::string, boost::any>
@@ -384,8 +384,9 @@ namespace Nabo
 		 *	\param k number of nearest neighbour requested
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
+		 *	\param optionFlags the options passed to knn()
 			\param maxRadii if non 0, maximum radii, must be of size k */
-		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const Vector* maxRadii = 0) const;
+		void checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const unsigned optionFlags, const Vector* maxRadii = 0) const;
 	};
 	
 	// Convenience typedefs
