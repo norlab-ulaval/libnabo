@@ -145,7 +145,7 @@ namespace Nabo
 			try {
 				context = cl::Context(deviceType, properties);
 				deviceFound = true;
-			} catch (cl::Error e) {
+			} catch (const cl::Error& e) {
 				cerr << "Cannot find device type " << deviceType << " for OpenCL, falling back to any device" << endl;
 			}
 			if (!deviceFound)
