@@ -125,6 +125,8 @@ typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNei
 #ifdef __MACH__
 #include <mach/clock.h>
 #include <mach/mach.h>
+#else
+#include <time.h>
 #endif
 
 #ifdef _POSIX_TIMERS 
