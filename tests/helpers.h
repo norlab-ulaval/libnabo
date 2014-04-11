@@ -125,6 +125,8 @@ typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNei
 #ifdef __MACH__
 #include <mach/clock.h>
 #include <mach/mach.h>
+#else
+#include <time.h>
 #endif
 
 #ifdef _POSIX_TIMERS 
@@ -155,7 +157,11 @@ namespace boost
 			mach_port_deallocate(mach_task_self(), cclock);
 			#else
 			struct timespec ts;
+			#ifdef CLOCK_PROCESS_CPUTIME_ID
 			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+			#else // BSD and old Linux
+			clock_gettime(CLOCK_PROF, &ts);
+			#endif
 			#endif
 			return Time(ts.tv_sec) * Time(1000000000) + Time(ts.tv_nsec);
 		}
