@@ -110,3 +110,6 @@ enable_testing()
 add_subdirectory(examples)
 add_subdirectory(tests)
 add_subdirectory(python)
+
+# Install catkin package.xml
+install(FILES package.xml DESTINATION share/libnabo)
