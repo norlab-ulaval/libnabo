@@ -96,6 +96,9 @@ else(SHARED_LIBS)
 endif(SHARED_LIBS)
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
+export(TARGETS ${LIB_NAME}
+  FILE "${PROJECT_BINARY_DIR}/libnaboTargets.cmake")
+
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 add_dependencies(${LIB_NAME} doc)
@@ -113,3 +116,19 @@ add_subdirectory(python)
 
 # Install catkin package.xml
 install(FILES package.xml DESTINATION share/libnabo)
+
+# Create cmake configure scripts so other packages can find libnabo
+get_property(libnabo_library TARGET ${LIB_NAME} PROPERTY LOCATION)
+set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
+
+configure_file(libnaboConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/libnaboConfig.cmake" @ONLY)
+configure_file(libnaboConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake" @ONLY)
+
+install(FILES
+  "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
+  "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake"
+  "${PROJECT_BINARY_DIR}/libnaboTargets.cmake"
+  DESTINATION share/libnabo/cmake COMPONENT dev)
+
