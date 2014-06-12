@@ -2,8 +2,8 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.5 (2014-06-12)
+------------------
 * Added configure scripts for full catkinization
 * Catkinization of libnabo (following REP136)
 * Update README.md
