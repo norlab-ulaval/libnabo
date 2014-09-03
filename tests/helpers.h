@@ -140,7 +140,7 @@ namespace boost
 	*/
 	struct timer
 	{
-		typedef unsigned long long Time;
+		typedef uint64_t Time;
 		
 		timer():_start_time(curTime()){ } 
 		void restart() { _start_time = curTime(); }
