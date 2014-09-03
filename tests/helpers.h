@@ -37,6 +37,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <fstream>
 
+#ifdef BOOST_STDINT
+	#include <boost/cstdint.hpp>
+	using boost::uint64_t;
+#else // BOOST_STDINT
+	#include <stdint.h>
+#endif // BOOST_STDINT
+
 using namespace std;
 using namespace Nabo;
 
