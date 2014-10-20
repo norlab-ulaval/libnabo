@@ -33,7 +33,11 @@ endif(MSVC AND (MSVC_VERSION LESS 1600))
 # openmp
 find_package(OpenMP)
 if (OPENMP_FOUND)
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+  add_definitions(-fopenmp)
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+  if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
+  endif()
 endif(OPENMP_FOUND)
 
 # eigen 2 or 3
@@ -44,7 +48,6 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 	/usr/include/eigen3
 	/usr/include/eigen2
 	/usr/include/eigen
-	/opt/ros/diamondback/stacks/geometry/eigen/include
 	/opt/local/include/eigen3
 )
 
@@ -95,9 +98,13 @@ if (SHARED_LIBS)
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
 else(SHARED_LIBS)
 	add_library(${LIB_NAME} ${NABO_SRC})
+	add_definitions(-fPIC)
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
 endif(SHARED_LIBS)
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
+
+export(TARGETS ${LIB_NAME}
+  FILE "${PROJECT_BINARY_DIR}/libnaboTargets.cmake")
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
@@ -113,3 +120,22 @@ enable_testing()
 add_subdirectory(examples)
 add_subdirectory(tests)
 add_subdirectory(python)
+
+# Install catkin package.xml
+install(FILES package.xml DESTINATION share/libnabo)
+
+# Create cmake configure scripts so other packages can find libnabo
+get_property(libnabo_library TARGET ${LIB_NAME} PROPERTY LOCATION)
+set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
+
+configure_file(libnaboConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/libnaboConfig.cmake" @ONLY)
+configure_file(libnaboConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake" @ONLY)
+
+install(FILES
+  "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
+  "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake"
+  "${PROJECT_BINARY_DIR}/libnaboTargets.cmake"
+  DESTINATION share/libnabo/cmake COMPONENT dev)
+

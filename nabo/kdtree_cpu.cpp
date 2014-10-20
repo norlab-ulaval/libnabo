@@ -242,7 +242,7 @@ namespace Nabo
 			return;
 		}
 		
-		const uint64_t maxNodeCount((1 << (32-dimBitCount)) - 1);
+		const uint64_t maxNodeCount((0x1ULL << (32-dimBitCount)) - 1);
 		const uint64_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
 		if (estimatedNodeCount > maxNodeCount)
 		{

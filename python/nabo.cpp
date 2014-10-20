@@ -191,7 +191,7 @@ BOOST_PYTHON_MODULE(pynabo)
 			"    optionFlags -- search options, a bitwise OR of elements of SearchOptionFlags, default: 0\n"
 			"    maxRadius -- maximum radius in which to search, can be used to prune search, is not affected by epsilon, default: inf\n\n"
 			"Returns:\n"
-			"    A tuple of two 2D numpy arrays, the first containing indices to points in data, the other containing distances."
+			"    A tuple of two 2D numpy arrays, the first containing indices to points in data, the other containing squared distances."
 		)
 	)
 	;
