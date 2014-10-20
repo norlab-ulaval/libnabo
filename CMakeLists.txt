@@ -22,7 +22,6 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
-  add_definitions(-O3)
 else (NOT CMAKE_BUILD_TYPE)
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("\n=================================================================================")
@@ -31,6 +30,10 @@ else (NOT CMAKE_BUILD_TYPE)
     message("\n=================================================================================")
   endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif (NOT CMAKE_BUILD_TYPE)
+
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions(-O3)
+endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 # Documentation
 set(DOXYFILE_LATEX false)
