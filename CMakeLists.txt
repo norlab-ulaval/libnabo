@@ -33,7 +33,7 @@ endif(MSVC AND (MSVC_VERSION LESS 1600))
 # openmp
 find_package(OpenMP)
 if (OPENMP_FOUND)
-  add_definitions(-fopenmp)
+  add_definitions(-fopenmp -DHAVE_OPENMP)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
   if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(EXTRA_LIBS ${EXTRA_LIBS} gomp)

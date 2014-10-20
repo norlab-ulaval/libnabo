@@ -40,6 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
 #include <boost/format.hpp>
+#ifdef HAVE_OPENMP
+#include <omp.h>
+#endif
 
 /*!	\file kdtree_cpu.cpp
 	\brief kd-tree search, cpu implementation
