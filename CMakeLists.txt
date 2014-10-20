@@ -17,6 +17,24 @@ if (NOT GREP_VERSION_RESULT EQUAL 0)
 endif (NOT GREP_VERSION_RESULT EQUAL 0)
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
 
+if (NOT CMAKE_BUILD_TYPE)
+  message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+    FORCE)
+else (NOT CMAKE_BUILD_TYPE)
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("\n=================================================================================")
+    message("\n-- Build type: Debug. Performance will be terrible!")
+    message("-- Add -DCMAKE_BUILD_TYPE=Release to the CMake command line to get an optimized build.")
+    message("\n=================================================================================")
+  endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+endif (NOT CMAKE_BUILD_TYPE)
+
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions(-O3)
+endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+
 # Documentation
 set(DOXYFILE_LATEX false)
 include(UseDoxygen)
@@ -33,9 +51,9 @@ endif(MSVC AND (MSVC_VERSION LESS 1600))
 # openmp
 find_package(OpenMP)
 if (OPENMP_FOUND)
-  add_definitions(-fopenmp)
+  add_definitions(-fopenmp -DHAVE_OPENMP)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
-  if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if (CMAKE_COMPILER_IS_GNUCC)
     set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
   endif()
 endif(OPENMP_FOUND)
