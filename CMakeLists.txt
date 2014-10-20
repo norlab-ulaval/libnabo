@@ -49,10 +49,14 @@ if(MSVC AND (MSVC_VERSION LESS 1600))
 endif(MSVC AND (MSVC_VERSION LESS 1600))
 
 # openmp
-# find_package(OpenMP)
-# if (OPENMP_FOUND)
-# 	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
-# endif(OPENMP_FOUND)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+  add_definitions(-fopenmp -DHAVE_OPENMP)
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+  if (CMAKE_COMPILER_IS_GNUCC)
+    set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
+  endif()
+endif(OPENMP_FOUND)
 
 # eigen 2 or 3
 find_path(EIGEN_INCLUDE_DIR Eigen/Core
@@ -62,7 +66,7 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 	/usr/include/eigen3
 	/usr/include/eigen2
 	/usr/include/eigen
-	/opt/ros/diamondback/stacks/geometry/eigen/include
+	/opt/local/include/eigen3
 )
 
 # optionally, opencl
