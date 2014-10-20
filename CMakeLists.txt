@@ -55,7 +55,7 @@ if (OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
   if (CMAKE_COMPILER_IS_GNUCC)
     set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
-  endif()
+  endif(CMAKE_COMPILER_IS_GNUCC)
 endif(OPENMP_FOUND)
 
 # eigen 2 or 3
