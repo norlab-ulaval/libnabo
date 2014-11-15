@@ -19,6 +19,7 @@ remake_project(
 
 remake_add_directories(
   python
+  data
 )
 remake_doc(
   html
@@ -53,7 +54,7 @@ remake_distribute_deb(
   SECTION libs
   UPLOAD ppa:kralf/asl
   DEPENDS python-dev libgomp1 libboost-python-dev libeigen3-dev python-numpy
-    libann0-dev libflann-dev remake pkg-config doxygen
+    libann-dev libflann-dev remake pkg-config doxygen
   PASS CMAKE_BUILD_TYPE LIBNABO_GIT_REVISION
 )
 remake_distribute_deb(
@@ -61,7 +62,7 @@ remake_distribute_deb(
   SECTION libs
   UPLOAD ppa:kralf/asl
   DEPENDS python-dev libgomp1 libboost-python-dev libeigen3-dev python-numpy
-    libann0-dev libflann-dev remake pkg-config doxygen
+    libann-dev libflann-dev remake pkg-config doxygen
   PASS CMAKE_BUILD_TYPE LIBNABO_GIT_REVISION
 )
 remake_distribute_deb(
@@ -69,6 +70,6 @@ remake_distribute_deb(
   SECTION libs
   UPLOAD ppa:kralf/asl
   DEPENDS python-dev libgomp1 libboost-python-dev libeigen3-dev python-numpy
-    libann0-dev libflann-dev remake pkg-config doxygen
+    libann-dev libflann-dev remake pkg-config doxygen
   PASS CMAKE_BUILD_TYPE LIBNABO_GIT_REVISION
 )

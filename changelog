@@ -1,3 +1,10 @@
+libnabo (1.0.4-194) unstable; urgency=low
+
+  * Revised build dependencies
+  * Added test data
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Sat, 15 Nov 2014 08:05:00 +0200
+
 libnabo (1.0.4-193) unstable; urgency=low
 
   * ReMake build system port
