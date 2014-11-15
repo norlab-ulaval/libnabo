@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <boost/python.hpp>
 #include <numpy/arrayobject.h>
-#include "../nabo/nabo.h"
+#include <nabo/nabo.h>
 #include <iostream>
 #include <cassert>
 
@@ -143,7 +143,7 @@ protected:
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(knn_overloads, knn, 1, 5)
 
-BOOST_PYTHON_MODULE(pynabo)
+BOOST_PYTHON_MODULE(libpynabo)
 {
 	import_array();
 	

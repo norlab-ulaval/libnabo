@@ -1,0 +1,1195 @@
+libnabo (1.0.4-193) unstable; urgency=low
+
+  * ReMake build system port
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Sat, 15 Nov 2014 06:34:00 +0200
+
+libnabo (1.0.4-192) unstable; urgency=low
+
+  * Merge pull request #18 from jefferis/fix/no-cx11-warning
+  * Fix/no cx11 warning
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Tue, 21 Oct 2014 08:40:29 +0200
+
+libnabo (1.0.4-191) unstable; urgency=low
+
+  * Export gomp
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 16:26:58 +0200
+
+libnabo (1.0.4-190) unstable; urgency=low
+
+  * Merge pull request #20 from ethz-asl/feature/openmp
+  * Feature/openmp
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 11:24:13 +0200
+
+libnabo (1.0.4-189) unstable; urgency=low
+
+  * gomp for gcc
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 09:50:11 +0200
+
+libnabo (1.0.4-188) unstable; urgency=low
+
+  * default O3
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 09:34:40 +0200
+
+libnabo (1.0.4-187) unstable; urgency=low
+
+  * build type
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 09:26:28 +0200
+
+libnabo (1.0.4-186) unstable; urgency=low
+
+  * openmp header
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 09:25:11 +0200
+
+libnabo (1.0.4-185) unstable; urgency=low
+
+  * Add openmp support
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Mon, 20 Oct 2014 09:13:53 +0200
+
+libnabo (1.0.4-184) unstable; urgency=low
+
+  * ensure that uint64_t is available
+  * I missed this because on my setup Eigen/Core (which is included by
+    nabo.h)
+    ensures that this is available.
+
+ -- Gregory Jefferis <jefferis@gmail.com>  Wed, 03 Sep 2014 20:31:39 +0200
+
+libnabo (1.0.4-183) unstable; urgency=low
+
+  * STY: 3 more newlines at EOF
+  * missed because I forgot to make clean (ahem)
+
+ -- Gregory Jefferis <jefferis@gmail.com>  Wed, 03 Sep 2014 19:50:50 +0200
+
+libnabo (1.0.4-182) unstable; urgency=low
+
+  * STY: newlines at EOF
+  * clang -Wall -pedantic actually complains about these
+  * I no longer see any compiler warnings
+
+ -- Gregory Jefferis <jefferis@gmail.com>  Wed, 03 Sep 2014 19:27:35 +0200
+
+libnabo (1.0.4-181) unstable; urgency=low
+
+  * unsigned long long -> uint64_t
+  * apparently unsigned long long is a C++11 extension and is only guaranteed
+    to be >=64 bits
+  * so use uint64_t which exists since C99
+
+ -- Gregory Jefferis <jefferis@gmail.com>  Wed, 03 Sep 2014 19:25:56 +0200
+
+libnabo (1.0.4-180) unstable; urgency=low
+
+  * fix: terminal comma in enum requires C++11
+  * According to clang finishing an enum with a comma is a C++11 extension
+  * it doesn't seem worth a compiler warning for one comma!
+
+ -- Gregory Jefferis <jefferis@gmail.com>  Wed, 03 Sep 2014 19:12:42 +0200
+
+libnabo (1.0.4-179) unstable; urgency=low
+
+  * Fix UBSAN error calculating maxNodeCount
+  * should use an explicitly uint64 constant
+  * simplest is to use ULL suffix
+    (LLU is apparently standards compliant but not always supported)
+  * this came up because the nabor R package wrapping libnabo threw a UBSAN
+    error
+    for points with dimension = 1
+  * closes https://github.com/ethz-asl/libnabo/issues/16
+
+ -- Gregory Jefferis <jefferis@gmail.com>  Wed, 03 Sep 2014 19:04:50 +0200
+
+libnabo (1.0.4-178) unstable; urgency=low
+
+  * fixed tiny (yet significant) error in the Python doc strings
+
+ -- Gregory Hitz <hitzg@ethz.ch>  Fri, 22 Aug 2014 18:40:19 +0200
+
+libnabo (1.0.4-177) unstable; urgency=low
+
+  * Compile static lib with PIC
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Tue, 05 Aug 2014 14:48:08 +0200
+
+libnabo (1.0.4-176) unstable; urgency=low
+
+  * 1.0.5
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Thu, 12 Jun 2014 21:13:13 +0200
+
+libnabo (1.0.4-175) unstable; urgency=low
+
+  * Added ChangeLog
+
+ -- Simon Lynen <simon.lynen@mavt.ethz.ch>  Thu, 12 Jun 2014 21:12:55 +0200
+
+libnabo (1.0.4-174) unstable; urgency=low
+
+  * Added configure scripts for full catkinization
+
+ -- Paul Furgale <paul.furgale@gmail.com>  Mon, 12 May 2014 15:56:44 +0200
+
+libnabo (1.0.4-173) unstable; urgency=low
+
+  * Merge pull request #10 from fcolas/catkinization
+  * catkinization of libnabo (following REP136)
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 05 May 2014 18:35:29 +0200
+
+libnabo (1.0.4-172) unstable; urgency=low
+
+  * Update README.md
+  * Added Simon as the maintainer.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 29 Apr 2014 14:02:22 +0200
+
+libnabo (1.0.4-171) unstable; urgency=low
+
+  * removed comments in package.xml
+
+ -- Francis Colas <francis.colas@mavt.ethz.ch>  Wed, 23 Apr 2014 16:04:07 +0200
+
+libnabo (1.0.4-170) unstable; urgency=low
+
+  * catkin files
+
+ -- Francis Colas <francis.colas@mavt.ethz.ch>  Wed, 23 Apr 2014 13:30:53 +0200
+
+libnabo (1.0.4-169) unstable; urgency=low
+
+  * Merge pull request #8 from pierriko/fix-bsd-clock
+  [test] use CLOCK_PROF for NetBSD build
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 31 Mar 2014 09:28:56 +0200
+
+libnabo (1.0.4-168) unstable; urgency=low
+
+  [test] use CLOCK_PROF for NetBSD build
+
+ -- Pierrick Koch <pierrick.koch@gmail.com>  Thu, 27 Mar 2014 18:13:19 +0100
+
+libnabo (1.0.4-167) unstable; urgency=low
+
+  [test] include time.h for bsd build
+
+ -- Pierrick Koch <pierrick.koch@gmail.com>  Thu, 27 Mar 2014 16:43:39 +0100
+
+libnabo (1.0.4-166) unstable; urgency=low
+
+  * Fixed CppCheck warning.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Mar 2014 11:36:17 +0100
+
+libnabo (1.0.4-165) unstable; urgency=low
+
+  * Merge pull request #4 from c42f/master
+  * Fix broken install when doxygen is not found
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 12 Sep 2013 14:33:12 +0200
+
+libnabo (1.0.4-164) unstable; urgency=low
+
+  * Fix cmake stylistic issue
+
+ -- Chris Foster <chris42f@gmail.com>  Thu, 12 Sep 2013 14:25:02 +0200
+
+libnabo (1.0.4-163) unstable; urgency=low
+
+  * Make python install respect custom CMAKE_INSTALL_PREFIX
+
+ -- Chris Foster <chris42f@gmail.com>  Thu, 12 Sep 2013 13:37:37 +0200
+
+libnabo (1.0.4-162) unstable; urgency=low
+
+  * Fix broken install when doxygen is not found
+
+ -- Chris Foster <chris42f@gmail.com>  Thu, 12 Sep 2013 13:24:38 +0200
+
+libnabo (1.0.4-161) unstable; urgency=low
+
+  * Updated Debian version number.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 03 Sep 2013 14:02:16 +0200
+
+libnabo (1.0.4-160) unstable; urgency=low
+
+  * Added check for invalid optionFlags values.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 03 Sep 2013 14:00:51 +0200
+
+libnabo (1.0.4-159) unstable; urgency=low
+
+  * Fixed compilation on OS X, reduced code duplication in tests by moving
+    timers into helpers.h
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 03 Sep 2013 12:36:41 +0200
+
+libnabo (1.0.3-158) unstable; urgency=low
+
+  * Prevent requesting more points than available in the cloud, prevent
+    the use of empty clouds, bumped version number.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 19 Aug 2013 16:00:20 +0200
+
+libnabo (1.0.2-157) unstable; urgency=low
+
+  * Added test for grep.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 19 Aug 2013 13:56:54 +0200
+
+libnabo (1.0.2-156) unstable; urgency=low
+
+  * Worked around issue #3 on Windows.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 19 Aug 2013 13:46:40 +0200
+
+libnabo (1.0.2-155) unstable; urgency=low
+
+  * Updated documentation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 20 Feb 2013 14:08:29 +0100
+
+libnabo (1.0.2-154) unstable; urgency=low
+
+  * Updated version number.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 20 Feb 2013 09:54:05 +0100
+
+libnabo (1.0.1-153) unstable; urgency=low
+
+  * Added const
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 19 Feb 2013 11:17:16 +0100
+
+libnabo (1.0.1-152) unstable; urgency=low
+
+  * Merge branch 'master' of git://github.com/ethz-asl/libnabo into
+    HEAD
+
+ -- Francis Colas <francis.colas@mavt.ethz.ch>  Tue, 19 Feb 2013 10:54:43 +0100
+
+libnabo (1.0.1-151) unstable; urgency=low
+
+  * Removed useless optimisation, cleaned-up.
+
+ -- Francis Colas <francis.colas@mavt.ethz.ch>  Tue, 19 Feb 2013 10:54:19 +0100
+
+libnabo (1.0.1-150) unstable; urgency=low
+
+  * faster tree heap when less neighbors than requested
+
+ -- Francis Colas <francis.colas@mavt.ethz.ch>  Mon, 18 Feb 2013 19:25:07 +0100
+
+libnabo (1.0.1-149) unstable; urgency=low
+
+  * Fixed message.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 08 Feb 2013 10:50:01 +0100
+
+libnabo (1.0.1-148) unstable; urgency=low
+
+  * Hopefully fixed detection of missmatched python versions.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 08 Feb 2013 10:30:35 +0100
+
+libnabo (1.0.1-147) unstable; urgency=low
+
+  * Fixed cloud size check for clouds with billions of points.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 07 Feb 2013 21:49:48 +0100
+
+libnabo (1.0.1-146) unstable; urgency=low
+
+  * Bumped version in doc.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 07 Nov 2012 00:52:27 +0100
+
+libnabo (1.0.1-145) unstable; urgency=low
+
+  * Updated documentation to reflect the disabling of OpenCL.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 07 Nov 2012 00:51:09 +0100
+
+libnabo (1.0.1-144) unstable; urgency=low
+
+  * Fixed bug in version define.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 31 Oct 2012 23:25:20 +0100
+
+libnabo (1.0.1-143) unstable; urgency=low
+
+  * Typo.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 06 Sep 2012 09:47:22 +0200
+
+libnabo (1.0.1-142) unstable; urgency=low
+
+  * Added note about nabo citation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 06 Sep 2012 09:46:29 +0200
+
+libnabo (1.0.1-141) unstable; urgency=low
+
+  * Fixed the semantic of epsilon to match the documentation's and ANN's
+    ones.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 25 Jun 2012 10:55:50 +0200
+
+libnabo (1.0.1-140) unstable; urgency=low
+
+  * Added ability to pass one radius per point.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 07 May 2012 16:04:53 +0200
+
+libnabo (1.0.1-139) unstable; urgency=low
+
+  * Added custom command for python target.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 16 Mar 2012 17:09:14 +0100
+
+libnabo (1.0.1-138) unstable; urgency=low
+
+  * Reverted buggy change
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 16:48:53 +0100
+
+libnabo (1.0.1-137) unstable; urgency=low
+
+  * Fixed old python_add_module
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 16:48:02 +0100
+
+libnabo (1.0.1-136) unstable; urgency=low
+
+  * fixed python 2.6 detection on debian.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 16:22:26 +0100
+
+libnabo (1.0.1-135) unstable; urgency=low
+
+  * Fixed debian installation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 13:58:15 +0100
+
+libnabo (1.0.1-134) unstable; urgency=low
+
+  * Added debian-specific install target.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 13:46:39 +0100
+
+libnabo (1.0.1-133) unstable; urgency=low
+
+  * Fixed doc and python link command
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 11:33:14 +0100
+
+libnabo (1.0.1-132) unstable; urgency=low
+
+  * Added docstring to python bindings.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 10 Nov 2011 11:08:16 +0100
+
+libnabo (1.0.1-131) unstable; urgency=low
+
+  * Added test and improved CMakeLists.txt
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 09 Nov 2011 18:08:37 +0100
+
+libnabo (1.0.1-130) unstable; urgency=low
+
+  * Added debian install for python
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 09 Nov 2011 17:11:36 +0100
+
+libnabo (1.0.0-129) unstable; urgency=low
+
+  * Renammed to pynabo, added python install script.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 09 Nov 2011 17:01:59 +0100
+
+libnabo (1.0.0-128) unstable; urgency=low
+
+  * Experimental python bindings working.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 09 Nov 2011 16:23:53 +0100
+
+libnabo (1.0.0-127) unstable; urgency=low
+
+  * When number of point is smaller than bucket size, create a single-bucket
+    tree.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 09 Nov 2011 13:51:28 +0100
+
+libnabo (1.0.0-126) unstable; urgency=low
+
+  * Cleaned-up makefile.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 20 Oct 2011 17:33:22 +0200
+
+libnabo (1.0.0-125) unstable; urgency=low
+
+  * Fixed description.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 20 Oct 2011 10:58:00 +0200
+
+libnabo (1.0.0-124) unstable; urgency=low
+
+  * Merge branch 'master' of github.com:ethz-asl/libnabo
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 20 Oct 2011 10:12:02 +0200
+
+libnabo (1.0.0-123) unstable; urgency=low
+
+  * Added dbg package.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 20 Oct 2011 10:08:46 +0200
+
+libnabo (1.0.0-122) unstable; urgency=low
+
+  * Fixed naming convention.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 19:42:59 +0200
+
+libnabo (1.0.0-121) unstable; urgency=low
+
+  * Removed dbg msg.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 17:36:55 +0200
+
+libnabo (1.0.0-120) unstable; urgency=low
+
+  * Fixed doc.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:59:07 +0200
+
+libnabo (1.0.0-119) unstable; urgency=low
+
+  * Updated doc, fixed debian build.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:58:13 +0200
+
+libnabo (1.0.0-118) unstable; urgency=low
+
+  * Updated README.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:45:05 +0200
+
+libnabo (1.0.0-117) unstable; urgency=low
+
+  * Updated README.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:43:45 +0200
+
+libnabo (1.0.0-116) unstable; urgency=low
+
+  * Fixed debian compilation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:32:18 +0200
+
+libnabo (1.0.0-115) unstable; urgency=low
+
+  * Added note about download.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:15:06 +0200
+
+libnabo (1.0.0-114) unstable; urgency=low
+
+  * Added note about download.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 16:14:18 +0200
+
+libnabo (1.0.0-113) unstable; urgency=low
+
+  * Fixed bug in control file.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 12:20:34 +0200
+
+libnabo (1.0.0-112) unstable; urgency=low
+
+  * Separated doc package from dev package.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 19 Oct 2011 12:18:34 +0200
+
+libnabo (1.0.0-111) unstable; urgency=low
+
+  * Cleaned-up debian build chain.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Oct 2011 18:30:50 +0200
+
+libnabo (1.0.0-110) unstable; urgency=low
+
+  * Added debian package.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Oct 2011 17:56:27 +0200
+
+libnabo (1.0.0-109) unstable; urgency=low
+
+  * Added link to online doc.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Oct 2011 16:32:27 +0200
+
+libnabo (1.0.0-108) unstable; urgency=low
+
+  * Added major version in library name.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Oct 2011 16:21:11 +0200
+
+libnabo (1.0.0-107) unstable; urgency=low
+
+  * Fixed documentation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Oct 2011 14:34:58 +0200
+
+libnabo (1.0.0-106) unstable; urgency=low
+
+  * Improved Makefile and documentation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Oct 2011 14:10:18 +0200
+
+libnabo (0.9.1-105) unstable; urgency=low
+
+  * Added bench to select bucket size.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 13 Oct 2011 16:15:01 +0200
+
+libnabo (0.9.1-104) unstable; urgency=low
+
+  * Updated README.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 17:03:40 +0200
+
+libnabo (0.9.1-103) unstable; urgency=low
+
+  * Updated README.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 17:02:31 +0200
+
+libnabo (0.9.1-102) unstable; urgency=low
+
+  * Fixed doxygen warning.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 16:36:09 +0200
+
+libnabo (0.9.1-101) unstable; urgency=low
+
+  * Minor changes.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 16:30:53 +0200
+
+libnabo (0.9.1-100) unstable; urgency=low
+
+  * Been kind to Francis and in example compile in a build subdirectory.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 16:29:22 +0200
+
+libnabo (0.9.1-99) unstable; urgency=low
+
+  * Minor fix
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 16:20:02 +0200
+
+libnabo (0.9.1-98) unstable; urgency=low
+
+  * Improved documentation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 15 Aug 2011 16:17:46 +0200
+
+libnabo (0.9.1-97) unstable; urgency=low
+
+  * Search for Eigen in ROS diamondback by default.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 14 Jul 2011 12:29:48 +0200
+
+libnabo (0.9.1-96) unstable; urgency=low
+
+  * Updated (c) date.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 30 Jun 2011 14:49:59 +0200
+
+libnabo (0.9.1-95) unstable; urgency=low
+
+  * Added using directive for boost.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 30 Jun 2011 14:46:11 +0200
+
+libnabo (0.9.1-94) unstable; urgency=low
+
+  * Added win32 compatibility (thanks Alessio Placitelli)
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 29 Jun 2011 17:13:14 +0200
+
+libnabo (0.9.1-93) unstable; urgency=low
+
+  * Fixed bug when dimension was not passed.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 21 Jun 2011 17:27:41 +0200
+
+libnabo (0.9.1-92) unstable; urgency=low
+
+  * Added const to knn search, bumped version number.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 21 Jun 2011 17:07:46 +0200
+
+libnabo (0.9.0-91) unstable; urgency=low
+
+  * Removed duplicated comment.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 14 Jun 2011 14:43:29 +0200
+
+libnabo (0.9.0-90) unstable; urgency=low
+
+  * Improved documentation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 18 Apr 2011 13:54:17 +0200
+
+libnabo (0.9.0-89) unstable; urgency=low
+
+  * Added additional search parameters to specify bucketSize for CPU
+    kd-trees.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 18 Apr 2011 11:54:52 +0200
+
+libnabo (0.9.0-88) unstable; urgency=low
+
+  * Optimized memory structure for CPU-basde kd-tree.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 14 Apr 2011 15:02:47 +0200
+
+libnabo (0.9.0-87) unstable; urgency=low
+
+  * Added buckets.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 14 Apr 2011 13:52:24 +0200
+
+libnabo (0.9.0-86) unstable; urgency=low
+
+  * Added radius search.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 14 Apr 2011 11:21:00 +0200
+
+libnabo (0.9.0-85) unstable; urgency=low
+
+  * Fixed test case when CL is disabled. Improved verbose output of
+    configuration.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Sun, 27 Mar 2011 12:57:19 +0200
+
+libnabo (0.9.0-84) unstable; urgency=low
+
+  * Cleaned-up OpenGL API, marked it as unstable.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 18 Mar 2011 12:11:22 +0100
+
+libnabo (0.9.0-83) unstable; urgency=low
+
+  * Fixed compilation of OpenCL part. Added high-res timer for benches when
+    available.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 11 Mar 2011 15:58:53 +0100
+
+libnabo (0.9.0-82) unstable; urgency=low
+
+  * Search for eigen (3) not explicitely eigen 2.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 02 Mar 2011 18:56:33 +0100
+
+libnabo (0.9.0-81) unstable; urgency=low
+
+  * Added Eigen3 compatibility.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 23 Feb 2011 13:56:11 +0100
+
+libnabo (0.9.0-80) unstable; urgency=low
+
+  * Result-file header now has the right number of columns.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 18 Feb 2011 15:57:14 +0100
+
+libnabo (0.9.0-79) unstable; urgency=low
+
+  * Added statistics infrastructure.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 18 Feb 2011 15:02:54 +0100
+
+libnabo (0.9.0-78) unstable; urgency=low
+
+  * Added caching to OpenCL
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 27 Jan 2011 09:44:59 +0100
+
+libnabo (0.9.0-77) unstable; urgency=low
+
+  * Removed arbitrary constant before method.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 26 Jan 2011 11:09:12 +0100
+
+libnabo (0.9.0-76) unstable; urgency=low
+
+  * Added missing files.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 26 Jan 2011 10:54:09 +0100
+
+libnabo (0.9.0-75) unstable; urgency=low
+
+  * Added epsilon test.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 26 Jan 2011 10:46:41 +0100
+
+libnabo (0.9.0-74) unstable; urgency=low
+
+  * Added link to FLANN
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Jan 2011 11:47:17 +0100
+
+libnabo (0.9.0-73) unstable; urgency=low
+
+  * Fixed typo
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Jan 2011 11:45:28 +0100
+
+libnabo (0.9.0-72) unstable; urgency=low
+
+  * Fixed link
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 18 Jan 2011 11:44:07 +0100
+
+libnabo (0.9.0-71) unstable; urgency=low
+
+  * Added virtual destructor to NNS interface to prevent memory leak in
+    children.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 10 Jan 2011 15:32:10 +0100
+
+libnabo (0.9.0-70) unstable; urgency=low
+
+  * Fixed clang compilation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 27 Dec 2010 16:05:13 +0100
+
+libnabo (0.9.0-69) unstable; urgency=low
+
+  * Fixed extraction of version
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Sat, 06 Nov 2010 10:07:42 +0100
+
+libnabo (0.9.0-68) unstable; urgency=low
+
+  * Added new method for GPU-based kd tree.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 04 Nov 2010 17:03:45 +0100
+
+libnabo (0.9.0-67) unstable; urgency=low
+
+  * removed dependency on C++0x
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 03 Nov 2010 16:37:56 +0100
+
+libnabo (0.9.0-66) unstable; urgency=low
+
+  * Updated to latest draft of C++0x
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 03 Nov 2010 15:34:57 +0100
+
+libnabo (0.9.0-65) unstable; urgency=low
+
+  * Fixed compilation when OpenCL is not present
+
+ -- Francois Pomerleau <f.pomerleau@gmail.com>  Wed, 03 Nov 2010 14:05:39 +0100
+
+libnabo (0.9.0-64) unstable; urgency=low
+
+  * Updated doc
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 03 Nov 2010 08:17:17 +0100
+
+libnabo (0.9.0-63) unstable; urgency=low
+
+  * Merge branch 'master' of github.com:stephanemagnenat/libnabo
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 03 Nov 2010 08:10:02 +0100
+
+libnabo (0.9.0-62) unstable; urgency=low
+
+  * Fixed implementation to fit new API.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 03 Nov 2010 08:09:37 +0100
+
+libnabo (0.9.0-61) unstable; urgency=low
+
+  * Changed API. Implementation broken.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 01 Nov 2010 20:18:16 +0100
+
+libnabo (0.9.0-60) unstable; urgency=low
+
+  * Fix compilation with undefined HAVE_OPENCL
+
+ -- Martin Voelkle <martin.voelkle@gmail.com>  Wed, 27 Oct 2010 20:30:32 +0200
+
+libnabo (0.9.0-59) unstable; urgency=low
+
+  * changes names of variables to avoid overlaying.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 27 Oct 2010 11:54:00 +0200
+
+libnabo (0.9.0-58) unstable; urgency=low
+
+  * Added multiple query per run.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 27 Oct 2010 11:46:15 +0200
+
+libnabo (0.9.0-57) unstable; urgency=low
+
+  * Fixed uninitialised memory.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 27 Oct 2010 09:50:38 +0200
+
+libnabo (0.9.0-56) unstable; urgency=low
+
+  * Fixed buffer handling for OpenCL, there seems to be still a bug with
+    memory.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 26 Oct 2010 21:43:38 +0200
+
+libnabo (0.9.0-55) unstable; urgency=low
+
+  * Improved OpenCL infrastructure.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 26 Oct 2010 17:05:57 +0200
+
+libnabo (0.9.0-54) unstable; urgency=low
+
+  * Added back GPU
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 26 Oct 2010 11:32:55 +0200
+
+libnabo (0.9.0-53) unstable; urgency=low
+
+  * OpenCL KDtree now working.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 26 Oct 2010 11:24:54 +0200
+
+libnabo (0.9.0-52) unstable; urgency=low
+
+  * Fixed adresse of node array.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 25 Oct 2010 18:48:46 +0200
+
+libnabo (0.9.0-51) unstable; urgency=low
+
+  * OpenCL kernel for NNS compiles.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 25 Oct 2010 18:14:58 +0200
+
+libnabo (0.9.0-50) unstable; urgency=low
+
+  * OpenCL glue now works to the point of reporting compilation errors in
+    the source code.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 25 Oct 2010 18:03:21 +0200
+
+libnabo (0.9.0-49) unstable; urgency=low
+
+  * Written OpenCL kernel for knn search, glue is still needed.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 22 Oct 2010 15:39:02 +0200
+
+libnabo (0.9.0-48) unstable; urgency=low
+
+  * Added infrastructure for OpenCL support.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 22 Oct 2010 11:57:38 +0200
+
+libnabo (0.9.0-47) unstable; urgency=low
+
+  * Added flann comparison
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 21 Oct 2010 12:59:59 +0200
+
+libnabo (0.9.0-46) unstable; urgency=low
+
+  * improved diff to ANN
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Sat, 09 Oct 2010 10:13:14 +0200
+
+libnabo (0.9.0-45) unstable; urgency=low
+
+  * improved doc.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 08 Oct 2010 14:14:23 +0200
+
+libnabo (0.9.0-44) unstable; urgency=low
+
+  * Added documentation to source code
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 07 Oct 2010 16:22:45 +0200
+
+libnabo (0.1-43) unstable; urgency=low
+
+  * Improved README.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 06 Oct 2010 16:17:52 +0200
+
+libnabo (0.1-42) unstable; urgency=low
+
+  * Added more complex example.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 06 Oct 2010 16:07:23 +0200
+
+libnabo (0.1-41) unstable; urgency=low
+
+  * Added license
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 06 Oct 2010 15:37:10 +0200
+
+libnabo (0.1-40) unstable; urgency=low
+
+  * Improved README.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 06 Oct 2010 15:17:52 +0200
+
+libnabo (0.1-39) unstable; urgency=low
+
+  * Added example
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 06 Oct 2010 15:14:10 +0200
+
+libnabo (0.1-38) unstable; urgency=low
+
+  * Restructured library.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 06 Oct 2010 14:50:22 +0200
+
+libnabo (0.1-37) unstable; urgency=low
+
+  * Improved readme.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 05 Oct 2010 16:37:45 +0200
+
+libnabo (0.1-36) unstable; urgency=low
+
+  * added initial readme.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 05 Oct 2010 14:51:13 +0200
+
+libnabo (0.1-35) unstable; urgency=low
+
+  * Use index instead of values for temporary vector to create nodes, results
+    in a faster creation.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 05 Oct 2010 11:40:25 +0200
+
+libnabo (0.1-34) unstable; urgency=low
+
+  * libnabo now always faster than ANN.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 05 Oct 2010 09:24:31 +0200
+
+libnabo (0.1-33) unstable; urgency=low
+
+  * Cleaned-up bench infrastructure, now it is possible to do more than
+    one time each bench.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 28 Sep 2010 15:29:41 +0200
+
+libnabo (0.1-32) unstable; urgency=low
+
+  * Added reentrant statistics, depends on C++0x.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 27 Sep 2010 15:31:02 +0200
+
+libnabo (0.1-31) unstable; urgency=low
+
+  * Added ref to points in dist function, equals perfs of ANN.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 27 Sep 2010 11:40:00 +0200
+
+libnabo (0.1-30) unstable; urgency=low
+
+  * Fixed KDTree.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Sat, 25 Sep 2010 10:19:05 +0200
+
+libnabo (0.1-29) unstable; urgency=low
+
+  * Added explicit bound version of KDTree, ANN style.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 17:14:51 +0200
+
+libnabo (0.1-28) unstable; urgency=low
+
+  * Added unbalanced tree.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 16:46:29 +0200
+
+libnabo (0.1-27) unstable; urgency=low
+
+  * ANN bench now has both search and pri-search
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 15:42:06 +0200
+
+libnabo (0.1-26) unstable; urgency=low
+
+  * Improved bench API.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 15:19:07 +0200
+
+libnabo (0.1-25) unstable; urgency=low
+
+  * Added option for cell balancing.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 15:05:31 +0200
+
+libnabo (0.1-24) unstable; urgency=low
+
+  * Prevent overflow in stats.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 14:06:41 +0200
+
+libnabo (0.1-23) unstable; urgency=low
+
+  * Improved benchmarking.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 13:59:20 +0200
+
+libnabo (0.1-22) unstable; urgency=low
+
+  * fixed typo.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 12:17:21 +0200
+
+libnabo (0.1-21) unstable; urgency=low
+
+  * Fixed bench.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 12:04:47 +0200
+
+libnabo (0.1-20) unstable; urgency=low
+
+  * Added pt in leave option.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Fri, 24 Sep 2010 12:02:58 +0200
+
+libnabo (0.1-19) unstable; urgency=low
+
+  * Restructured code.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 23 Sep 2010 15:11:27 +0200
+
+libnabo (0.1-18) unstable; urgency=low
+
+  * Added stack-based KNN on our structure, same perf as priority_queue... still
+    2x worst than ANN, memory-bounded?
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 23 Sep 2010 14:34:45 +0200
+
+libnabo (0.1-17) unstable; urgency=low
+
+  * Added API to match several points at once.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 23 Sep 2010 11:23:09 +0200
+
+libnabo (0.1-16) unstable; urgency=low
+
+  * Added bench, comparison with ANN
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Thu, 23 Sep 2010 09:36:50 +0200
+
+libnabo (0.1-15) unstable; urgency=low
+
+  * Added large test.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 22 Sep 2010 17:56:05 +0200
+
+libnabo (0.1-14) unstable; urgency=low
+
+  * Improved tests
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 22 Sep 2010 17:47:50 +0200
+
+libnabo (0.1-13) unstable; urgency=low
+
+  * Added unit tests.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Wed, 22 Sep 2010 17:34:23 +0200
+
+libnabo (0.1-12) unstable; urgency=low
+
+  * Fixe includes for Lucid's version of Eigen lib.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Tue, 21 Sep 2010 15:50:43 +0200
+
+libnabo (0.1-11) unstable; urgency=low
+
+  * use better dist
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 18:30:58 +0200
+
+libnabo (0.1-10) unstable; urgency=low
+
+  * fixed bug
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 18:14:56 +0200
+
+libnabo (0.1-9) unstable; urgency=low
+
+  * Restructured project.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 17:23:00 +0200
+
+libnabo (0.1-8) unstable; urgency=low
+
+  * Restructured project.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 17:22:44 +0200
+
+libnabo (0.1-7) unstable; urgency=low
+
+  * added missing files
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 16:44:12 +0200
+
+libnabo (0.1-6) unstable; urgency=low
+
+  * Refactored API.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 16:43:40 +0200
+
+libnabo (0.1-5) unstable; urgency=low
+
+  * Improved performance of search in kdtree.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 13:17:05 +0200
+
+libnabo (0.1-4) unstable; urgency=low
+
+  * Renamed lib, should help compilation with old cmakes.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 12:16:36 +0200
+
+libnabo (0.1-3) unstable; urgency=low
+
+  * Fixed arbitrary dimensions.
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 11:32:34 +0200
+
+libnabo (0.1-2) unstable; urgency=low
+
+  * Added search in kdtree
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 11:25:49 +0200
+
+libnabo (0.1-1) unstable; urgency=low
+
+  * first commit
+
+ -- Stéphane Magnenat <stephane@magnenat.net>  Mon, 20 Sep 2010 10:01:32 +0200
