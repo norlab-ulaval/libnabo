@@ -1,3 +1,10 @@
+libnabo (1.0.4-196) unstable; urgency=low
+
+  * Fixed binary package dependency for libnabo (libpython2.7 not available
+    in lucid)
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Mon, 17 Nov 2014 08:50:00 +0200
+ 
 libnabo (1.0.4-195) unstable; urgency=low
 
   * Fixed CMAKE_CXX_FLAGS assignment of OpenMP_CXX_FLAGS (cmake always

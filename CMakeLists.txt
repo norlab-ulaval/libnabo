@@ -30,7 +30,7 @@ remake_pack_deb(
 )
 remake_pack_deb(
   COMPONENT python
-  DEPENDS libnabo python-numpy libpython2.7 libboost-python[0-9.]*
+  DEPENDS libnabo python-numpy libpython2.[0-9]* libboost-python[0-9.]*
   DESCRIPTION "Python bindings"
 )
 remake_pack_deb(
