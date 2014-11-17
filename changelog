@@ -1,3 +1,13 @@
+libnabo (1.0.4-195) unstable; urgency=low
+
+  * Fixed CMAKE_CXX_FLAGS assignment of OpenMP_CXX_FLAGS (cmake always
+    expects a string here, not a list)
+  * Changed linkage of testing binaries to flann_cpp instead of
+    FLANN_LIBRARIES (precise pkg-config includes flann_cpp-gd which
+    seems not installable)
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Mon, 17 Nov 2014 08:22:00 +0200
+
 libnabo (1.0.4-194) unstable; urgency=low
 
   * Revised build dependencies

@@ -17,7 +17,7 @@ remake_find_package(PythonLibs)
 
 if (OPENMP_FOUND)
   remake_define(HAVE_OPENMP ON)
-  remake_list_push(CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS})
+  remake_set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif(OPENMP_FOUND)
 
 remake_include(

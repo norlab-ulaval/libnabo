@@ -13,7 +13,7 @@ remake_add_executables(
   knnbucketsize.cpp
   knnepsilon.cpp
   knnvalidate.cpp
-  LINK nabo ${ANN_LIBRARY} ${FLANN_LIBRARIES}
+  LINK nabo ${ANN_LIBRARY} flann_cpp
 )
 
 remake_test(
