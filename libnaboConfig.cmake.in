@@ -14,7 +14,7 @@ endif()
  
 # These are IMPORTED targets created by libnaboTargets.cmake
 if (CMAKE_COMPILER_IS_GNUCC)
-  set(libnabo_LIBRARIES "@libnabo_library@ gomp")
+  set(libnabo_LIBRARIES @libnabo_library@ gomp)
 else(CMAKE_COMPILER_IS_GNUCC)
   set(libnabo_LIBRARIES @libnabo_library@)
 endif(CMAKE_COMPILER_IS_GNUCC)
