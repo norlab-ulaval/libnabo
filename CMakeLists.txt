@@ -55,7 +55,7 @@ if (OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
   if (CMAKE_COMPILER_IS_GNUCC)
     set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
-  endif()
+  endif(CMAKE_COMPILER_IS_GNUCC)
 endif(OPENMP_FOUND)
 
 # eigen 2 or 3
@@ -99,9 +99,9 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 # endif(USE_OPEN_CL)
 
 # include all libs so far
-include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 #set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
 
+include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
 # main nabo lib
 set(NABO_SRC
@@ -142,18 +142,65 @@ add_subdirectory(python)
 # Install catkin package.xml
 install(FILES package.xml DESTINATION share/libnabo)
 
-# Create cmake configure scripts so other packages can find libnabo
-get_property(libnabo_library TARGET ${LIB_NAME} PROPERTY LOCATION)
-set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
+#=============================================
+# to allow find_package() on libnabo
+#=============================================
+# 
+# the following case be used in an external project requiring libnabo:
+#  ...
+#  find_package(libnabo) 
+#  include_directories(${libnabo_INCLUDE_DIRS}) 
+#  target_link_libraries(executableName ${libnabo_LIBRARIES})
+#  ...
 
+# NOTE: the following will support find_package for 1) local build (make) and 2) for installed files (make install)
+
+# 1- local build #
+
+# Register the local build in case one doesn't use "make install"
+export(PACKAGE libnabo)
+
+# Create variable with the library location
+get_property(libnabo_library TARGET ${LIB_NAME} PROPERTY LOCATION)
+
+# Create variable for the local build tree
+get_property(libnabo_include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+# Configure config file for local build tree
 configure_file(libnaboConfig.cmake.in
   "${PROJECT_BINARY_DIR}/libnaboConfig.cmake" @ONLY)
+
+# 2- installation build #
+
+# Change the library location for an install location
+get_filename_component(NABO_LIB_NAME ${libnabo_library} NAME)
+set(libnabo_library ${CMAKE_INSTALL_PREFIX}/lib/${NABO_LIB_NAME})
+
+# Change the include location for the case of an install location
+set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
+
+# We put the generated file for installation in a different repository (i.e., ./CMakeFiles/)
+configure_file(libnaboConfig.cmake.in
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake" @ONLY)
+
+# The same versioning file can be used for both cases
 configure_file(libnaboConfigVersion.cmake.in
   "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake" @ONLY)
 
 install(FILES
-  "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
   "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake"
   "${PROJECT_BINARY_DIR}/libnaboTargets.cmake"
   DESTINATION share/libnabo/cmake COMPONENT dev)
 
+
+
+#=============================================
+# Add uninstall target
+#=============================================
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

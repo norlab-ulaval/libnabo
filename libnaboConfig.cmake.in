@@ -13,7 +13,11 @@ if(NOT TARGET @LIB_NAME@ AND NOT libnabo_BINARY_DIR)
 endif()
  
 # These are IMPORTED targets created by libnaboTargets.cmake
-set(libnabo_LIBRARIES @libnabo_library@)
+if (CMAKE_COMPILER_IS_GNUCC)
+  set(libnabo_LIBRARIES @libnabo_library@ gomp)
+else(CMAKE_COMPILER_IS_GNUCC)
+  set(libnabo_LIBRARIES @libnabo_library@)
+endif(CMAKE_COMPILER_IS_GNUCC)
 
 # This causes catkin_simple to link against these libraries
 set(libnabo_FOUND_CATKIN_PROJECT true)

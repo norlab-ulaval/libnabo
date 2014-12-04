@@ -288,7 +288,7 @@ namespace Nabo
 		//! creation option
 		enum CreationOptionFlags
 		{
-			TOUCH_STATISTICS = 1, //!< perform statistics on the number of points touched
+			TOUCH_STATISTICS = 1 //!< perform statistics on the number of points touched
 		};
 		
 		//! search option

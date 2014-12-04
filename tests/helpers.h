@@ -37,6 +37,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <fstream>
 
+#ifdef BOOST_STDINT
+	#include <boost/cstdint.hpp>
+	using boost::uint64_t;
+#else // BOOST_STDINT
+	#include <stdint.h>
+#endif // BOOST_STDINT
+
 using namespace std;
 using namespace Nabo;
 
@@ -140,7 +147,7 @@ namespace boost
 	*/
 	struct timer
 	{
-		typedef unsigned long long Time;
+		typedef uint64_t Time;
 		
 		timer():_start_time(curTime()){ } 
 		void restart() { _start_time = curTime(); }
