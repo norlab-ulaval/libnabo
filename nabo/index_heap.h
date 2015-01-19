@@ -212,7 +212,10 @@ namespace Nabo
 		inline void reset()
 		{
 			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
+			{
 				it->value = std::numeric_limits<VT>::infinity();
+				it->index = 0;
+			}
 		}
 		
 		//! get the largest value of the heap
@@ -303,7 +306,10 @@ namespace Nabo
 		inline void reset()
 		{
 			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
+			{
 				it->value = std::numeric_limits<VT>::infinity();
+				it->index = 0;
+			}
 		}
 		
 		//! get the largest value of the heap
