@@ -211,9 +211,10 @@ namespace Nabo
 		//! reset to the empty heap
 		inline void reset()
 		{
-			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it) {
+			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
+			{
 				it->value = std::numeric_limits<VT>::infinity();
-			  it->index = 0;
+				it->index = 0;
 			}
 		}
 		
@@ -304,7 +305,8 @@ namespace Nabo
 		//! reset to the empty heap
 		inline void reset()
 		{
-			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it) {
+			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
+			{
 				it->value = std::numeric_limits<VT>::infinity();
 				it->index = 0;
 			}
