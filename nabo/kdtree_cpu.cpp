@@ -72,8 +72,8 @@ namespace Nabo
 		return 64;
 	}
 	
-	//! Return the index of the maximum value of a vector
-	/** \param v vector
+	//! Return the index of the maximum value of a vector of positive values
+	/** \param v vector of positive values
 	 * \return index of maximum value, 0 if the vector is empty
 	 */
 	template<typename T>
