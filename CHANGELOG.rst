@@ -2,8 +2,8 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.6 (2015-03-05)
+------------------
 * Reset point indices of results with distances exceeding threshold (#23, #24)
 * Fine tune the find_package() capability and add uninstall target (#22)
 * Fixed compiler warning (#18)
