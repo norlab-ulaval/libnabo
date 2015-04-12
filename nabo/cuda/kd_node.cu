@@ -136,10 +136,9 @@ __device__ unsigned int nodeMinor(int cd, point q, point p)
 }
 //Implementation details: http://on-demand.gputechconf.com/gtc/2012/presentations/S0079-Warped-Parallel-Nearest-Neighbor-Searches-Using-KD-Trees.pdf
 __device__ void recursive_warp_search(const indx static_data, const point query_point,  unsigned int _Mask, heap *output, 
-					uint *stackpointer, stack_entry *stack, stack_entry *s)
+					uint stackpointer, stack_entry *stack, stack_entry *s)
 {
-	//Go up one
-	--stackpointer;
+	stackpointer--;
 	const size_t n = s->n;
 	const kd_node node = static_data.nodes[n];
 	const int cd = node.cutVal;
@@ -161,182 +160,56 @@ __device__ void recursive_warp_search(const indx static_data, const point query_
 		output->entries = heapHeadReplace(output->entries, index, dist, K_size);output->current_count++;}
 		// look for recursion
 	//Let the warp group decide which way we want to travel next
-	_Mask = _Mask & __ballot(withinBounds(cd, query_point,p,heapHeadValue(output->entries), max_rad, max_error));
+	_Mask = _Mask & __ballot(nodeMinor(cd, query_point,p));
 	
-	//This is going to be a very large amount of nested if statements o.O Luckily nvcc cleans it up a lot :D I'll eventually make it look nicer here as well
-
-	//Did we go through the first branch?
-	bool check = false;
-	//If the group decided to travel off side first, continue
-	if(_Mask!=0)
+	
+	//If side >= 0, then we branch right first
+	if(_Mask)
 	{
-		check = true;
+		s->n = childRight(n);
+		recursive_warp_search(static_data, query_point,  _Mask, output, 
+					stackpointer, stack, s);
 		stackpointer++;
-		_Mask = _Mask & __ballot(nodeMinor(cd,query_point,p));
-		//Make a copy of S incase we want to branch right later on
-		stack_entry s_copy1 = *s;
-		s->state = OFFSIDE;
-		//Branch left first
-		if(_Mask!=0)
-		{
-			s->n = childLeft(n);	
-			//Make another copy of s to come back to late
-			stack_entry s_copy2 = *s;
-			_Mask = _Mask & __ballot(nodeMinor(cd,query_point,p)); 
-			*s = stack[*stackpointer];
-			s->state = ONSIDE;	
-			//We're going to branch to the right	
-			stackpointer++;		
-			if(_Mask !=0)
-			{
-				s->n = childRight(n);
-				//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-				recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-				*s = s_copy2;
-				//If any threads want to go to the left			
-				if(__any(flip(nodeMinor(cd,query_point,p))))
-				{
-					//If I did not want this decision
-					if(!flip(nodeMinor(cd,query_point,p)))
-					{ goto exit; }
-					s->n = childLeft(n);
-					//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-					recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack,s);
-				}
-			}
-			//If the group would rather branch left second
-			else
-			{
-				s->n = childLeft(n);
-				//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-				recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-				*s = s_copy2;
-				//If any threads want to go to the left			
-				if(__any(flip(nodeMinor(cd,query_point,p))))
-				{
-					//If I did not want this decision
-					if(!flip(nodeMinor(cd,query_point,p)))
-					{ goto exit; }
-					s->n = childRight(n);
-					//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-					recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack,s);
-				}				
-			}	
-			stackpointer++;
-			//We just came out of that branch, so lets set where we currently are in the stack back to s
-			*s = s_copy1;
-			//If any threads wanted to go right instead of left, branch that way now. In a worst case scenario, half the threads from the group are now gone
-			if(__any(flip(nodeMinor(cd,query_point,p))))
-			{
-				//If I did not want this decision
-				if(!flip(nodeMinor(cd,query_point,p)))
-				{ goto exit; }
-				s->n = childRight(n);
-			}
+		s = stack[stackpointer];
+		//This needs to be called before the __any, since the thread needs to be terminated before we conduct the next vote.
+		if(output->current_count > K_size)
+		{	
+			/*Exit the kernel if we have all of the points that we need. Since all of the points are clustered, hopefully this is greatly reduced and all threads exit
+			at near the same time*/
+			return;
 		}
-		//Branch right first
-		else if(_Mask== 0)
-		{
-			s->n = childRight(n);	
-			//Make another copy of s to come back to late
-			stack_entry s_copy2 = *s;
-			_Mask = _Mask & __ballot(nodeMinor(cd,query_point,p)); 
-			*s = stack[*stackpointer];
-			s->state = ONSIDE;	
-			//We're going to branch to the right	
-			stackpointer++;		
-			if(_Mask !=0)
-			{
-				s->n = childRight(n);
-				//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-				recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-				*s = s_copy2;
-				//If any threads want to go to the left			
-				if(__any(flip(nodeMinor(cd,query_point,p))))
-				{
-					//If I did not want this decision
-					if(!flip(nodeMinor(cd,query_point,p)))
-					{ goto exit; }
-					s->n = childLeft(n);
-					//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-					recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-				}
-			}
-			//If the group would rather branch left second
-			else
-			{
-				s->n = childLeft(n);
-				//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-				recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-				*s = s_copy2;
-				//If any threads want to go to the left			
-				if(__any(flip(nodeMinor(cd,query_point,p))))
-				{
-					//If I did not want this decision
-					if(!flip(nodeMinor(cd,query_point,p)))
-					{ goto exit; }
-					s->n = childRight(n);
-					//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-					recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-				}				
-			}	
-			//We just came out of that branch, so lets set where we currently are in the stack back to s
-			*s = s_copy1;
-			//If any threads wanted to go right instead of left, branch that way now. In a worst case scenario, half the threads from the group are now gone
-			if(__any(flip(nodeMinor(cd,query_point,p))))
-			{
-				s->n = childLeft(n);
-			}
-		}		
-	}
-	//We want to branch onside and not offside
-	else if((_Mask== 0) || ((check == true) && (__any(flip(nodeMinor(cd,query_point,p))))))
-	{
-		//Make another copy of s to come back to late
-		stack_entry s_copy2 = *s;
-		_Mask = _Mask & __ballot(nodeMinor(cd,query_point,p)); 
-		*s = stack[*stackpointer];
-		s->state = ONSIDE;	
-		//We're going to branch to the right	
-		stackpointer++;		
-		if(_Mask !=0)
-		{
-			s->n = childRight(n);
-			//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-			recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-			*s = s_copy2;
-			//If any threads want to go to the left			
-			if(__any(flip(nodeMinor(cd,query_point,p))))
-			{
-				//If I did not want this decision
-				if(!flip(nodeMinor(cd,query_point,p)))
-				{ goto exit; }
-				s->n = childLeft(n);
-				//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-				recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-			}
-		}
-		//If the group would rather branch left second
-		else
+		//If any of the remaining active threads are within bounds of the left node
+		if(__any(withinBounds(cd,query_point, p, heapHeadValue(ouput->entries), max_rad, max_error)
 		{
 			s->n = childLeft(n);
-			//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-			recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-			*s = s_copy2;
-			//If any threads want to go to the left			
-			if(__any(flip(nodeMinor(cd,query_point,p))))
-			{
-				//If I did not want this decision
-				if(!flip(nodeMinor(cd,query_point,p)))
-				{ goto exit; }				
-				s->n = childRight(n);
-				//Execute branch down. Eventually this will be doing through dynamic parrallelism instead of direct recursion				
-				recursive_warp_search(static_data, query_point, _Mask, output, stackpointer, stack, s);
-			}				
-		}	
+			recursive_warp_search(static_data, query_point,  _Mask, output, 
+				stackpointer, stack, s);
+			stackpointer++;
+		}
 	}
-exit:
-	return;
+	//Otherwise we branch left
+	else
+	{
+		s->n = childLeft(n);
+		recursive_warp_search(static_data, query_point,  _Mask, output, 
+					stackpointer, stack, s);
+		stackpointer++;
+		s = stack[stackpointer];
+		if(output->current_count > K_size)
+		{	
+			/*Exit the kernel if we have all of the points that we need. Since all of the points are clustered, hopefully this is greatly reduced and all threads exit
+			at near the same time*/
+			return;
+		}
+		//If any of the remaining active threads are within bounds of the right node
+		if(__any(withinBounds(cd,query_point, p, heapHeadValue(ouput->entries), max_rad, max_error)
+		{
+			s->n = childRight(n);
+			recursive_warp_search(static_data, query_point,  _Mask, output, 
+				stackpointer, stack, s);
+			stackpointer++;
+		}
+	}
 	//TODO: Sort
 	
 } 
@@ -354,8 +227,7 @@ __global__ void clustered_search(indx static_data, const point *query_points, in
 	myHeap.current_count = 0;
 	//Start at root node
 	stack_entry* s = stack;
-	uint *startpos;
-	*startpos = 0;
+	uint startpos = 1;
 	recursive_warp_search(static_data, query_points[thread_num], 1, &myHeap, startpos,s,stack);
 	ret[thread_num] = myHeap;
 } 
