@@ -179,7 +179,7 @@ __device__ void recursive_warp_search(const indx static_data, const point query_
 			return;
 		}
 		//If any of the remaining active threads are within bounds of the left node
-		if(__any(withinBounds(cd,query_point, p, heapHeadValue(ouput->entries), max_rad, max_error)
+		if(__any(withinBounds(cd,query_point, p, heapHeadValue(ouput->entries), max_rad, max_error)))
 		{
 			s->n = childLeft(n);
 			recursive_warp_search(static_data, query_point,  _Mask, output, 
@@ -202,7 +202,7 @@ __device__ void recursive_warp_search(const indx static_data, const point query_
 			return;
 		}
 		//If any of the remaining active threads are within bounds of the right node
-		if(__any(withinBounds(cd,query_point, p, heapHeadValue(ouput->entries), max_rad, max_error)
+		if(__any(withinBounds(cd,query_point, p, heapHeadValue(ouput->entries), max_rad, max_error)))
 		{
 			s->n = childRight(n);
 			recursive_warp_search(static_data, query_point,  _Mask, output, 
