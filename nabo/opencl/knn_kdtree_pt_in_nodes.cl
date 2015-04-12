@@ -64,15 +64,6 @@ kernel void knnKDTree(	const global T* cloud,
 			continue;
 		const int index = node->index;
 		const global T* p = &cloud[index * POINT_STRIDE];
-		// check whether we already have better dist
-		if ((s->state == OFFSIDE) && (cd >= 0))
-		{
-			const T diff = q[cd] - p[cd];
-			// TODO: use approximate dist
-			// FIXME: bug in this early out
-			//if (diff * diff > heapHeadValue(heap))
-			//	continue;
-		}
 		// compute new distance and update if lower
 		T dist = 0;
 		for (uint i = 0; i < DIM_COUNT; ++i)
