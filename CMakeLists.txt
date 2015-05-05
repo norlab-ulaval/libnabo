@@ -119,9 +119,6 @@ else(SHARED_LIBS)
 endif(SHARED_LIBS)
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
-export(TARGETS ${LIB_NAME}
-  FILE "${PROJECT_BINARY_DIR}/libnaboTargets.cmake")
-
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 add_dependencies(${LIB_NAME} doc)
@@ -187,7 +184,6 @@ configure_file(libnaboConfigVersion.cmake.in
 install(FILES
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
   "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake"
-  "${PROJECT_BINARY_DIR}/libnaboTargets.cmake"
   DESTINATION share/libnabo/cmake COMPONENT dev)
 
 
