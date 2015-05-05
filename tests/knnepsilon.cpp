@@ -43,9 +43,6 @@ void doTestEpsilon(const char *fileName, const int K, const int method, const in
 {
 	typedef Nabo::NearestNeighbourSearch<T> NNS;
 	typedef typename NNS::Matrix Matrix;
-	typedef typename NNS::Vector Vector;
-	typedef typename NNS::Index Index;
-	typedef typename NNS::IndexVector IndexVector;
 	typedef typename NNS::IndexMatrix IndexMatrix;
 	
 	// check if file is ok
