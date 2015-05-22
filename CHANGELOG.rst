@@ -2,6 +2,19 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.6 (2015-03-05)
+------------------
+* Reset point indices of results with distances exceeding threshold (#23, #24)
+* Fine tune the find_package() capability and add uninstall target (#22)
+* Fixed compiler warning (#18)
+* Added OpenMP support (#20, #21)
+* Build type tuning (#19)
+* Fix: terminal comma in enum requires C++11
+* Fix UBSAN error calculating maxNodeCount (#16, #17)
+* Fixed tiny (yet significant) error in the Python doc strings (#15)
+* Compile static lib with PIC (#14)
+* Contributors: Francois Pomerleau, François Pomerleau, Gregory Hitz, Gregory Jefferis, Simon Lynen, Stéphane Magnenat
+
 1.0.5 (2014-06-12)
 ------------------
 * Added configure scripts for full catkinization

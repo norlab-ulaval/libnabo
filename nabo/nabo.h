@@ -210,9 +210,9 @@ namespace Nabo
 	//@{
 	
 	//! version of the Nabo library as string
-	#define NABO_VERSION "1.0.4"
+	#define NABO_VERSION "1.0.6"
 	//! version of the Nabo library as an int
-	#define NABO_VERSION_INT 10004
+	#define NABO_VERSION_INT 10006
 	
 	//! Parameter vector
 	struct Parameters: public std::map<std::string, boost::any>

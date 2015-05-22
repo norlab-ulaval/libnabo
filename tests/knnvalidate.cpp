@@ -46,8 +46,6 @@ void validate(const char *fileName, const int K, const int method, const T maxRa
 	typedef vector<NNS*> NNSV;
 	typedef typename NNS::Matrix Matrix;
 	typedef typename NNS::Vector Vector;
-	typedef typename NNS::Index Index;
-	typedef typename NNS::IndexVector IndexVector;
 	typedef typename NNS::IndexMatrix IndexMatrix;
 	
 	// check if file is ok
@@ -74,6 +72,7 @@ void validate(const char *fileName, const int K, const int method, const T maxRa
 	
 	/*
 	// element-by-element search
+	typedef typename NNS::IndexVector IndexVector;
 	for (int i = 0; i < itCount; ++i)
 	{
 		const Vector q(createQuery<T>(d, *nnss[0], i, method));

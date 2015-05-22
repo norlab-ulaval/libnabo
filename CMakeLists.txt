@@ -52,7 +52,7 @@ endif(MSVC AND (MSVC_VERSION LESS 1600))
 find_package(OpenMP)
 if (OPENMP_FOUND)
   add_definitions(-fopenmp -DHAVE_OPENMP)
-  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   if (CMAKE_COMPILER_IS_GNUCC)
     set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
   endif(CMAKE_COMPILER_IS_GNUCC)
@@ -121,9 +121,6 @@ else(SHARED_LIBS)
 endif(SHARED_LIBS)
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
-export(TARGETS ${LIB_NAME}
-  FILE "${PROJECT_BINARY_DIR}/libnaboTargets.cmake")
-
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 add_dependencies(${LIB_NAME} doc)
@@ -189,7 +186,6 @@ configure_file(libnaboConfigVersion.cmake.in
 install(FILES
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
   "${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake"
-  "${PROJECT_BINARY_DIR}/libnaboTargets.cmake"
   DESTINATION share/libnabo/cmake COMPONENT dev)
 
 
