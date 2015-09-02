@@ -89,7 +89,7 @@ libnabo is easy to use. For example, assuming that you are working with floats a
 	
 	nns->knn(q, indices, dists2, K);
 
-In this example, `M` is an [Eigen] (refering to the software, not to the math) matrix (column major, float) and `q` is an [Eigen] vector (float). Note that `M` **must stay in scope** throughout the use of libnabo, otherwise the results of `knn` are undefined.
+In this example, `M` is an [Eigen] (refering to the software, not to the math) matrix (column major, float) and `q` is an [Eigen] vector (float). Note that `M` **must stay alive** throughout the use of libnabo, otherwise the results of `knn` are undefined.
 The results `indices` and `dists2` are [Eigen] vectors of indices and squared distances refering to the columns of `M`.
 See `examples/trivial.cpp` for a compilable version of this example, and `examples/usage.cpp` for a slightly more complex example involving multi-point queries.
 
