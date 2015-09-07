@@ -80,3 +80,34 @@ target_link_libraries(knnepsilon ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_executable(knnbucketsize knnbucketsize.cpp)
 target_link_libraries(knnbucketsize ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
+
+# Ensure that users cannot instantiate a tree with wrong matrix types.
+macro(try_compile_cloud_types MAT_TYPE TREE_TYPE EXPECT)
+  try_compile(COMPILE_SUCCEEDED
+                "${CMAKE_CURRENT_BINARY_DIR}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/invalid_matrix_types.cpp"
+                COMPILE_DEFINITIONS "-D${MAT_TYPE} -D${TREE_TYPE} -I${CMAKE_CURRENT_SOURCE_DIR}/../ -I${EIGEN_INCLUDE_DIR} -l${LIB_NAME}"
+                CMAKE_FLAGS "-DCMAKE_CXX_LINK_EXECUTABLE='echo not linking now...'"
+                OUTPUT_VARIABLE OUTPUT)
+
+  if (${EXPECT} STREQUAL "TRUE") 
+    if(NOT COMPILE_SUCCEEDED)
+      message( FATAL_ERROR "Compiling a test executable failed." )
+    endif()
+  else()
+    if(COMPILE_SUCCEEDED)
+      message( FATAL_ERROR "Tried to instantiate nabo-search trees with non-allowed types and succeeded. This is an error. Message ${OUTPUT}" )
+    endif()
+  endif()
+
+endmacro(try_compile_cloud_types)
+
+try_compile_cloud_types(NABO_EIGEN_DYNAMIC_TYPE, NABO_TYPE_CREATE, TRUE)
+try_compile_cloud_types(NABO_EIGEN_DYNAMIC_TYPE, NABO_TYPE_BRUTE_FORCE, TRUE)
+try_compile_cloud_types(NABO_EIGEN_DYNAMIC_TYPE, NABO_TYPE_LINEAR_HEAP, TRUE)
+try_compile_cloud_types(NABO_EIGEN_DYNAMIC_TYPE, NABO_TYPE_TREE_HEAP, TRUE)
+
+try_compile_cloud_types(NABO_EIGEN_SEMI_DYNAMIC_TYPE, NABO_TYPE_CREATE, FALSE)
+try_compile_cloud_types(NABO_EIGEN_SEMI_DYNAMIC_TYPE, NABO_TYPE_BRUTE_FORCE, FALSE)
+try_compile_cloud_types(NABO_EIGEN_SEMI_DYNAMIC_TYPE, NABO_TYPE_LINEAR_HEAP, FALSE)
+try_compile_cloud_types(NABO_EIGEN_SEMI_DYNAMIC_TYPE, NABO_TYPE_TREE_HEAP, FALSE)
