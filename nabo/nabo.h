@@ -367,32 +367,32 @@ namespace Nabo
 		
 
 
-    //! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
-    template <typename WrongMatrixType>
-    static NearestNeighbourSearch* create(const WrongMatrixType& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters())
-    {
-      typedef int Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef[sizeof(WrongMatrixType) > 0 ? -1 : 1];
-      Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef dummy;
-      return NULL;
-    }
+		//! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
+		template <typename WrongMatrixType>
+		static NearestNeighbourSearch* create(const WrongMatrixType& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters())
+		{
+		  typedef int Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef[sizeof(WrongMatrixType) > 0 ? -1 : 1];
+		  Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef dummy;
+		  return NULL;
+		}
 
-    //! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
-    template <typename WrongMatrixType>
-    static NearestNeighbourSearch* createBruteForce(const WrongMatrixType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0)
-    {
-      typedef int Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef[sizeof(WrongMatrixType) > 0 ? -1 : 1];
-      Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef dummy;
-      return NULL;
-    }
+		//! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
+		template <typename WrongMatrixType>
+		static NearestNeighbourSearch* createBruteForce(const WrongMatrixType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0)
+		{
+		  typedef int Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef[sizeof(WrongMatrixType) > 0 ? -1 : 1];
+		  Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef dummy;
+		  return NULL;
+		}
 
-    //! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
-    template <typename WrongMatrixType>
-    static NearestNeighbourSearch* createKDTreeLinearHeap(const WrongMatrixType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters())
-    {
-      typedef int Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef[sizeof(WrongMatrixType) > 0 ? -1 : 1];
-      Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef dummy;
-      return NULL;
-    }
+		//! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
+		template <typename WrongMatrixType>
+		static NearestNeighbourSearch* createKDTreeLinearHeap(const WrongMatrixType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters())
+		{
+		  typedef int Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef[sizeof(WrongMatrixType) > 0 ? -1 : 1];
+		  Please_make_sure_that_the_decltype_of_the_first_parameter_is_equal_to_the_Matrix_typedef dummy;
+		  return NULL;
+		}
 
 		//! Prevent creation of trees with the wrong matrix type. Currently only dynamic size matrices are supported.
 		template <typename WrongMatrixType>

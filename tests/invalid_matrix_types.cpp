@@ -38,36 +38,36 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 template <typename MatrixType>
 int testFunction()
 {
-  MatrixType M = MatrixType::Random(3, 100);
-  MatrixType q = MatrixType::Random(3, 5);
+	MatrixType M = MatrixType::Random(3, 100);
+	MatrixType q = MatrixType::Random(3, 5);
 
 #ifdef NABO_TYPE_CREATE
-  Nabo::NNSearchF* nns = Nabo::NNSearchF::create(M);
+	Nabo::NNSearchF* nns = Nabo::NNSearchF::create(M);
 #endif  // NABO_TYPE_CREATE
 
 #ifdef NABO_TYPE_BRUTE_FORCE
-  Nabo::NNSearchF* nns = Nabo::NNSearchF::createBruteForce(M);
+	Nabo::NNSearchF* nns = Nabo::NNSearchF::createBruteForce(M);
 #endif  // NABO_TYPE_BRUTE_FORCE
 
 #ifdef NABO_TYPE_LINEAR_HEAP
-  Nabo::NNSearchF* nns = Nabo::NNSearchF::createKDTreeLinearHeap(M);
+	Nabo::NNSearchF* nns = Nabo::NNSearchF::createKDTreeLinearHeap(M);
 #endif  // NABO_TYPE_TREE_HEAP
 
 #ifdef NABO_TYPE_TREE_HEAP
-  Nabo::NNSearchF* nns = Nabo::NNSearchF::createKDTreeTreeHeap(M);
+	Nabo::NNSearchF* nns = Nabo::NNSearchF::createKDTreeTreeHeap(M);
 #endif  // NABO_TYPE_TREE_HEAP
-  delete nns;
-  return 0;
+	delete nns;
+	return 0;
 }
 int main(int /*argc*/, char** /*argv*/)
 {
   // Ensure that the test as such compiles.
 #ifdef NABO_EIGEN_DYNAMIC_TYPE
-  int value = testFunction<Eigen::MatrixXf>();
+	int value = testFunction<Eigen::MatrixXf>();
 #endif  // NABO_EIGEN_DYNAMIC_TYPE
 
 #ifdef NABO_EIGEN_SEMI_DYNAMIC_TYPE
-  int value = testFunction<Eigen::Matrix<float, 5, Eigen::Dynamic> >();
+	int value = testFunction<Eigen::Matrix<float, 5, Eigen::Dynamic> >();
 #endif  // NABO_EIGEN_SEMI_DYNAMIC_TYPE
-  return value;
+	return value;
 }
