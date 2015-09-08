@@ -41,9 +41,9 @@ namespace Nabo
 {
 	using namespace std;
 	
-	template<typename T>
-	BruteForceSearch<T>::BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud, dim, creationOptionFlags)
+	template<typename T, typename CloudType>
+	BruteForceSearch<T, CloudType>::BruteForceSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags):
+		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud, dim, creationOptionFlags)
 	{
 #ifdef EIGEN3_API
 		const_cast<Vector&>(this->minBound) = cloud.topRows(this->dim).rowwise().minCoeff();
@@ -60,15 +60,15 @@ namespace Nabo
 	}
 	
 
-	template<typename T>
-	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
+	template<typename T, typename CloudType>
+	unsigned long BruteForceSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
 		const Vector maxRadii(Vector::Constant(query.cols(), maxRadius));
 		return knn(query, indices, dists2, maxRadii, k, epsilon, optionFlags);
 	}
 	
-	template<typename T>
-	unsigned long BruteForceSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	template<typename T, typename CloudType>
+	unsigned long BruteForceSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
 	{
 		checkSizesKnn(query, indices, dists2, k, optionFlags, &maxRadii);
 		
@@ -104,4 +104,6 @@ namespace Nabo
 	
 	template struct BruteForceSearch<float>;
 	template struct BruteForceSearch<double>;
+	template struct BruteForceSearch<float, Eigen::Matrix3Xf>;
+	template struct BruteForceSearch<double, Eigen::Matrix3Xd>;
 }

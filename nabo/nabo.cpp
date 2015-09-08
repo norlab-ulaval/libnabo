@@ -45,9 +45,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Nabo
 {
 	using namespace std;
-	
-	template<typename T>
-	NearestNeighbourSearch<T>::NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
+
+	template<typename T, typename CloudType>
+	NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
 		cloud(cloud),
 		dim(min(dim, int(cloud.rows()))),
 		creationOptionFlags(creationOptionFlags),
@@ -60,8 +60,8 @@ namespace Nabo
 			throw runtime_error("Cloud has 0 dimensions");
 	}
 	
-	template<typename T>
-	unsigned long NearestNeighbourSearch<T>::knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
+	template<typename T, typename CloudType>
+	unsigned long NearestNeighbourSearch<T, CloudType>::knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
 #ifdef EIGEN3_API
 		const Eigen::Map<const Matrix> queryMatrix(&query.coeff(0,0), dim, 1);
@@ -79,11 +79,11 @@ namespace Nabo
 		dists2 = dists2Matrix.col(0);
 		return stats;
 	}
-	
-	template<typename T>
-	void NearestNeighbourSearch<T>::checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const unsigned optionFlags, const Vector* maxRadii) const
+
+	template<typename T, typename CloudType>
+	void NearestNeighbourSearch<T, CloudType>::checkSizesKnn(const Matrix& query, const IndexMatrix& indices, const Matrix& dists2, const Index k, const unsigned optionFlags, const Vector* maxRadii) const
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T, CloudType>::ALLOW_SELF_MATCH);
 		if (allowSelfMatch)
 		{
 			if (k > cloud.cols())
@@ -111,21 +111,21 @@ namespace Nabo
 			throw runtime_error((boost::format("OR-ed value of option flags (%1%) is larger than maximal valid value (%2%)") % optionFlags % maxOptionFlagsValue).str());
 	}
 	
-	
-	template<typename T>
-	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::create(const Matrix& cloud, const Index dim, const SearchType preferedType, const unsigned creationOptionFlags, const Parameters& additionalParameters)
+
+	template<typename T, typename CloudType>
+	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::create(const CloudType& cloud, const Index dim, const SearchType preferedType, const unsigned creationOptionFlags, const Parameters& additionalParameters)
 	{
 		if (dim <= 0)
 			throw runtime_error("Your space must have at least one dimension");
 		switch (preferedType)
 		{
-			case BRUTE_FORCE: return new BruteForceSearch<T>(cloud, dim, creationOptionFlags);
-			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T> >(cloud, dim, creationOptionFlags, additionalParameters);
-			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T> >(cloud, dim, creationOptionFlags, additionalParameters);
+			case BRUTE_FORCE: return new BruteForceSearch<T, CloudType>(cloud, dim, creationOptionFlags);
+			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
+			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 			#ifdef HAVE_OPENCL
-			case KDTREE_CL_PT_IN_NODES: return new KDTreeBalancedPtInNodesStackOpenCL<T>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
-			case KDTREE_CL_PT_IN_LEAVES: return new KDTreeBalancedPtInLeavesStackOpenCL<T>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
-			case BRUTE_FORCE_CL: return new BruteForceSearchOpenCL<T>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
+			case KDTREE_CL_PT_IN_NODES: return new KDTreeBalancedPtInNodesStackOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
+			case KDTREE_CL_PT_IN_LEAVES: return new KDTreeBalancedPtInLeavesStackOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
+			case BRUTE_FORCE_CL: return new BruteForceSearchOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
 			#else // HAVE_OPENCL
 			case KDTREE_CL_PT_IN_NODES: throw runtime_error("OpenCL not found during compilation");
 			case KDTREE_CL_PT_IN_LEAVES: throw runtime_error("OpenCL not found during compilation");
@@ -134,31 +134,33 @@ namespace Nabo
 			default: throw runtime_error("Unknown search type");
 		}
 	}
-	
-	template<typename T>
-	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createBruteForce(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags)
+
+	template<typename T, typename CloudType>
+	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::createBruteForce(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags)
 	{
 		if (dim <= 0)
 			throw runtime_error("Your space must have at least one dimension");
-		return new BruteForceSearch<T>(cloud, dim, creationOptionFlags);
+		return new BruteForceSearch<T, CloudType>(cloud, dim, creationOptionFlags);
 	}
-	
-	template<typename T>
-	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createKDTreeLinearHeap(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters)
+
+	template<typename T, typename CloudType>
+	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::createKDTreeLinearHeap(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters)
 	{
 		if (dim <= 0)
 			throw runtime_error("Your space must have at least one dimension");
-		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T> >(cloud, dim, creationOptionFlags, additionalParameters);
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
-	
-	template<typename T>
-	NearestNeighbourSearch<T>* NearestNeighbourSearch<T>::createKDTreeTreeHeap(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters)
+
+	template<typename T, typename CloudType>
+	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::createKDTreeTreeHeap(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters)
 	{
 		if (dim <= 0)
 			throw runtime_error("Your space must have at least one dimension");
-		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T> >(cloud, dim, creationOptionFlags, additionalParameters);
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
 	
 	template struct NearestNeighbourSearch<float>;
 	template struct NearestNeighbourSearch<double>;
+	template struct NearestNeighbourSearch<float, Eigen::Matrix3Xf>;
+	template struct NearestNeighbourSearch<double, Eigen::Matrix3Xd>;
 }

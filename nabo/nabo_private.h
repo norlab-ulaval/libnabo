@@ -72,43 +72,43 @@ namespace Nabo
 	}
 
 	//! Brute-force nearest neighbour
-	template<typename T>
-	struct BruteForceSearch: public NearestNeighbourSearch<T>
+	template<typename T, typename CloudType = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+	struct BruteForceSearch : public NearestNeighbourSearch<T, CloudType>
 	{
-		typedef typename NearestNeighbourSearch<T>::Vector Vector;
-		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighbourSearch<T>::Index Index;
-		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
-		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Index Index;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighbourSearch<T>::dim;
-		using NearestNeighbourSearch<T>::creationOptionFlags;
-		using NearestNeighbourSearch<T>::checkSizesKnn;
-		using NearestNeighbourSearch<T>::minBound;
-		using NearestNeighbourSearch<T>::maxBound;
+		using NearestNeighbourSearch<T, CloudType>::dim;
+		using NearestNeighbourSearch<T, CloudType>::creationOptionFlags;
+		using NearestNeighbourSearch<T, CloudType>::checkSizesKnn;
+		using NearestNeighbourSearch<T, CloudType>::minBound;
+		using NearestNeighbourSearch<T, CloudType>::maxBound;
 
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		BruteForceSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
+		BruteForceSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags);
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
 	
 	//! KDTree, unbalanced, points in leaves, stack, implicit bounds, ANN_KD_SL_MIDPT, optimised implementation
-	template<typename T, typename Heap>
-	struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt: public NearestNeighbourSearch<T>
+	template<typename T, typename Heap, typename CloudType = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+	struct KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt: public NearestNeighbourSearch<T, CloudType>
 	{
-		typedef typename NearestNeighbourSearch<T>::Vector Vector;
-		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighbourSearch<T>::Index Index;
-		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
-		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Index Index;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighbourSearch<T>::dim;
-		using NearestNeighbourSearch<T>::cloud;
-		using NearestNeighbourSearch<T>::creationOptionFlags;
-		using NearestNeighbourSearch<T>::minBound;
-		using NearestNeighbourSearch<T>::maxBound;
-		using NearestNeighbourSearch<T>::checkSizesKnn;
+		using NearestNeighbourSearch<T, CloudType>::dim;
+		using NearestNeighbourSearch<T, CloudType>::cloud;
+		using NearestNeighbourSearch<T, CloudType>::creationOptionFlags;
+		using NearestNeighbourSearch<T, CloudType>::minBound;
+		using NearestNeighbourSearch<T, CloudType>::maxBound;
+		using NearestNeighbourSearch<T, CloudType>::checkSizesKnn;
 		
 	protected:
 		//! indices of points during kd-tree construction
@@ -214,7 +214,7 @@ namespace Nabo
 		
 	public:
 		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters);
+		KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters);
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
@@ -222,19 +222,19 @@ namespace Nabo
 	#ifdef HAVE_OPENCL
 	
 	//! OpenCL support for nearest neighbour search	
-	template<typename T>
-	struct OpenCLSearch: public NearestNeighbourSearch<T>
+	template<typename T, typename CloudType = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+	struct OpenCLSearch: public NearestNeighbourSearch<T, CloudType>
 	{
-		typedef typename NearestNeighbourSearch<T>::Vector Vector;
-		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighbourSearch<T>::Index Index;
-		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
-		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Index Index;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighbourSearch<T>::dim;
-		using NearestNeighbourSearch<T>::cloud;
-		using NearestNeighbourSearch<T>::creationOptionFlags;
-		using NearestNeighbourSearch<T>::checkSizesKnn;
+		using NearestNeighbourSearch<T, CloudType>::dim;
+		using NearestNeighbourSearch<T, CloudType>::cloud;
+		using NearestNeighbourSearch<T, CloudType>::creationOptionFlags;
+		using NearestNeighbourSearch<T, CloudType>::checkSizesKnn;
 		
 	protected:
 		const cl_device_type deviceType; //!< the type of device to run CL code on (CL_DEVICE_TYPE_CPU or CL_DEVICE_TYPE_GPU)
@@ -243,8 +243,8 @@ namespace Nabo
 		cl::CommandQueue queue; //!< the command queue
 		cl::Buffer cloudCL; //!< the buffer for the input data
 		
-		//! constructor, calls NearestNeighbourSearch<T>(cloud)
-		OpenCLSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
+		//! constructor, calls NearestNeighbourSearch<T, CloudType>(cloud)
+		OpenCLSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 		//! Initialize CL support
 		/** \param clFileName name of file containing CL code
 		 * \param kernelName name of the CL kernel function
@@ -254,42 +254,43 @@ namespace Nabo
 	
 	public:
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
-	template<typename T>
-	struct BruteForceSearchOpenCL: public OpenCLSearch<T>
+	template<typename T, typename CloudType = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+	struct BruteForceSearchOpenCL: public OpenCLSearch<T, CloudType>
 	{
-		typedef typename NearestNeighbourSearch<T>::Vector Vector;
-		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighbourSearch<T>::Index Index;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Index Index;
 		
-		using OpenCLSearch<T>::initOpenCL;
+		using OpenCLSearch<T, CloudType>::initOpenCL;
 		
-		//! constructor, calls OpenCLSearch<T>(cloud, ...)
-		BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
+		//! constructor, calls OpenCLSearch<T, CloudType>(cloud, ...)
+		BruteForceSearchOpenCL(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
-	template<typename T>
-	struct KDTreeBalancedPtInLeavesStackOpenCL: public OpenCLSearch<T>
+	template<typename T, typename CloudType = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+	struct KDTreeBalancedPtInLeavesStackOpenCL: public OpenCLSearch<T, CloudType>
 	{
-		typedef typename NearestNeighbourSearch<T>::Vector Vector;
-		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighbourSearch<T>::Index Index;
-		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
-		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Index Index;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighbourSearch<T>::dim;
-		using NearestNeighbourSearch<T>::cloud;
-		using NearestNeighbourSearch<T>::creationOptionFlags;
-		using NearestNeighbourSearch<T>::minBound;
-		using NearestNeighbourSearch<T>::maxBound;
+		using NearestNeighbourSearch<T, CloudType>::dim;
+		using NearestNeighbourSearch<T, CloudType>::cloud;
+		using NearestNeighbourSearch<T, CloudType>::creationOptionFlags;
+		using NearestNeighbourSearch<T, CloudType>::minBound;
+		using NearestNeighbourSearch<T, CloudType>::maxBound;
 		
-		using OpenCLSearch<T>::context;
-		using OpenCLSearch<T>::knnKernel;
+		using OpenCLSearch<T, CloudType>::context;
+		using OpenCLSearch<T, CloudType>::knnKernel;
 		
-		using OpenCLSearch<T>::initOpenCL;
+		using OpenCLSearch<T, CloudType>::initOpenCL;
 		
 	protected:
 		//! Point during kd-tree construction
@@ -342,30 +343,30 @@ namespace Nabo
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
-		//! constructor, calls OpenCLSearch<T>(cloud, ...)
-		KDTreeBalancedPtInLeavesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
+		//! constructor, calls OpenCLSearch<T, CloudType>(cloud, ...)
+		KDTreeBalancedPtInLeavesStackOpenCL(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
 	//! KDTree, balanced, points in nodes, stack, implicit bounds, balance aspect ratio
-	template<typename T>
-	struct KDTreeBalancedPtInNodesStackOpenCL: public OpenCLSearch<T>
+	template<typename T, typename CloudType = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+	struct KDTreeBalancedPtInNodesStackOpenCL: public OpenCLSearch<T, CloudType>
 	{
-		typedef typename NearestNeighbourSearch<T>::Vector Vector;
-		typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-		typedef typename NearestNeighbourSearch<T>::Index Index;
-		typedef typename NearestNeighbourSearch<T>::IndexVector IndexVector;
-		typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Vector Vector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Matrix Matrix;
+		typedef typename NearestNeighbourSearch<T, CloudType>::Index Index;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexVector IndexVector;
+		typedef typename NearestNeighbourSearch<T, CloudType>::IndexMatrix IndexMatrix;
 		
-		using NearestNeighbourSearch<T>::dim;
-		using NearestNeighbourSearch<T>::cloud;
-		using NearestNeighbourSearch<T>::creationOptionFlags;
-		using NearestNeighbourSearch<T>::minBound;
-		using NearestNeighbourSearch<T>::maxBound;
+		using NearestNeighbourSearch<T, CloudType>::dim;
+		using NearestNeighbourSearch<T, CloudType>::cloud;
+		using NearestNeighbourSearch<T, CloudType>::creationOptionFlags;
+		using NearestNeighbourSearch<T, CloudType>::minBound;
+		using NearestNeighbourSearch<T, CloudType>::maxBound;
 		
-		using OpenCLSearch<T>::context;
-		using OpenCLSearch<T>::knnKernel;
+		using OpenCLSearch<T, CloudType>::context;
+		using OpenCLSearch<T, CloudType>::knnKernel;
 		
-		using OpenCLSearch<T>::initOpenCL;
+		using OpenCLSearch<T, CloudType>::initOpenCL;
 		
 	protected:
 		//! a point during kd-tree construction is just its index
@@ -380,10 +381,10 @@ namespace Nabo
 		//! Functor to compare point values on a given dimension
 		struct CompareDim
 		{
-			const Matrix& cloud; //!< reference to data points used to compare
+			const CloudType& cloud; //!< reference to data points used to compare
 			size_t dim; //!< dimension on which to compare
 			//! Build the functor for a specific dimension on a specific cloud
-			CompareDim(const Matrix& cloud, const size_t dim): cloud(cloud), dim(dim){}
+			CompareDim(const CloudType& cloud, const size_t dim): cloud(cloud), dim(dim){}
 			//! Compare the values of p0 and p1 on dim, and return whether p0[dim] < p1[dim]
 			bool operator() (const BuildPoint& p0, const BuildPoint& p1) { return cloud.coeff(dim, p0) < cloud.coeff(dim, p1); }
 		};
@@ -413,8 +414,8 @@ namespace Nabo
 		void buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues);
 		
 	public:
-		//! constructor, calls OpenCLSearch<T>(cloud, ...)
-		KDTreeBalancedPtInNodesStackOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
+		//! constructor, calls OpenCLSearch<T, CloudType>(cloud, ...)
+		KDTreeBalancedPtInNodesStackOpenCL(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType);
 	};
 	
 	#endif // HAVE_OPENCL

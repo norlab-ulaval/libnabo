@@ -241,13 +241,15 @@ namespace Nabo
 	};
 	
 	//! Nearest neighbour search interface, templatized on scalar type
-	template<typename T>
+	template<typename T, typename Cloud_T = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
 	struct NearestNeighbourSearch
 	{
 		//! an Eigen vector of type T, to hold the coordinates of a point
 		typedef typename Eigen::Matrix<T, Eigen::Dynamic, 1> Vector; 
 		//! a column-major Eigen matrix in which each column is a point; this matrix has dim rows
 		typedef typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+		//! a column-major Eigen matrix in which each column is a point; this matrix has dim rows
+		typedef Cloud_T CloudType;
 		//! an index to a Vector or a Matrix, for refering to data points
 		typedef int Index;
 		//! a vector of indices to data points
@@ -256,7 +258,7 @@ namespace Nabo
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic> IndexMatrix;
 		
 		//! the reference to the data-point cloud, which must remain valid during the lifetime of the NearestNeighbourSearch object
-		const Matrix& cloud;
+		const CloudType& cloud;
 		//! the dimensionality of the data-point cloud
 		const Index dim;
 		//! creation options
@@ -337,7 +339,7 @@ namespace Nabo
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
 		 *	\param additionalParameters additional parameters, currently only useful for KDTREE_
 		 *	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* create(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
+		static NearestNeighbourSearch* create(const CloudType& cloud, const Index dim = std::numeric_limits<Index>::max(), const SearchType preferedType = KDTREE_LINEAR_HEAP, const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
 		
 		//! Create a nearest-neighbour search, using brute-force search, useful for comparison only
 		/*!	This is an helper function, you can also use create() with BRUTE_FORCE as preferedType
@@ -345,7 +347,7 @@ namespace Nabo
 		 *	\param dim number of dimensions to consider, must be lower or equal to cloud.rows()
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
 		 *	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createBruteForce(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
+		static NearestNeighbourSearch* createBruteForce(const CloudType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0);
 		
 		//! Create a nearest-neighbour search, using a kd-tree with linear heap, good for small k (~up to 30)
 		/*!	This is an helper function, you can also use create() with KDTREE_LINEAR_HEAP as preferedType
@@ -354,7 +356,7 @@ namespace Nabo
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
 		 *	\param additionalParameters additional parameters
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeLinearHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
+		static NearestNeighbourSearch* createKDTreeLinearHeap(const CloudType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
 		
 		//! Create a nearest-neighbour search, using a kd-tree with tree heap, good for large k (~from 30)
 		/*!	This is an helper function, you can also use create() with KDTREE_TREE_HEAP as preferedType
@@ -363,7 +365,7 @@ namespace Nabo
 		 *	\param creationOptionFlags creation options, a bitwise OR of elements of CreationOptionFlags
 		 *	\param additionalParameters additional parameters
 		 * 	\return an object on which to run nearest neighbour queries */
-		static NearestNeighbourSearch* createKDTreeTreeHeap(const Matrix& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
+		static NearestNeighbourSearch* createKDTreeTreeHeap(const CloudType& cloud, const Index dim = std::numeric_limits<Index>::max(), const unsigned creationOptionFlags = 0, const Parameters& additionalParameters = Parameters());
 		
 
 
