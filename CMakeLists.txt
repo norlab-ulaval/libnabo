@@ -39,7 +39,7 @@ endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
-# Switch on warnings and disable one python interface warning.
+# Switch on warnings.
 add_definitions(-Wall -Wextra)
 
 # Boost required for any and cstdint on MSVC < 2010
