@@ -410,7 +410,7 @@ namespace Nabo
 		
 	protected:
 		//! constructor
-		NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags);
+		NearestNeighbourSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags);
 		
 		//! Make sure that the output matrices have the right sizes. Throw an exception otherwise.
 		/*!	\param query query points

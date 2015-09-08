@@ -47,7 +47,7 @@ namespace Nabo
 	using namespace std;
 
 	template<typename T, typename CloudType>
-	NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags):
+	NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags):
 		cloud(cloud),
 		dim(min(dim, int(cloud.rows()))),
 		creationOptionFlags(creationOptionFlags),
