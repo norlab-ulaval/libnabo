@@ -40,6 +40,37 @@ using namespace std;
 using namespace Nabo;
 
 template<typename T, typename CloudType>
+struct Loader
+{
+  void loadMatrix(const char *fileName)
+  {
+	data = load<T>(fileName);
+  }
+  CloudType getValue() const
+  {
+	return data;
+  }
+private:
+  CloudType data;
+};
+
+template<typename T>
+struct Loader<T, Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned> >
+{
+  void loadMatrix(const char *fileName)
+  {
+	data = load<T>(fileName);
+  }
+  Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned> getValue() const
+  {
+	return Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned>(data.data(), 3, data.cols());
+  }
+
+private:
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> data;
+};
+
+template<typename T, typename CloudType>
 void validate(const char *fileName, const int K, const int dim, const int method, const T maxRadius)
 {
 	typedef Nabo::NearestNeighbourSearch<T, CloudType> NNS;
@@ -48,8 +79,11 @@ void validate(const char *fileName, const int K, const int dim, const int method
 	typedef typename NNS::Vector Vector;
 	typedef typename NNS::IndexMatrix IndexMatrix;
 	
+	Loader<T, CloudType> loader;
+	loader.loadMatrix(fileName);
+
 	// check if file is ok
-	const CloudType d(load<T>(fileName));
+	const CloudType d = loader.getValue();
 	if (d.rows() != dim)
 	{
 		cerr << "Provided data has " << d.rows() << " dimensions, but the requested dimensions were " << dim << endl;
@@ -206,7 +240,10 @@ int main(int argc, char* argv[])
 	
 	if (dim == 3)
 	{
+		cerr << "Running 3xf test" << endl;
 		validate<float, Eigen::Matrix3Xf>(argv[1], K, dim, method, maxRadius);
+		cerr << "Running map 3xf test" << endl;
+		validate<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >(argv[1], K, dim, method, maxRadius);
 	} else
 	{
 		validate<float, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >(argv[1], K, dim, method, maxRadius);
