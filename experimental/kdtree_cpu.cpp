@@ -273,7 +273,9 @@ namespace Nabo
 		
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}
-	
+
+	template struct KDTreeBalancedPtInNodesPQ<float>;
+	template struct KDTreeBalancedPtInNodesPQ<double>;
 	template struct KDTreeBalancedPtInNodesPQ<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInNodesPQ<double, Eigen::Matrix3Xd>;
 	
