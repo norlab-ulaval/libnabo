@@ -163,4 +163,6 @@ namespace Nabo
 	template struct NearestNeighbourSearch<double>;
 	template struct NearestNeighbourSearch<float, Eigen::Matrix3Xf>;
 	template struct NearestNeighbourSearch<double, Eigen::Matrix3Xd>;
+	template struct NearestNeighbourSearch<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct NearestNeighbourSearch<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 }

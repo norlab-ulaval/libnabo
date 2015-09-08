@@ -278,6 +278,8 @@ namespace Nabo
 	template struct KDTreeBalancedPtInNodesPQ<double>;
 	template struct KDTreeBalancedPtInNodesPQ<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInNodesPQ<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInNodesPQ<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInNodesPQ<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	// points in nodes, stack
 	
@@ -359,9 +361,8 @@ namespace Nabo
 	template struct KDTreeBalancedPtInNodesStack<double>;
 	template struct KDTreeBalancedPtInNodesStack<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInNodesStack<double, Eigen::Matrix3Xd>;
-	
-	
-	
+	template struct KDTreeBalancedPtInNodesStack<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInNodesStack<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	// NEW:
 	
@@ -542,6 +543,8 @@ namespace Nabo
 	template struct KDTreeBalancedPtInLeavesStack<double>;
 	template struct KDTreeBalancedPtInLeavesStack<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInLeavesStack<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInLeavesStack<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInLeavesStack<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	
 	
@@ -745,12 +748,16 @@ namespace Nabo
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>>;
+
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapSTL<int,float>,Eigen::Matrix3Xf>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>,Eigen::Matrix3Xf>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>,Eigen::Matrix3Xd>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>,Eigen::Matrix3Xd>;
-	
-	
+
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapSTL<int,float>,Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>,Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>,Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>,Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	template<typename T, typename CloudType>
 	unsigned KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T, CloudType>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
@@ -911,4 +918,6 @@ namespace Nabo
 	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double>;
 	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<float, Eigen::Matrix3Xf>;
 	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double, Eigen::Matrix3Xd>;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 }

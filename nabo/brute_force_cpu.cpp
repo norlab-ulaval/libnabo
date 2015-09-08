@@ -106,4 +106,6 @@ namespace Nabo
 	template struct BruteForceSearch<double>;
 	template struct BruteForceSearch<float, Eigen::Matrix3Xf>;
 	template struct BruteForceSearch<double, Eigen::Matrix3Xd>;
+	template struct BruteForceSearch<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct BruteForceSearch<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 }

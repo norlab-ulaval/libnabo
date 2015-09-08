@@ -435,6 +435,8 @@ namespace Nabo
 	template struct BruteForceSearchOpenCL<double>;
 	template struct BruteForceSearchOpenCL<float, Eigen::Matrix3Xf>;
 	template struct BruteForceSearchOpenCL<double, Eigen::Matrix3Xd>;
+	template struct BruteForceSearchOpenCL<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct BruteForceSearchOpenCL<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	
 
@@ -558,6 +560,8 @@ namespace Nabo
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<double>;
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInLeavesStackOpenCL<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInLeavesStackOpenCL<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	
 	template<typename T, typename CloudType>
@@ -683,6 +687,8 @@ namespace Nabo
 	template struct KDTreeBalancedPtInNodesStackOpenCL<double>;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInNodesStackOpenCL<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInNodesStackOpenCL<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	//@}
 }

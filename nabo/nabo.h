@@ -268,6 +268,7 @@ namespace Nabo
 		//! the high bound of the search space (axis-aligned bounding box)
 		const Vector maxBound;
 		
+
 		//! type of search
 		enum SearchType
 		{
