@@ -42,32 +42,32 @@ using namespace Nabo;
 template<typename T, typename CloudType>
 struct Loader
 {
-  void loadMatrix(const char *fileName)
-  {
-	data = load<T>(fileName);
-  }
-  CloudType getValue() const
-  {
-	return data;
-  }
+	void loadMatrix(const char *fileName)
+	{
+		data = load<T>(fileName);
+	}
+	CloudType getValue() const
+	{
+		return data;
+	}
 private:
-  CloudType data;
+	CloudType data;
 };
 
 template<typename T>
 struct Loader<T, Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned> >
 {
-  void loadMatrix(const char *fileName)
-  {
-	data = load<T>(fileName);
-  }
-  Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned> getValue() const
-  {
-	return Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned>(data.data(), 3, data.cols());
-  }
+	void loadMatrix(const char *fileName)
+	{
+		data = load<T>(fileName);
+	}
+	Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned> getValue() const
+	{
+		return Eigen::Map<const Eigen::Matrix<T, 3, Eigen::Dynamic>, Eigen::Aligned>(data.data(), 3, data.cols());
+	}
 
 private:
-  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> data;
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> data;
 };
 
 template<typename T, typename CloudType>
