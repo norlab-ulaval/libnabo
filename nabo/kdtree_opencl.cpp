@@ -60,9 +60,21 @@ namespace cl
 
 namespace Nabo
 {
-	// argmax is already defined in kdtree_cpu.cpp, which is always compiled
 	template<typename T>
-	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v);
+	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
+	{
+		T maxVal(0);
+		size_t maxIdx(0);
+		for (int i = 0; i < v.size(); ++i)
+		{
+			if (v[i] > maxVal)
+			{
+				maxVal = v[i];
+				maxIdx = i;
+			}
+		}
+		return maxIdx;
+	}
 	
 	//! \ingroup private
 	//@{
@@ -322,7 +334,7 @@ namespace Nabo
 	template<typename T>
 	unsigned long OpenCLSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
-		checkSizesKnn(query, indices, dists2, k);
+		checkSizesKnn(query, indices, dists2, k, optionFlags);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
 		
 		// check K
@@ -393,6 +405,82 @@ namespace Nabo
 			return 0;
 	}
 	
+	template<typename T>
+	unsigned long OpenCLSearch<T>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	{
+		checkSizesKnn(query, indices, dists2, k, optionFlags, &maxRadii);
+//		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
+//
+//		// check K
+//		if (k > MAX_K)
+//			throw runtime_error("number of neighbors too large for OpenCL");
+//
+//		// check consistency of query wrt cloud
+//		if (query.stride() != cloud.stride() ||
+//			query.rows() != cloud.rows())
+//			throw runtime_error("query is not of the same dimensionality as the point cloud");
+//
+//		// map query
+//		if (!(query.Flags & Eigen::DirectAccessBit) || (query.Flags & Eigen::RowMajorBit))
+//			throw runtime_error("wrong memory mapping in query data");
+//		const size_t queryCLSize(query.cols() * query.stride() * sizeof(T));
+//		cl::Buffer queryCL(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, queryCLSize, const_cast<T*>(&query.coeff(0,0)));
+//		knnKernel.setArg(1, sizeof(cl_mem), &queryCL);
+//		// map indices
+//		assert((indices.Flags & Eigen::DirectAccessBit) && (!(indices.Flags & Eigen::RowMajorBit)));
+//		const int indexStride(indices.stride());
+//		const size_t indicesCLSize(indices.cols() * indexStride * sizeof(int));
+//		cl::Buffer indicesCL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, indicesCLSize, &indices.coeffRef(0,0));
+//		knnKernel.setArg(2, sizeof(cl_mem), &indicesCL);
+//		// map dists2
+//		assert((dists2.Flags & Eigen::DirectAccessBit) && (!(dists2.Flags & Eigen::RowMajorBit)));
+//		const int dists2Stride(dists2.stride());
+//		const size_t dists2CLSize(dists2.cols() * dists2Stride * sizeof(T));
+//		cl::Buffer dists2CL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, dists2CLSize, &dists2.coeffRef(0,0));
+//		knnKernel.setArg(3, sizeof(cl_mem), &dists2CL);
+//
+//		// set resulting parameters
+//		knnKernel.setArg(4, k);
+//		knnKernel.setArg(5, (1 + epsilon)*(1 + epsilon));
+//		const T maxRadius(maxRadii[i]);
+//		const T maxRadius2(maxRadius * maxRadius);
+//		knnKernel.setArg(6, maxRadius*maxRadius);
+//		knnKernel.setArg(7, optionFlags);
+//		knnKernel.setArg(8, indexStride);
+//		knnKernel.setArg(9, dists2Stride);
+//		knnKernel.setArg(10, cl_uint(cloud.cols()));
+//
+//		// if required, map visit count
+//		vector<cl_uint> visitCounts;
+//		const size_t visitCountCLSize(query.cols() * sizeof(cl_uint));
+//		cl::Buffer visitCountCL;
+//		if (collectStatistics)
+//		{
+//			visitCounts.resize(query.cols());
+//			visitCountCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, visitCountCLSize, &visitCounts[0]);
+//			knnKernel.setArg(11, sizeof(cl_mem), &visitCountCL);
+//		}
+//
+//		// execute query
+//		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
+//		queue.enqueueMapBuffer(indicesCL, true, CL_MAP_READ, 0, indicesCLSize, 0, 0);
+//		queue.enqueueMapBuffer(dists2CL, true, CL_MAP_READ, 0, dists2CLSize, 0, 0);
+//		if (collectStatistics)
+//			queue.enqueueMapBuffer(visitCountCL, true, CL_MAP_READ, 0, visitCountCLSize, 0, 0);
+//		queue.finish();
+//
+//		// if required, collect statistics
+//		if (collectStatistics)
+//		{
+//			unsigned long totalVisitCounts(0);
+//			for (size_t i = 0; i < visitCounts.size(); ++i)
+//				totalVisitCounts += (unsigned long)visitCounts[i];
+//			return totalVisitCounts;
+//		}
+//		else
+//			return 0;
+	}
+
 	template<typename T>
 	BruteForceSearchOpenCL<T>::BruteForceSearchOpenCL(const Matrix& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 	OpenCLSearch<T>::OpenCLSearch(cloud, dim, creationOptionFlags, deviceType)

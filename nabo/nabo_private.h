@@ -254,6 +254,7 @@ namespace Nabo
 	
 	public:
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
+		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
 	
 	//! KDTree, balanced, points in leaves, stack, implicit bounds, balance aspect ratio
