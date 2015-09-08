@@ -240,9 +240,8 @@ int main(int argc, char* argv[])
 	
 	if (dim == 3)
 	{
-		cerr << "Running 3xf test" << endl;
+		validate<float, Eigen::MatrixXf>(argv[1], K, dim, method, maxRadius);
 		validate<float, Eigen::Matrix3Xf>(argv[1], K, dim, method, maxRadius);
-		cerr << "Running map 3xf test" << endl;
 		validate<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >(argv[1], K, dim, method, maxRadius);
 	} else
 	{
