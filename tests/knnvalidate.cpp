@@ -39,17 +39,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace std;
 using namespace Nabo;
 
-template<typename T>
-void validate(const char *fileName, const int K, const int method, const T maxRadius)
+template<typename T, typename CloudType>
+void validate(const char *fileName, const int K, const int dim, const int method, const T maxRadius)
 {
-	typedef Nabo::NearestNeighbourSearch<T> NNS;
+	typedef Nabo::NearestNeighbourSearch<T, CloudType> NNS;
 	typedef vector<NNS*> NNSV;
 	typedef typename NNS::Matrix Matrix;
 	typedef typename NNS::Vector Vector;
 	typedef typename NNS::IndexMatrix IndexMatrix;
 	
 	// check if file is ok
-	const Matrix d(load<T>(fileName));
+	const CloudType d(load<T>(fileName));
+	if (d.rows() != dim)
+	{
+		cerr << "Provided data has " << d.rows() << " dimensions, but the requested dimensions were " << dim << endl;
+		exit(2);
+	}
 	if (K >= d.cols())
 	{
 		cerr << "Requested more nearest neighbour than points in the data set" << endl;
@@ -190,15 +195,22 @@ int main(int argc, char* argv[])
 {
 	if (argc < 4)
 	{
-		cerr << "Usage " << argv[0] << " DATA K METHOD [MAX_RADIUS]" << endl;
+		cerr << "Usage " << argv[0] << " DATA K DIM METHOD [MAX_RADIUS]" << endl;
 		return 1;
 	}
 	
 	const int K(atoi(argv[2]));
-	const int method(atoi(argv[3]));
-	const float maxRadius(argc >= 5 ? float(atof(argv[4])) : numeric_limits<float>::infinity());
+	const int dim(atoi(argv[3]));
+	const int method(atoi(argv[4]));
+	const float maxRadius(argc >= 6 ? float(atof(argv[5])) : numeric_limits<float>::infinity());
 	
-	validate<float>(argv[1], K, method, maxRadius);
+	if (dim == 3)
+	{
+		validate<float, Eigen::Matrix3Xf>(argv[1], K, dim, method, maxRadius);
+	} else
+	{
+		validate<float, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >(argv[1], K, dim, method, maxRadius);
+	}
 	//validate<double>(argv[1], K, method);
 	
 	return 0;
