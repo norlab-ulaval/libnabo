@@ -137,7 +137,7 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 						const typename NearestNeighbourSearch<T>::Matrix& d,
 						const typename NearestNeighbourSearch<T>::Matrix& q,
 						const int K,
-						const int itCount,
+						const int /*itCount*/,
 						const int searchCount)
 {
 	typedef NearestNeighbourSearch<T> nnsT;

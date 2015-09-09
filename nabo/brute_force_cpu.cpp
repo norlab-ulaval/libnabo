@@ -68,7 +68,7 @@ namespace Nabo
 	}
 	
 	template<typename T, typename CloudType>
-	unsigned long BruteForceSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	unsigned long BruteForceSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T /*epsilon*/, const unsigned optionFlags) const
 	{
 		checkSizesKnn(query, indices, dists2, k, optionFlags, &maxRadii);
 		

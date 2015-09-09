@@ -39,8 +39,8 @@ endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
-# Compilation
-add_definitions(-Wall)
+# Switch on warnings.
+add_definitions(-Wall -Wextra)
 
 # Boost required for any and cstdint on MSVC < 2010
 find_package(Boost COMPONENTS REQUIRED)
