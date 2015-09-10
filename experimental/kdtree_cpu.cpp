@@ -43,8 +43,8 @@ namespace Nabo
 {
 	using namespace std;
 	
-	template<typename T>
-	size_t argMax(const typename NearestNeighbourSearch<T>::Vector& v)
+	template<typename T, typename CloudType>
+	size_t argMax(const typename NearestNeighbourSearch<T, CloudType>::Vector& v)
 	{
 		T maxVal(0);
 		size_t maxIdx(0);
@@ -59,8 +59,8 @@ namespace Nabo
 		return maxIdx;
 	}
 
-	template<typename T>
-	size_t KDTreeBalancedPtInNodes<T>::getTreeSize(size_t elCount) const
+	template<typename T, typename CloudType>
+	size_t KDTreeBalancedPtInNodes<T, CloudType>::getTreeSize(size_t elCount) const
 	{
 		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
 		size_t count = 0;
@@ -76,8 +76,8 @@ namespace Nabo
 		return count;
 	}
 	
-	template<typename T>
-	typename KDTreeBalancedPtInNodes<T>::IndexVector KDTreeBalancedPtInNodes<T>::cloudIndexesFromNodesIndexes(const IndexVector& indexes) const
+	template<typename T, typename CloudType>
+	typename KDTreeBalancedPtInNodes<T, CloudType>::IndexVector KDTreeBalancedPtInNodes<T, CloudType>::cloudIndexesFromNodesIndexes(const IndexVector& indexes) const
 	{
 		IndexVector cloudIndexes(indexes.size());
 		for (int i = 0; i < indexes.size(); ++i)
@@ -85,8 +85,8 @@ namespace Nabo
 		return cloudIndexes;
 	}
 
-	template<typename T>
-	void KDTreeBalancedPtInNodes<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos)
+	template<typename T, typename CloudType>
+	void KDTreeBalancedPtInNodes<T, CloudType>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos)
 	{
 		const size_t count(last - first);
 		//cerr << count << endl;
@@ -135,8 +135,8 @@ namespace Nabo
 		}
 	}
 
-	template<typename T>
-	void KDTreeBalancedPtInNodes<T>::dump(const Vector minValues, const Vector maxValues, const size_t pos) const
+	template<typename T, typename CloudType>
+	void KDTreeBalancedPtInNodes<T, CloudType>::dump(const Vector minValues, const Vector maxValues, const size_t pos) const
 	{
 		const Node& node(nodes[pos]);
 		
@@ -169,9 +169,9 @@ namespace Nabo
 		}
 	}
 
-	template<typename T>
-	KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(const Matrix& cloud):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	template<typename T, typename CloudType>
+	KDTreeBalancedPtInNodes<T, CloudType>::KDTreeBalancedPtInNodes(const CloudType& cloud):
+		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -194,14 +194,14 @@ namespace Nabo
 	
 	// points in nodes, priority queue
 	
-	template<typename T>
-	KDTreeBalancedPtInNodesPQ<T>::KDTreeBalancedPtInNodesPQ(const Matrix& cloud):
-		KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(cloud)
+	template<typename T, typename CloudType>
+	KDTreeBalancedPtInNodesPQ<T, CloudType>::KDTreeBalancedPtInNodesPQ(const CloudType& cloud):
+		KDTreeBalancedPtInNodes<T, CloudType>::KDTreeBalancedPtInNodes(cloud)
 	{
 	}
 
-	template<typename T>
-	typename KDTreeBalancedPtInNodesPQ<T>::IndexVector KDTreeBalancedPtInNodesPQ<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	template<typename T, typename CloudType>
+	typename KDTreeBalancedPtInNodesPQ<T, CloudType>::IndexVector KDTreeBalancedPtInNodesPQ<T, CloudType>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		typedef priority_queue<SearchElement> Queue;
 		
@@ -273,20 +273,24 @@ namespace Nabo
 		
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}
-	
+
 	template struct KDTreeBalancedPtInNodesPQ<float>;
 	template struct KDTreeBalancedPtInNodesPQ<double>;
+	template struct KDTreeBalancedPtInNodesPQ<float, Eigen::Matrix3Xf>;
+	template struct KDTreeBalancedPtInNodesPQ<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInNodesPQ<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInNodesPQ<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	// points in nodes, stack
 	
-	template<typename T>
-	KDTreeBalancedPtInNodesStack<T>::KDTreeBalancedPtInNodesStack(const Matrix& cloud):
-		KDTreeBalancedPtInNodes<T>::KDTreeBalancedPtInNodes(cloud)
+	template<typename T, typename CloudType>
+	KDTreeBalancedPtInNodesStack<T, CloudType>::KDTreeBalancedPtInNodesStack(const CloudType& cloud):
+		KDTreeBalancedPtInNodes<T, CloudType>::KDTreeBalancedPtInNodes(cloud)
 	{
 	}
 	
-	template<typename T>
-	typename KDTreeBalancedPtInNodesStack<T>::IndexVector KDTreeBalancedPtInNodesStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	template<typename T, typename CloudType>
+	typename KDTreeBalancedPtInNodesStack<T, CloudType>::IndexVector KDTreeBalancedPtInNodesStack<T, CloudType>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		
@@ -307,8 +311,8 @@ namespace Nabo
 		return cloudIndexesFromNodesIndexes(heap.getIndexes());
 	}
 	
-	template<typename T>
-	void KDTreeBalancedPtInNodesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
+	template<typename T, typename CloudType>
+	void KDTreeBalancedPtInNodesStack<T, CloudType>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -318,7 +322,7 @@ namespace Nabo
 		if (cd == -2)
 			return;
 		
-		const T dist(dist2<T>(node.pos, query));
+		const T dist(dist2<T, CloudType>(node.pos, query));
 		if ((dist < heap.headValue()) &&
 			(allowSelfMatch || (dist > numeric_limits<T>::epsilon()))
 		)
@@ -355,14 +359,15 @@ namespace Nabo
 	
 	template struct KDTreeBalancedPtInNodesStack<float>;
 	template struct KDTreeBalancedPtInNodesStack<double>;
-	
-	
-	
+	template struct KDTreeBalancedPtInNodesStack<float, Eigen::Matrix3Xf>;
+	template struct KDTreeBalancedPtInNodesStack<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInNodesStack<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInNodesStack<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	// NEW:
 	
-	template<typename T>
-	size_t KDTreeBalancedPtInLeavesStack<T>::getTreeSize(size_t elCount) const
+	template<typename T, typename CloudType>
+	size_t KDTreeBalancedPtInLeavesStack<T, CloudType>::getTreeSize(size_t elCount) const
 	{
 		// FIXME: 64 bits safe stuff, only work for 2^32 elements right now
 		assert(elCount > 0);
@@ -381,8 +386,8 @@ namespace Nabo
 		return count;
 	}
 	
-	template<typename T>
-	void KDTreeBalancedPtInLeavesStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance)
+	template<typename T, typename CloudType>
+	void KDTreeBalancedPtInLeavesStack<T, CloudType>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues, const bool balanceVariance)
 	{
 		const size_t count(last - first);
 		//cerr << count << endl;
@@ -443,9 +448,9 @@ namespace Nabo
 		buildNodes(first + leftCount, last, childRight(pos), rightMinValues, maxValues, balanceVariance);
 	}
 
-	template<typename T>
-	KDTreeBalancedPtInLeavesStack<T>::KDTreeBalancedPtInLeavesStack(const Matrix& cloud, const bool balanceVariance):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	template<typename T, typename CloudType>
+	KDTreeBalancedPtInLeavesStack<T, CloudType>::KDTreeBalancedPtInLeavesStack(const CloudType& cloud, const bool balanceVariance):
+		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -465,10 +470,10 @@ namespace Nabo
 		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal << endl;
 	}
 	
-	template<typename T>
-	typename KDTreeBalancedPtInLeavesStack<T>::IndexVector KDTreeBalancedPtInLeavesStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	template<typename T, typename CloudType>
+	typename KDTreeBalancedPtInLeavesStack<T, CloudType>::IndexVector KDTreeBalancedPtInLeavesStack<T, CloudType>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T, CloudType>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
@@ -486,8 +491,8 @@ namespace Nabo
 		return heap.getIndexes();
 	}
 	
-	template<typename T>
-	void KDTreeBalancedPtInLeavesStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
+	template<typename T, typename CloudType>
+	void KDTreeBalancedPtInLeavesStack<T, CloudType>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -536,11 +541,15 @@ namespace Nabo
 	
 	template struct KDTreeBalancedPtInLeavesStack<float>;
 	template struct KDTreeBalancedPtInLeavesStack<double>;
+	template struct KDTreeBalancedPtInLeavesStack<float, Eigen::Matrix3Xf>;
+	template struct KDTreeBalancedPtInLeavesStack<double, Eigen::Matrix3Xd>;
+	template struct KDTreeBalancedPtInLeavesStack<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeBalancedPtInLeavesStack<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
 	
 	
-	template<typename T, typename Heap>
-	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	template<typename T, typename Heap, typename CloudType>
+	unsigned KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
 	{
 		const size_t count(last - first);
 		const unsigned pos(nodes.size());
@@ -601,9 +610,9 @@ namespace Nabo
 		return pos;
 	}
 
-	template<typename T, typename Heap>
-	KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const Matrix& cloud):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	template<typename T, typename Heap, typename CloudType>
+	KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::KDTreeUnbalancedPtInLeavesImplicitBoundsStack(const CloudType& cloud):
+		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -623,10 +632,10 @@ namespace Nabo
 		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
 	}
 	
-	template<typename T, typename Heap>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	template<typename T, typename Heap, typename CloudType>
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::IndexVector KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T, CloudType>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
@@ -636,7 +645,7 @@ namespace Nabo
 		
 		recurseKnn(query, 0, 0, heap, off, 1+epsilon, allowSelfMatch);
 		
-		if (optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS)
+		if (optionFlags & NearestNeighbourSearch<T, CloudType>::SORT_RESULTS)
 			heap.sort();
 		
 		statistics.totalVisitCount += statistics.lastQueryVisitCount;
@@ -644,10 +653,10 @@ namespace Nabo
 		return heap.getIndexes();
 	}
 	
-	template<typename T, typename Heap>
-	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags) 
+	template<typename T, typename Heap, typename CloudType>
+	typename KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::IndexMatrix KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::knnM(const Matrix& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T, CloudType>::ALLOW_SELF_MATCH);
 		assert(nodes.size() > 0);
 		
 		assert(nodes.size() > 0);
@@ -679,8 +688,8 @@ namespace Nabo
 		return result;
 	}
 	
-	template<typename T, typename Heap>
-	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap>::recurseKnn(const Vector& query, const unsigned n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
+	template<typename T, typename Heap, typename CloudType>
+	void KDTreeUnbalancedPtInLeavesImplicitBoundsStack<T, Heap, CloudType>::recurseKnn(const Vector& query, const unsigned n, T rd, Heap& heap, Vector& off, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		//++statistics.lastQueryVisitCount;
@@ -739,11 +748,19 @@ namespace Nabo
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>>;
 	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>>;
+
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapSTL<int,float>,Eigen::Matrix3Xf>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>,Eigen::Matrix3Xf>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>,Eigen::Matrix3Xd>;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>,Eigen::Matrix3Xd>;
+
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapSTL<int,float>,Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<float,IndexHeapBruteForceVector<int,float>,Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapSTL<int,double>,Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesImplicitBoundsStack<double,IndexHeapBruteForceVector<int,double>,Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 	
-	
-	
-	template<typename T>
-	unsigned KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
+	template<typename T, typename CloudType>
+	unsigned KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T, CloudType>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const Vector minValues, const Vector maxValues)
 	{
 		const size_t count(last - first);
 		const unsigned pos(nodes.size());
@@ -805,9 +822,9 @@ namespace Nabo
 		return pos;
 	}
 
-	template<typename T>
-	KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::KDTreeUnbalancedPtInLeavesExplicitBoundsStack(const Matrix& cloud):
-		NearestNeighbourSearch<T>::NearestNeighbourSearch(cloud)
+	template<typename T, typename CloudType>
+	KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T, CloudType>::KDTreeUnbalancedPtInLeavesExplicitBoundsStack(const CloudType& cloud):
+		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud)
 	{
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
@@ -827,10 +844,10 @@ namespace Nabo
 		//	cout << i << ": " << nodes[i].dim << " " << nodes[i].cutVal <<  " " << nodes[i].rightChild << endl;
 	}
 	
-	template<typename T>
-	typename KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::IndexVector KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
+	template<typename T, typename CloudType>
+	typename KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T, CloudType>::IndexVector KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T, CloudType>::knn(const Vector& query, const Index k, const T epsilon, const unsigned optionFlags)
 	{
-		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
+		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T, CloudType>::ALLOW_SELF_MATCH);
 		
 		assert(nodes.size() > 0);
 		Heap heap(k);
@@ -847,8 +864,8 @@ namespace Nabo
 		return heap.getIndexes();
 	}
 	
-	template<typename T>
-	void KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const T maxError, const bool allowSelfMatch)
+	template<typename T, typename CloudType>
+	void KDTreeUnbalancedPtInLeavesExplicitBoundsStack<T, CloudType>::recurseKnn(const Vector& query, const size_t n, T rd, Heap& heap, const T maxError, const bool allowSelfMatch)
 	{
 		const Node& node(nodes[n]);
 		const int cd(node.dim);
@@ -899,4 +916,8 @@ namespace Nabo
 	
 	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<float>;
 	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double>;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<float, Eigen::Matrix3Xf>;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double, Eigen::Matrix3Xd>;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
+	template struct KDTreeUnbalancedPtInLeavesExplicitBoundsStack<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
 }

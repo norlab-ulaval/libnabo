@@ -71,32 +71,32 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 
 # optionally, opencl
 # OpenCL disabled as its code is not up-to-date with API
-# set(USE_OPEN_CL "false" CACHE BOOL "Set to ON to look for OpenCL")
-# if (USE_OPEN_CL)
-# 	find_path(OPENCL_INCLUDE_DIR CL/cl.h
-# 		/usr/local/include
-# 		/usr/include
-# 	)
-# 	if (WIN32)
-# 		find_library(OPENCL_LIBRARIES opencl64)
-# 		if (!OPENCL_LIBRARIES)
-# 			find_library(OPENCL_LIBRARIES opencl32)
-# 		endif (!OPENCL_LIBRARIES)
-# 	else (WIN32)
-# 		find_library(OPENCL_LIBRARIES OpenCL ENV LD_LIBRARY_PATH)
-# 	endif (WIN32)
-# 	if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
-# 		add_definitions(-DHAVE_OPENCL)
-# 		set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
-# 		include_directories(${OPENCL_INCLUDE_DIR})
-# 		add_definitions(-DOPENCL_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}/nabo/opencl/\")
-# 		message("OpenCL enabled and found, enabling CL support")
-# 	else (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
-# 		message("OpenCL enabled but not found, disabling CL support")
-# 	endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
-# else(USE_OPEN_CL)
-# 	message("OpenCL disabled, not looking for it")
-# endif(USE_OPEN_CL)
+set(USE_OPEN_CL "FALSE" CACHE BOOL "Set to ON to look for OpenCL")
+ if (USE_OPEN_CL)
+ 	find_path(OPENCL_INCLUDE_DIR CL/cl.h
+ 		/usr/local/include
+ 		/usr/include
+ 	)
+ 	if (WIN32)
+ 		find_library(OPENCL_LIBRARIES opencl64)
+ 		if (!OPENCL_LIBRARIES)
+ 			find_library(OPENCL_LIBRARIES opencl32)
+ 		endif (!OPENCL_LIBRARIES)
+ 	else (WIN32)
+ 		find_library(OPENCL_LIBRARIES OpenCL ENV LD_LIBRARY_PATH)
+ 	endif (WIN32)
+ 	if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
+ 		add_definitions(-DHAVE_OPENCL)
+ 		set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
+ 		include_directories(${OPENCL_INCLUDE_DIR})
+ 		add_definitions(-DOPENCL_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}/nabo/opencl/\")
+ 		message("OpenCL enabled and found, enabling CL support")
+ 	else (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
+ 		message("OpenCL enabled but not found, disabling CL support")
+ 	endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
+ else(USE_OPEN_CL)
+ 	message("OpenCL disabled, not looking for it")
+ endif(USE_OPEN_CL)
 
 # include all libs so far
 include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
