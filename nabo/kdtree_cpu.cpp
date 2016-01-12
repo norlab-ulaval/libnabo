@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <queue>
 #include <algorithm>
+#include <time.h>
 #include <utility>
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/limits.hpp>
