@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <time.h>
 
 using namespace std;
 using namespace Nabo;
