@@ -19,10 +19,6 @@ The source code is available from github, you can clone the git tree by doing:
 
 	git clone git://github.com/ethz-asl/libnabo.git
 
-You can then checkout a specific branch, for instance to checkout version 1.0.2, do:
-
-	cd libnabo
-	git checkout 1.0.2
 
 Compilation
 ===========
