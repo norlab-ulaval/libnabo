@@ -3,7 +3,7 @@ include (CheckSymbolExists)
 include_directories(..)
 
 add_executable(knnvalidate knnvalidate.cpp)
-target_link_libraries(knnvalidate ${LIB_NAME}  ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnvalidate ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
 # disable as experimental is broken target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_test(validation-2D-exhaustive ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 2 -1)
@@ -83,23 +83,22 @@ target_link_libraries(knnbucketsize ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES}
 
 # Ensure that users cannot instantiate a tree with wrong matrix types.
 macro(try_compile_cloud_types MAT_TYPE TREE_TYPE EXPECT)
-  try_compile(COMPILE_SUCCEEDED
-                "${CMAKE_CURRENT_BINARY_DIR}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/invalid_matrix_types.cpp"
-                COMPILE_DEFINITIONS "-D${MAT_TYPE} -D${TREE_TYPE} -I${CMAKE_CURRENT_SOURCE_DIR}/../ -I${EIGEN_INCLUDE_DIR} -l${LIB_NAME}"
-                CMAKE_FLAGS "-DCMAKE_CXX_LINK_EXECUTABLE='echo not linking now...'"
-                OUTPUT_VARIABLE OUTPUT)
+	try_compile(COMPILE_SUCCEEDED
+	              "${CMAKE_CURRENT_BINARY_DIR}"
+	              "${CMAKE_CURRENT_SOURCE_DIR}/invalid_matrix_types.cpp"
+	              COMPILE_DEFINITIONS "-D${MAT_TYPE} -D${TREE_TYPE} -I${CMAKE_CURRENT_SOURCE_DIR}/../ -I${EIGEN_INCLUDE_DIR} -l${LIB_NAME}"
+	              CMAKE_FLAGS "-DCMAKE_CXX_LINK_EXECUTABLE='echo not linking now...'"
+	              OUTPUT_VARIABLE OUTPUT)
 
-  if (${EXPECT} STREQUAL "TRUE") 
-    if(NOT COMPILE_SUCCEEDED)
-      message( FATAL_ERROR "Compiling a test executable failed." )
-    endif()
-  else()
-    if(COMPILE_SUCCEEDED)
-      message( FATAL_ERROR "Tried to instantiate nabo-search trees with non-allowed types and succeeded. This is an error. Message ${OUTPUT}" )
-    endif()
-  endif()
-
+	if (${EXPECT} STREQUAL "TRUE") 
+		if (NOT COMPILE_SUCCEEDED)
+			message( FATAL_ERROR "Compiling a test executable failed." )
+		endif ()
+	else ()
+		if (COMPILE_SUCCEEDED)
+			message( FATAL_ERROR "Tried to instantiate nabo-search trees with non-allowed types and succeeded. This is an error. Message ${OUTPUT}" )
+		endif ()
+	endif ()
 endmacro(try_compile_cloud_types)
 
 try_compile_cloud_types(NABO_EIGEN_DYNAMIC_TYPE, NABO_TYPE_CREATE, TRUE)
