@@ -1,7 +1,11 @@
+
+set(PYTHON_VERSION_MAJOR 3)
+set(PYTHON_VERSION_MINOR 5)
+set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
+
 # find Python, make sure we use the same version for interpreter and libraries
 find_package(PythonInterp)
 message("Python version from interpreter is ${PYTHON_VERSION_STRING}")
-set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
 find_package(PythonLibs)
 
 # helper function to search for a module
@@ -14,7 +18,7 @@ function(find_python_module module)
 		# A module's location is usually a directory, but for binary modules
 		# it's a .so file.
 		execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
-			"import re, ${module}; print re.compile('/__init__.py.*').sub('',${module}.__file__)"
+			"import re, ${module}; print(re.compile('/__init__.py.*').sub('',${module}.__file__))"
 			RESULT_VARIABLE _${module}_status
 			OUTPUT_VARIABLE _${module}_location
 			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -51,9 +55,9 @@ if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 			install(TARGETS pynabo LIBRARY DESTINATION ${PYTHON_CUSTOM_TARGET})
 		else (PYTHON_CUSTOM_TARGET)
 			if (PYTHON_DEB_INSTALL_TARGET)
-				set(PYTHON_COMMAND "import sys; print '/usr/lib/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/dist-packages'")
+				set(PYTHON_COMMAND "import sys; print('/usr/lib/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/dist-packages')")
 			else (PYTHON_DEB_INSTALL_TARGET)
-				set(PYTHON_COMMAND "from distutils.sysconfig import get_python_lib; print get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}')")
+				set(PYTHON_COMMAND "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}'))")
 			endif (PYTHON_DEB_INSTALL_TARGET)
 			execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c" "${PYTHON_COMMAND}" OUTPUT_VARIABLE PYTHON_SITE_MODULES OUTPUT_STRIP_TRAILING_WHITESPACE)
 			install(TARGETS pynabo LIBRARY DESTINATION ${PYTHON_SITE_MODULES})
