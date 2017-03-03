@@ -2,6 +2,7 @@
 set(PYTHON_VERSION_MAJOR 3)
 set(PYTHON_VERSION_MINOR 5)
 set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
+set(PYTHON_DEB_INSTALL_TARGET 1)
 
 # find Python, make sure we use the same version for interpreter and libraries
 find_package(PythonInterp)
@@ -32,7 +33,8 @@ endfunction(find_python_module)
 # make sure we have the right modules
 if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 	message("Python libs and executable found, looking for numpy and boost::python")
-	find_package(Boost COMPONENTS python)
+  set(BOOST_PYTHON_PACKAGE "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+	find_package(Boost COMPONENTS ${BOOST_PYTHON_PACKAGE})
 	find_python_module(numpy)
 	find_package_handle_standard_args(numpy DEFAULT_MSG PY_NUMPY)
 	if (Boost_FOUND AND NUMPY_FOUND)
