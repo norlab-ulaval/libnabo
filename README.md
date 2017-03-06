@@ -100,6 +100,15 @@ The resulting module is called pynabo, you can see an example in `python/test.py
 You can find more information in the docstring-based documentation:
 
 	python -c "import pynabo; help(pynabo.NearestNeighbourSearch)"
+    
+Building
+--------
+
+The python bindings can be generated for python 2 or python 3. 
+To specify the version of the interpreter to use when building the bindings, set the `PYTHON_VERSION_MAJOR` and `PYTHON_VERSION_MINOR` variables. 
+For example if you have both python 2.7 and 3.5 installed, you could ask cmake to generate python 3 bindings by using the following command.
+
+    cmake -DPYTHON_VERSION_MAJOR=3 -DPYTHON_VERSION_MINOR=5 ..
 
 Unit testing
 ============

@@ -1,8 +1,5 @@
 
-set(PYTHON_VERSION_MAJOR 3)
-set(PYTHON_VERSION_MINOR 5)
 set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
-set(PYTHON_DEB_INSTALL_TARGET 1)
 
 # find Python, make sure we use the same version for interpreter and libraries
 find_package(PythonInterp)

@@ -102,7 +102,13 @@ public:
 
     // build params
     Nabo::Parameters _params;
+
+#if PY_MAJOR_VERSION >= 3
+    object it = params.items();
+#else
     object it = params.iteritems();
+#endif
+
     for(int i = 0; i < len(params); ++i)
     {
       const tuple item(it.attr("next")());
