@@ -30,7 +30,7 @@ endfunction(find_python_module)
 # make sure we have the right modules
 if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 	message("Python libs and executable found, looking for numpy and boost::python")
-  set(BOOST_PYTHON_PACKAGE "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+	set(BOOST_PYTHON_PACKAGE "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 	find_package(Boost COMPONENTS ${BOOST_PYTHON_PACKAGE})
 	find_python_module(numpy)
 	find_package_handle_standard_args(numpy DEFAULT_MSG PY_NUMPY)

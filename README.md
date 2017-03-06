@@ -100,7 +100,7 @@ The resulting module is called pynabo, you can see an example in `python/test.py
 You can find more information in the docstring-based documentation:
 
 	python -c "import pynabo; help(pynabo.NearestNeighbourSearch)"
-    
+
 Building
 --------
 
