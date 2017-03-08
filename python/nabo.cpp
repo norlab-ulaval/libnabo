@@ -199,7 +199,7 @@ BOOST_PYTHON_MODULE(pynabo)
 			"    creationOptionFlags -- creation options, a bitwise OR of elements of CreationOptionFlags",
 			args("self", "data", "searchType", "dim", "creationOptionFlags, default: 0")
 		)
-		)
+	)
 	.def("knn", &NearestNeighbourSearch::knn,
 		knn_overloads(
 			args("self", "query", "k", "epsilon", "optionFlags", "maxRadius"),
