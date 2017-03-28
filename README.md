@@ -109,6 +109,8 @@ To specify the version of the interpreter to use when building the bindings, set
 For example if you have both python 2.7 and 3.5 installed, you could ask cmake to generate python 3 bindings by using the following command.
 
     cmake -DPYTHON_VERSION_MAJOR=3 -DPYTHON_VERSION_MINOR=5 ..
+    
+On debian-based distributions you may also need the `-DPYTHON_DEB_INSTALL_TARGET` option enabled.
 
 Unit testing
 ============
