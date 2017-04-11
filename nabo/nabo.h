@@ -41,7 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include <vector>
 #include <map>
-#include <boost/any.hpp>
+#include "any.hpp"
 
 /*! 
 	\file nabo.h
@@ -72,7 +72,7 @@ You will find a nice introductory tutorial in this you tube video: http://www.yo
 
 \subsection Prerequisites
 
-If your operating system does not provide it, you must get \ref Eigen and \ref Boost.
+If your operating system does not provide it, you must get \ref Eigen.
 \ref Eigen only needs to be downloaded and extracted.
 
 \subsection CompilationOptions Compilation options
@@ -85,15 +85,15 @@ Please read the <a href="http://www.cmake.org/cmake/help/cmake2.6docs.html">CMak
 
 \subsection QuickCompilationUnix Quick compilation and installation under Unix
 
-Under Unix, assuming that \ref Eigen and \ref Boost are installed system-wide, you can compile (with optimisation and debug information) and install libnabo in \c /usr/local with the following commands run in the top-level directory of libnabo's sources:
+Under Unix, assuming that \ref Eigen is installed system-wide, you can compile (with optimisation and debug information) and install libnabo in \c /usr/local with the following commands run in the top-level directory of libnabo's sources:
 \code
 SRC_DIR=`pwd`
 BUILD_DIR=${SRC_DIR}/build
 mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
-# if Eigen or Boost are not available system-wide, run at that point: 
+# if Eigen is not available system-wide, run at that point:
 #   cmake-gui .
-# cmake-gui allows you to tell the location of Eigen or Boost
+# cmake-gui allows you to tell the location of Eigen
 make
 sudo make install
 \endcode
@@ -101,7 +101,7 @@ sudo make install
 These lines will compile libnabo in a \c build sub-directory and therefore keep your source tree clean.
 Note that you could compile libnabo anywhere you have write access, such as in \c /tmp/libnabo.
 This out-of-source build is a nice feature of \ref CMake.
-If \ref Eigen or \ref Boost are not installed system-wide, you might have to tell \ref CMake where to find them (using \c ccmake or \c cmake-gui).
+If \ref Eigen is not installed system-wide, you might have to tell \ref CMake where to find them (using \c ccmake or \c cmake-gui).
 
 You can generate the documentation by typing:
 \code
@@ -215,7 +215,9 @@ namespace Nabo
 	#define NABO_VERSION_INT 10006
 	
 	//! Parameter vector
-	struct Parameters: public std::map<std::string, boost::any>
+	//
+	// TODO: replace with C++17 std::any.
+	struct Parameters: public std::map<std::string, linb::any>
 	{
 		//! Create an empty parameter vector
 		Parameters(){}
@@ -223,7 +225,7 @@ namespace Nabo
 		/** \param key entry key
 		 * \param value entry value
 		 */
-		Parameters(const std::string& key, const boost::any& value){(*this)[key] = value;}
+		Parameters(const std::string& key, const linb::any& value){(*this)[key] = value;}
 		//! Get the value of a key, return defaultValue if the key does not exist
 		/** \param key requested key
 		 * \param defaultValue value to return if the key does not exist
@@ -234,7 +236,7 @@ namespace Nabo
 		{
 			const_iterator it(find(key));
 			if (it != end())
-				return boost::any_cast<T>(it->second);
+				return linb::any_cast<T>(it->second);
 			else
 				return defaultValue;
 		}
