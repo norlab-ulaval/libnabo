@@ -86,7 +86,7 @@ macro(try_compile_cloud_types MAT_TYPE TREE_TYPE EXPECT)
 	try_compile(COMPILE_SUCCEEDED
 	              "${CMAKE_CURRENT_BINARY_DIR}"
 	              "${CMAKE_CURRENT_SOURCE_DIR}/invalid_matrix_types.cpp"
-	              COMPILE_DEFINITIONS "-D${MAT_TYPE} -D${TREE_TYPE} -I${CMAKE_CURRENT_SOURCE_DIR}/../ -I${EIGEN_INCLUDE_DIR} -l${LIB_NAME}"
+	              COMPILE_DEFINITIONS "-std=c++11 -D${MAT_TYPE} -D${TREE_TYPE} -I${CMAKE_CURRENT_SOURCE_DIR}/../ -I${CMAKE_CURRENT_SOURCE_DIR}/../third_party/ -I${EIGEN_INCLUDE_DIR} -l${LIB_NAME}"
 	              CMAKE_FLAGS "-DCMAKE_CXX_LINK_EXECUTABLE='echo not linking now...'"
 	              OUTPUT_VARIABLE OUTPUT)
 

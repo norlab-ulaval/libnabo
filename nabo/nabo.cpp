@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <algorithm>
 #include <stdexcept>
-#include <boost/format.hpp>
+#include <sstream>
 
 /*!	\file nabo.cpp
 	\brief implementation of public interface
@@ -46,6 +46,25 @@ namespace Nabo
 {
 	using namespace std;
 
+	// Custom exception class supporting stream-style message constructions.
+	struct runtime_error : std::runtime_error {
+		stringstream ss;
+
+		template<typename T> runtime_error& operator<<(const T& t) {
+			ss << t;
+
+			// Linux executor would not print correctly by overiding "virtual const char* what()".
+			// One solution is refreshing underlying std::runtime_error every time message is changed.
+			static_cast<std::runtime_error&>(*this) = std::runtime_error(ss.str());
+
+			return *this;
+		}
+
+		runtime_error(): std::runtime_error("") {}
+		runtime_error(const runtime_error& re): std::runtime_error(re.ss.str()), ss(re.ss.str()) {}
+		virtual ~runtime_error() throw () {}
+	};
+
 	template<typename T, typename CloudType>
 	NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags):
 		cloud(cloud),
@@ -55,9 +74,9 @@ namespace Nabo
 		maxBound(Vector::Constant(this->dim, numeric_limits<T>::min()))
 	{
 		if (cloud.cols() == 0)
-			throw runtime_error("Cloud has no points");
+			throw runtime_error() << "Cloud has no points";
 		if (cloud.rows() == 0)
-			throw runtime_error("Cloud has 0 dimensions");
+			throw runtime_error() << "Cloud has 0 dimensions";
 	}
 	
 	template<typename T, typename CloudType>
@@ -87,28 +106,28 @@ namespace Nabo
 		if (allowSelfMatch)
 		{
 			if (k > cloud.cols())
-				throw runtime_error((boost::format("Requesting more points (%1%) than available in cloud (%2%)") % k % cloud.cols()).str());
+				throw runtime_error() << "Requesting more points (" << k << ") than available in cloud (" << cloud.cols() << ")";
 		}
 		else
 		{
 			if (k > cloud.cols()-1)
-				throw runtime_error((boost::format("Requesting more points (%1%) than available in cloud minus 1 (%2%) (as self match is forbidden)") % k % (cloud.cols()-1)).str());
+				throw runtime_error() << "Requesting more points (" << k << ") than available in cloud minus 1 (" << cloud.cols()-1 << ") (as self match is forbidden)";
 		}
 		if (query.rows() < dim)
-			throw runtime_error((boost::format("Query has less dimensions (%1%) than requested for cloud (%2%)") % query.rows() % dim).str());
+			throw runtime_error() << "Query has less dimensions (" << query.rows() << ") than requested for cloud (" << dim << ")";
 		if (indices.rows() != k)
-			throw runtime_error((boost::format("Index matrix has a different number of rows (%1%) than k (%2%)") % indices.rows() % k).str());
+			throw runtime_error() << "Index matrix has a different number of rows (" << indices.rows() << ") than k (" << k << ")";
 		if (indices.cols() != query.cols())
-			throw runtime_error((boost::format("Index matrix has a different number of columns (%1%) than query (%2%)") % indices.rows() % query.cols()).str());
+			throw runtime_error() << "Index matrix has a different number of columns (" << indices.rows() << ") than query (" << query.cols() << ")";
 		if (dists2.rows() != k)
-			throw runtime_error((boost::format("Distance matrix has a different number of rows (%1%) than k (%2%)") % dists2.rows() % k).str());
+			throw runtime_error() << "Distance matrix has a different number of rows (" << dists2.rows() << ") than k (" << k << ")";
 		if (dists2.cols() != query.cols())
-			throw runtime_error((boost::format("Distance matrix has a different number of columns (%1%) than query (%2%)") % dists2.rows() % query.cols()).str());
+			throw runtime_error() << "Distance matrix has a different number of columns (" << dists2.rows() << ") than query (" << query.cols() << ")";
 		if (maxRadii && (maxRadii->size() != query.cols()))
-			throw runtime_error((boost::format("Maximum radii vector has not the same length (%1%) than query has columns (%2%)") % maxRadii->size() % k).str());
+			throw runtime_error() << "Maximum radii vector has not the same length (" << maxRadii->size() << ") than query has columns (" << k << ")";
 		const unsigned maxOptionFlagsValue(ALLOW_SELF_MATCH|SORT_RESULTS);
 		if (optionFlags > maxOptionFlagsValue)
-			throw runtime_error((boost::format("OR-ed value of option flags (%1%) is larger than maximal valid value (%2%)") % optionFlags % maxOptionFlagsValue).str());
+			throw runtime_error() << "OR-ed value of option flags (" << optionFlags << ") is larger than maximal valid value (" << maxOptionFlagsValue << ")";
 	}
 	
 
@@ -116,7 +135,7 @@ namespace Nabo
 	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::create(const CloudType& cloud, const Index dim, const SearchType preferedType, const unsigned creationOptionFlags, const Parameters& additionalParameters)
 	{
 		if (dim <= 0)
-			throw runtime_error("Your space must have at least one dimension");
+			throw runtime_error() << "Your space must have at least one dimension";
 		switch (preferedType)
 		{
 			case BRUTE_FORCE: return new BruteForceSearch<T, CloudType>(cloud, dim, creationOptionFlags);
@@ -127,11 +146,11 @@ namespace Nabo
 			case KDTREE_CL_PT_IN_LEAVES: return new KDTreeBalancedPtInLeavesStackOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
 			case BRUTE_FORCE_CL: return new BruteForceSearchOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
 			#else // HAVE_OPENCL
-			case KDTREE_CL_PT_IN_NODES: throw runtime_error("OpenCL not found during compilation");
-			case KDTREE_CL_PT_IN_LEAVES: throw runtime_error("OpenCL not found during compilation");
-			case BRUTE_FORCE_CL: throw runtime_error("OpenCL not found during compilation");
+			case KDTREE_CL_PT_IN_NODES: throw runtime_error() << "OpenCL not found during compilation";
+			case KDTREE_CL_PT_IN_LEAVES: throw runtime_error() << "OpenCL not found during compilation";
+			case BRUTE_FORCE_CL: throw runtime_error() << "OpenCL not found during compilation";
 			#endif // HAVE_OPENCL
-			default: throw runtime_error("Unknown search type");
+			default: throw runtime_error() << "Unknown search type";
 		}
 	}
 
@@ -139,7 +158,7 @@ namespace Nabo
 	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::createBruteForce(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags)
 	{
 		if (dim <= 0)
-			throw runtime_error("Your space must have at least one dimension");
+			throw runtime_error() << "Your space must have at least one dimension";
 		return new BruteForceSearch<T, CloudType>(cloud, dim, creationOptionFlags);
 	}
 
@@ -147,7 +166,7 @@ namespace Nabo
 	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::createKDTreeLinearHeap(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters)
 	{
 		if (dim <= 0)
-			throw runtime_error("Your space must have at least one dimension");
+			throw runtime_error() << "Your space must have at least one dimension";
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
 
@@ -155,7 +174,7 @@ namespace Nabo
 	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::createKDTreeTreeHeap(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const Parameters& additionalParameters)
 	{
 		if (dim <= 0)
-			throw runtime_error("Your space must have at least one dimension");
+			throw runtime_error() << "Your space must have at least one dimension";
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
 	
