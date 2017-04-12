@@ -7,7 +7,7 @@ libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
 libnabo also depends on [Boost], a C++ general library.
 
-libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch) and is now maintained by [Simon Lynen](http://www.asl.ethz.ch/people/slynen).
+libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch) and is now maintained by [Simon Lynen](https://github.com/simonlynen).
 
 Download
 ========
