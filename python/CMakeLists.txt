@@ -1,12 +1,14 @@
 
+
+# Find Python, make sure we use the same version for interpreter and libraries
+# First, allow add the user-specified version of python to our build
 set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
 
-# find Python, make sure we use the same version for interpreter and libraries
 find_package(PythonInterp)
 message("Python version from interpreter is ${PYTHON_VERSION_STRING}")
 find_package(PythonLibs)
 
-# helper function to search for a module
+# Helper function to search for a module
 function(find_python_module module)
 	string(TOUPPER ${module} module_upper)
 	if(NOT PY_${module_upper})
@@ -27,19 +29,19 @@ function(find_python_module module)
 	endif(NOT PY_${module_upper})
 endfunction(find_python_module)
 
-# make sure we have the right modules
+# Make sure we have the right modules
 if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 	message("Python libs and executable found, looking for numpy and boost::python")
 
-  if (PYTHON_DEB_INSTALL_TARGET)
-    set(BOOST_PYTHON_COMPONENT "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-  else (PYTHON_DEB_INSTALL_TARGET)
-    if (PYTHON_VERSION_MAJOR GREATER 2)
-      set(BOOST_PYTHON_COMPONENT "python${PYTHON_VERSION_MAJOR}")
-    else (PYTHON_VERSION_MAJOR GREATER 2)
-      set(BOOST_PYTHON_COMPONENT "python")
-    endif(PYTHON_VERSION_MAJOR GREATER 2)
-  endif (PYTHON_DEB_INSTALL_TARGET)
+	if (PYTHON_DEB_INSTALL_TARGET)
+		set(BOOST_PYTHON_COMPONENT "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+	else (PYTHON_DEB_INSTALL_TARGET)
+		if (PYTHON_VERSION_MAJOR GREATER 2)
+			set(BOOST_PYTHON_COMPONENT "python${PYTHON_VERSION_MAJOR}")
+		else (PYTHON_VERSION_MAJOR GREATER 2)
+			set(BOOST_PYTHON_COMPONENT "python")
+		endif(PYTHON_VERSION_MAJOR GREATER 2)
+	endif (PYTHON_DEB_INSTALL_TARGET)
 
 	find_package(Boost COMPONENTS ${BOOST_PYTHON_PACKAGE} python3)
   message(Boost_PYTHON3_FOUND found: ${Boost_PYTHON3_FOUND}})
