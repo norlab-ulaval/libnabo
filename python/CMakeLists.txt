@@ -44,7 +44,7 @@ if (PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
 	endif (PYTHON_DEB_INSTALL_TARGET)
 
 	find_package(Boost COMPONENTS ${BOOST_PYTHON_PACKAGE} python3)
-  message(Boost_PYTHON3_FOUND found: ${Boost_PYTHON3_FOUND}})
+	message(Boost_PYTHON3_FOUND found: ${Boost_PYTHON3_FOUND}})
 	find_python_module(numpy)
 	find_package_handle_standard_args(numpy DEFAULT_MSG PY_NUMPY)
 	if (Boost_FOUND AND NUMPY_FOUND)

@@ -104,12 +104,12 @@ You can find more information in the docstring-based documentation:
 Building
 --------
 
-The Python bindings can be generated for Python 2 or Python 3. 
-To specify the version of the interpreter to use when building the bindings, set the `PYTHON_VERSION_MAJOR` and `PYTHON_VERSION_MINOR` variables. 
+The Python bindings can be generated for Python 2 or Python 3.
+To specify the version of the interpreter to use when building the bindings, set the `PYTHON_VERSION_MAJOR` and `PYTHON_VERSION_MINOR` variables.
 For example if you have both Python 2.7 and 3.5 installed, you could ask CMake to generate Python 3 bindings by using the following command.
 
     cmake -DPYTHON_VERSION_MAJOR=3 -DPYTHON_VERSION_MINOR=5 ..
-    
+
 On Debian-based distributions you may also need the `-DPYTHON_DEB_INSTALL_TARGET` option enabled.
 
 Unit testing

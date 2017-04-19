@@ -128,12 +128,12 @@ public:
 		// create search
 		nns = NNSNabo ::create(cloud, dim, searchType, 0, _params);
 	}
-		
+	
 	~NearestNeighbourSearch()
 	{
 		delete nns;
 	}
-
+	
 	tuple knn(const object query, const Index k = 1, const double epsilon = 0, const unsigned optionFlags = 0, const double maxRadius = infD)
 	{
 		// map query and create output matrices
@@ -156,7 +156,7 @@ public:
 		// return results
 		return make_tuple(object(handle<>(indices)), object(handle<>(dists2)));
 	}
-		
+	
 protected:
 	NNSNabo *nns;
 	NNSNabo::Matrix cloud;
