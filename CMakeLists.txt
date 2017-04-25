@@ -139,7 +139,7 @@ else (USE_OPEN_CL)
 endif (USE_OPEN_CL)
 
 # include all libs so far
-include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} third_party)
+include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
 # main nabo lib
 set(NABO_SRC
@@ -163,7 +163,7 @@ set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERS
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 add_dependencies(${LIB_NAME} doc)
 install(FILES nabo/nabo.h DESTINATION include/nabo)
-install(FILES third_party/any.hpp DESTINATION include/nabo)
+install(FILES nabo/third_party/any.hpp DESTINATION include/nabo/third_party)
 install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
 if (DOXYGEN_FOUND)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${DOC_INSTALL_TARGET})
