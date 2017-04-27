@@ -69,7 +69,7 @@ if(DOXYGEN_FOUND AND DOXYFILE_IN_FOUND)
 		ADDITIONAL_MAKE_CLEAN_FILES
 		"${DOXYFILE_OUTPUT_DIR}/${DOXYFILE_HTML_DIR}")
 
-	add_custom_target(doxygen
+	add_custom_target(doxygen ALL
 		COMMAND ${DOXYGEN_EXECUTABLE}
 			${DOXYFILE} 
 		COMMENT "Writing documentation to ${DOXYFILE_OUTPUT_DIR}..."
