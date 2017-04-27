@@ -109,10 +109,9 @@ if(DOXYGEN_FOUND AND DOXYFILE_IN_FOUND)
 
 	configure_file(${DOXYFILE_IN} Doxyfile IMMEDIATE @ONLY)
 
-	get_target_property(DOC_TARGET doc TYPE)
-	if(NOT DOC_TARGET)
-		add_custom_target(doc)
-	endif()
+  if(NOT TARGET doc)
+    add_custom_target(doc)
+  endif()
 
 	add_dependencies(doc doxygen)
 endif()
