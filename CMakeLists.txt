@@ -42,11 +42,11 @@ include(UseDoxygen)
 # Switch on warnings.
 add_definitions(-Wall -Wextra)
 
-# Check the compiler version as we need full C++11 support.
+# Check the compiler version as we need C++11 support.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# using Clang
-	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.4")
-		message(FATAL_ERROR, "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.4 or later is required")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.3")
+		message(FATAL_ERROR, "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.3 or later is required")
 	endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 	# using AppleClang
@@ -55,8 +55,8 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 	endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	# using GCC
-	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-		message(FATAL_ERROR, "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.9 or later is required")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8.2")
+		message(FATAL_ERROR, "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.8.2 or later is required")
 	endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	# using MSVC
