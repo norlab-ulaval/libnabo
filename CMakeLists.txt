@@ -86,7 +86,7 @@ if(MSVC AND (MSVC_VERSION LESS 1600))
 endif(MSVC AND (MSVC_VERSION LESS 1600))
 
 # openmp
-set(USE_OPEN_MP "true" CACHE BOOL "Set to OFF to not use OpenMP")
+set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
 if (USE_OPEN_MP)
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
@@ -111,7 +111,7 @@ find_path(EIGEN_INCLUDE_DIR Eigen/Core
 
 # optionally, opencl
 # OpenCL disabled as its code is not up-to-date with API
-set(USE_OPEN_CL "FALSE" CACHE BOOL "Set to ON to look for OpenCL")
+set(USE_OPEN_CL FALSE CACHE BOOL "Set to TRUE to look for OpenCL")
 if (USE_OPEN_CL)
 	find_path(OPENCL_INCLUDE_DIR CL/cl.h
 		/usr/local/include
@@ -148,7 +148,7 @@ set(NABO_SRC
 	nabo/kdtree_cpu.cpp
 	nabo/kdtree_opencl.cpp
 )
-set(SHARED_LIBS "false" CACHE BOOL "To build shared (true) or static (false) library")
+set(SHARED_LIBS FALSE CACHE BOOL "Set to TRUE to build shared library")
 if (SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
@@ -196,7 +196,7 @@ install(FILES package.xml DESTINATION share/libnabo)
 export(PACKAGE libnabo)
 
 # Create variable with the library location
-get_property(libnabo_library TARGET ${LIB_NAME} PROPERTY LOCATION)
+set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
 
 # Create variable for the local build tree
 get_property(libnabo_include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
@@ -207,8 +207,7 @@ configure_file(libnaboConfig.cmake.in
 # 2- installation build #
 
 # Change the library location for an install location
-get_filename_component(NABO_LIB_NAME ${libnabo_library} NAME)
-set(libnabo_library ${CMAKE_INSTALL_PREFIX}/lib/${NABO_LIB_NAME})
+set(libnabo_library ${LIB_NAME})
 
 # Change the include location for the case of an install location
 set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)

@@ -17,6 +17,21 @@ typedef Eigen::Map<NNSNabo::IndexMatrix> MappedEigenIndexMatrix;
 static const double infD = std::numeric_limits<double>::infinity();
 static const Index maxI = std::numeric_limits<Index>::max();
 
+#if PY_MAJOR_VERSION >= 3
+int
+init_numpy()
+{
+	import_array();
+	return 0;
+}
+#else
+void
+init_numpy()
+{
+	import_array();
+}
+#endif
+
 void matrixSizeFromPythonArray(const PyObject* cloudObj, int& rowCount, int& colCount)
 {
 	assert(PyArray_CHKFLAGS(cloudObj, NPY_C_CONTIGUOUS) || PyArray_CHKFLAGS(cloudObj, NPY_F_CONTIGUOUS));
@@ -87,7 +102,13 @@ public:
 		
 		// build params
 		Nabo::Parameters _params;
+
+#if PY_MAJOR_VERSION >=3
+		object it = params.items();
+#else
 		object it = params.iteritems();
+#endif
+
 		for(int i = 0; i < len(params); ++i)
 		{
 			const tuple item(it.attr("next")());
@@ -145,7 +166,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(knn_overloads, knn, 1, 5)
 
 BOOST_PYTHON_MODULE(pynabo)
 {
-	import_array();
+	init_numpy();
 	
 	enum_<SearchType>("SearchType", "Type of algorithm used for search.")
 		.value("BRUTE_FORCE", NNSNabo::BRUTE_FORCE)
