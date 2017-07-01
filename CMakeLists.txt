@@ -42,33 +42,33 @@ include(UseDoxygen)
 # Switch on warnings.
 add_definitions(-Wall -Wextra)
 
-# Check the compiler version as we need full C++11 support.
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+# Check the compiler version as we need C++11 support.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# using Clang
-	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.4")
-		message(FATAL_ERROR, "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.4 or later is required")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.3")
+		message(FATAL_ERROR, "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.3 or later is required")
 	endif ()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 	# using AppleClang
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.1")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.1")
 		message(FATAL_ERROR "Your XCode environment has version ${CMAKE_CXX_COMPILER_VERSION}, while version 5.1 or later is required")
-	endif()
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	endif ()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	# using GCC
-	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
-		message(FATAL_ERROR, "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.9 or later is required")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8.2")
+		message(FATAL_ERROR, "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.8.2 or later is required")
 	endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	# using MSVC
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0.23506")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0.23506")
 		message(FATAL_ERROR "Your Microsoft Visual C++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version MSVC 2015 Update 1+ is required")
-	endif()
+	endif ()
 endif ()
 
 # enable C++11 support.
 if (CMAKE_VERSION VERSION_LESS "3.1")
 	if (MSVC)
-		message(FATAL_ERROR, "CMake version 3.1 or later is required to compiler Aseba with Microsoft Visual C++")
+		message(FATAL_ERROR, "CMake version 3.1 or later is required to compile ${PROJECT_NAME} with Microsoft Visual C++")
 	endif ()
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		set (CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
