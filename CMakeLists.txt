@@ -207,14 +207,18 @@ configure_file(libnaboConfig.cmake.in
 # 2- installation build #
 
 # Change the library location for an install location
-set(libnabo_library ${LIB_NAME})
+set(libnabo_library ${CMAKE_INSTALL_PREFIX}/lib/$<TARGET_FILE_NAME:${LIB_NAME}>)
 
 # Change the include location for the case of an install location
 set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
 
 # We put the generated file for installation in a different repository (i.e., ./CMakeFiles/)
 configure_file(libnaboConfig.cmake.in
-	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake" @ONLY)
+	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf" @ONLY)
+
+file(GENERATE
+	OUTPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
+	INPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf")
 
 # The same versioning file can be used for both cases
 configure_file(libnaboConfigVersion.cmake.in
