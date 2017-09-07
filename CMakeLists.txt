@@ -46,7 +46,7 @@ add_definitions(-Wall -Wextra)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	# using Clang
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.3")
-		message(FATAL_ERROR, "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.3 or later is required")
+		message(FATAL_ERROR "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.3 or later is required")
 	endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 	# using AppleClang
@@ -56,7 +56,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	# using GCC
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8.2")
-		message(FATAL_ERROR, "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.8.2 or later is required")
+		message(FATAL_ERROR "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.8.2 or later is required")
 	endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	# using MSVC
@@ -68,7 +68,7 @@ endif ()
 # enable C++11 support.
 if (CMAKE_VERSION VERSION_LESS "3.1")
 	if (MSVC)
-		message(FATAL_ERROR, "CMake version 3.1 or later is required to compile ${PROJECT_NAME} with Microsoft Visual C++")
+		message(FATAL_ERROR "CMake version 3.1 or later is required to compile ${PROJECT_NAME} with Microsoft Visual C++")
 	endif ()
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		set (CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
