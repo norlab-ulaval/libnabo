@@ -204,9 +204,12 @@ set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
 
 # Create variable for the local build tree
 get_property(libnabo_include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-# Configure config file for local build tree
+# Configure & generate config file for local build tree
 configure_file(libnaboConfig.cmake.in
-	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake" @ONLY)
+	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf" @ONLY)
+file(GENERATE
+	OUTPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
+	INPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf")
 
 # 2- installation build #
 
@@ -219,7 +222,6 @@ set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
 # We put the generated file for installation in a different repository (i.e., ./CMakeFiles/)
 configure_file(libnaboConfig.cmake.in
 	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf" @ONLY)
-
 file(GENERATE
 	OUTPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
 	INPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf")
