@@ -92,7 +92,7 @@ macro(try_compile_cloud_types MAT_TYPE TREE_TYPE EXPECT)
 
 	if (${EXPECT} STREQUAL "TRUE") 
 		if (NOT COMPILE_SUCCEEDED)
-			message( FATAL_ERROR "Compiling a test executable failed." )
+			message( FATAL_ERROR "Compiling a test executable failed. This is an error. Message ${OUTPUT}." )
 		endif ()
 	else ()
 		if (COMPILE_SUCCEEDED)
