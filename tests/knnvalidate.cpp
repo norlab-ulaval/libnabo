@@ -178,7 +178,7 @@ void validate(const char *fileName, const int K, const int dim, const int method
 		{
 			for (size_t k = 0; k < size_t(K); ++k)
 			{
-				if (dists2_bf(k,i) == numeric_limits<float>::infinity())
+				if (dists2_bf(k,i) == NNS::InvalidValue)
 					continue;
 				const int pbfi(indexes_bf(k,i));
 				const Vector pbf(d.col(pbfi));
@@ -190,8 +190,8 @@ void validate(const char *fileName, const int K, const int dim, const int method
 				}
 				const Vector pkdtree(d.col(pkdt));
 				const Vector pq(q.col(i));
-				const float distDiff(fabsf((pbf-pq).squaredNorm() - (pkdtree-pq).squaredNorm()));
-				if (distDiff > numeric_limits<float>::epsilon())
+				const T distDiff(fabsf((pbf-pq).squaredNorm() - (pkdtree-pq).squaredNorm()));
+				if (distDiff > numeric_limits<T>::epsilon())
 				{
 					cerr << "Method " << j << ", query point " << i << ", neighbour " << k << " of " << K << " is different between bf and kdtree (dist2 " << distDiff << ")\n";
 					cerr << "* query point:\n";

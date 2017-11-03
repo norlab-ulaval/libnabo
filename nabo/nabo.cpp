@@ -139,8 +139,8 @@ namespace Nabo
 		switch (preferedType)
 		{
 			case BRUTE_FORCE: return new BruteForceSearch<T, CloudType>(cloud, dim, creationOptionFlags);
-			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
-			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
+			case KDTREE_LINEAR_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<Index,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
+			case KDTREE_TREE_HEAP: return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<Index,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 			#ifdef HAVE_OPENCL
 			case KDTREE_CL_PT_IN_NODES: return new KDTreeBalancedPtInNodesStackOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
 			case KDTREE_CL_PT_IN_LEAVES: return new KDTreeBalancedPtInLeavesStackOpenCL<T, CloudType>(cloud, dim, creationOptionFlags, CL_DEVICE_TYPE_GPU);
@@ -167,7 +167,7 @@ namespace Nabo
 	{
 		if (dim <= 0)
 			throw runtime_error() << "Your space must have at least one dimension";
-		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapBruteForceVector<Index,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
 
 	template<typename T, typename CloudType>
@@ -175,7 +175,7 @@ namespace Nabo
 	{
 		if (dim <= 0)
 			throw runtime_error() << "Your space must have at least one dimension";
-		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<int,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
+		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<Index,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
 	
 	template struct NearestNeighbourSearch<float>;
