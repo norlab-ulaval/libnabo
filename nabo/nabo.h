@@ -214,6 +214,7 @@ namespace Nabo
 	//! version of the Nabo library as an int
 	#define NABO_VERSION_INT 10006
 
+	// TODO (c++14) Convert invalidIndex, invalidValue to constexpr templated variables.
 	template <typename IndexType>
 	inline constexpr IndexType invalidIndex() {
 		return std::is_unsigned<IndexType>::value ? std::numeric_limits<IndexType>::max() : IndexType(-1);
