@@ -307,8 +307,8 @@ namespace Nabo
 		{
 			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
 			{
-				it->value = invalidValue<IT>();
-				it->index = invalidIndex<VT>();
+				it->value = invalidValue<VT>();
+				it->index = invalidIndex<IT>();
 			}
 		}
 		
