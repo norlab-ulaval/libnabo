@@ -281,9 +281,9 @@ namespace Nabo
 		const Vector maxBound;
 
 		//! the invalid index
-		static constexpr auto InvalidIndex = invalidIndex<Index>();
+		static constexpr Index InvalidIndex = invalidIndex<Index>();
 		//! the invalid value
-		static constexpr auto InvalidValue = invalidValue<T>();
+		static constexpr T InvalidValue = invalidValue<T>();
 
 		//! type of search
 		enum SearchType
