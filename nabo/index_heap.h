@@ -74,11 +74,6 @@ namespace Nabo
 		//! vector of values
 		typedef typename Eigen::Matrix<Value, Eigen::Dynamic, 1> ValueVector;
 
-		//! invalid index
-		static constexpr auto InvalidIndex = std::numeric_limits<IT>::max();
-		//! invalid value
-		static constexpr auto InvalidValue = std::numeric_limits<VT>::infinity();
-
 		//! storage for the tree
 		Entries data;
 		//! number of neighbours requested
@@ -88,7 +83,7 @@ namespace Nabo
 		//! Constructor
 		/*! \param size number of elements in the heap */
 		IndexHeapSTL(const size_t size):
-			data(1, Entry(InvalidIndex, InvalidValue)),
+			data(1, Entry(invalidIndex<IT>(), invalidValue<VT>())),
 			nbNeighbours(size)
 		{
 			data.reserve(size);
@@ -98,7 +93,7 @@ namespace Nabo
 		inline void reset()
 		{
 			data.clear();
-			data.push_back(Entry(InvalidIndex, InvalidValue));
+			data.push_back(Entry(invalidIndex<IT>(), invalidValue<VT>()));
 		}
 		
 		//! get the largest value of the heap
@@ -148,8 +143,8 @@ namespace Nabo
 			}
 			for (; i < nbNeighbours; ++i)
 			{
-				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = InvalidIndex;
-				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = InvalidValue;
+				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = invalidIndex<IT>();
+				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = invalidValue<VT>();
 			}
 		}
 		
@@ -291,11 +286,6 @@ namespace Nabo
 		//! vector of values
 		typedef typename Eigen::Matrix<Value, Eigen::Dynamic, 1> ValueVector;
 
-		//! invalid index
-		static constexpr auto InvalidIndex = std::numeric_limits<IT>::max();
-		//! invalid value
-		static constexpr auto InvalidValue = std::numeric_limits<VT>::infinity();
-
 		//! storage for the tree
 		Entries data;
 		//! reference to the largest value in the tree, to optimise access speed
@@ -306,7 +296,7 @@ namespace Nabo
 		//! Constructor
 		/*! \param size number of elements in the heap */
 		IndexHeapBruteForceVector(const size_t size):
-		data(size, Entry(InvalidIndex, InvalidValue)),
+		data(size, Entry(invalidIndex<IT>(), invalidValue<VT>())),
 		headValueRef((data.end() - 1)->value),
 		sizeMinusOne(data.size() - 1)
 		{
@@ -317,8 +307,8 @@ namespace Nabo
 		{
 			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
 			{
-				it->value = InvalidValue;
-				it->index = InvalidIndex;
+				it->value = invalidValue<IT>();
+				it->index = invalidIndex<VT>();
 			}
 		}
 		

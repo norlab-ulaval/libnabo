@@ -213,7 +213,17 @@ namespace Nabo
 	#define NABO_VERSION "1.0.6"
 	//! version of the Nabo library as an int
 	#define NABO_VERSION_INT 10006
-	
+
+	template <typename IndexType>
+	inline constexpr IndexType invalidIndex() {
+		return std::is_unsigned<IndexType>::value ? std::numeric_limits<IndexType>::max() : IndexType(-1);
+	}
+
+	template <typename ValueType>
+	inline constexpr ValueType invalidValue() {
+		return std::numeric_limits<ValueType>::infinity();
+	}
+
 	//! Parameter vector
 	//
 	// TODO: replace with C++17 std::any.
@@ -271,9 +281,9 @@ namespace Nabo
 		const Vector maxBound;
 
 		//! the invalid index
-		static constexpr auto InvalidIndex = std::numeric_limits<Index>::max();
+		static constexpr auto InvalidIndex = invalidIndex<Index>();
 		//! the invalid value
-		static constexpr auto InvalidValue = std::numeric_limits<T>::infinity();
+		static constexpr auto InvalidValue = invalidValue<T>();
 
 		//! type of search
 		enum SearchType
@@ -301,7 +311,7 @@ namespace Nabo
 		};
 		
 		//! Find the k nearest neighbours of query
-		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with the numerically maximum value. If you must query more than one point at once, use the version of the knn() function taking matrices as input, because it is much faster.
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with InvalidValue and the indices with InvalidIndex. If you must query more than one point at once, use the version of the knn() function taking matrices as input, because it is much faster.
 		 *	\param query query point
 		 *	\param indices indices of nearest neighbours, must be of size k
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k
@@ -314,7 +324,7 @@ namespace Nabo
 		unsigned long knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0, const T maxRadius = std::numeric_limits<T>::infinity()) const;
 		
 		//! Find the k nearest neighbours for each point of query
-		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with the numerically maximum value.
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with InvalidValue and the indices with InvalidIndex.
 		 *	\param query query points
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
@@ -327,7 +337,7 @@ namespace Nabo
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0, const T maxRadius = std::numeric_limits<T>::infinity()) const = 0;
 		
 		//! Find the k nearest neighbours for each point of query
-		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with infinity and the indices with the numerically maximum value.
+		/*!	If the search finds less than k points, the empty entries in dists2 will be filled with InvalidValue and the indices with InvalidIndex.
 		 *	\param query query points
 		 *	\param indices indices of nearest neighbours, must be of size k x query.cols()
 		 *	\param dists2 squared distances to nearest neighbours, must be of size k x query.cols() 
