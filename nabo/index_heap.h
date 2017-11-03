@@ -73,7 +73,12 @@ namespace Nabo
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
 		//! vector of values
 		typedef typename Eigen::Matrix<Value, Eigen::Dynamic, 1> ValueVector;
-		
+
+		//! invalid index
+		static constexpr auto InvalidIndex = std::numeric_limits<IT>::max();
+		//! invalid value
+		static constexpr auto InvalidValue = std::numeric_limits<VT>::infinity();
+
 		//! storage for the tree
 		Entries data;
 		//! number of neighbours requested
@@ -83,7 +88,7 @@ namespace Nabo
 		//! Constructor
 		/*! \param size number of elements in the heap */
 		IndexHeapSTL(const size_t size):
-			data(1, Entry(0, std::numeric_limits<VT>::infinity())),
+			data(1, Entry(InvalidIndex, InvalidValue)),
 			nbNeighbours(size)
 		{
 			data.reserve(size);
@@ -93,7 +98,7 @@ namespace Nabo
 		inline void reset()
 		{
 			data.clear();
-			data.push_back(Entry(0, std::numeric_limits<VT>::infinity()));
+			data.push_back(Entry(InvalidIndex, InvalidValue));
 		}
 		
 		//! get the largest value of the heap
@@ -143,8 +148,8 @@ namespace Nabo
 			}
 			for (; i < nbNeighbours; ++i)
 			{
-				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = 0;
-				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = std::numeric_limits<VT>::infinity();
+				const_cast<Eigen::MatrixBase<DI>&>(indices).coeffRef(i) = InvalidIndex;
+				const_cast<Eigen::MatrixBase<DV>&>(values).coeffRef(i) = InvalidValue;
 			}
 		}
 		
@@ -285,7 +290,12 @@ namespace Nabo
 		typedef typename Eigen::Matrix<Index, Eigen::Dynamic, 1> IndexVector;
 		//! vector of values
 		typedef typename Eigen::Matrix<Value, Eigen::Dynamic, 1> ValueVector;
-		
+
+		//! invalid index
+		static constexpr auto InvalidIndex = std::numeric_limits<IT>::max();
+		//! invalid value
+		static constexpr auto InvalidValue = std::numeric_limits<VT>::infinity();
+
 		//! storage for the tree
 		Entries data;
 		//! reference to the largest value in the tree, to optimise access speed
@@ -296,7 +306,7 @@ namespace Nabo
 		//! Constructor
 		/*! \param size number of elements in the heap */
 		IndexHeapBruteForceVector(const size_t size):
-		data(size, Entry(0, std::numeric_limits<VT>::infinity())),
+		data(size, Entry(InvalidIndex, InvalidValue)),
 		headValueRef((data.end() - 1)->value),
 		sizeMinusOne(data.size() - 1)
 		{
@@ -307,8 +317,8 @@ namespace Nabo
 		{
 			for (typename Entries::iterator it(data.begin()); it != data.end(); ++it)
 			{
-				it->value = std::numeric_limits<VT>::infinity();
-				it->index = 0;
+				it->value = InvalidValue;
+				it->index = InvalidIndex;
 			}
 		}
 		
