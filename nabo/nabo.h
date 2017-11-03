@@ -269,7 +269,12 @@ namespace Nabo
 		const Vector minBound;
 		//! the high bound of the search space (axis-aligned bounding box)
 		const Vector maxBound;
-		
+
+		//! the invalid index
+		static constexpr auto InvalidIndex = std::numeric_limits<Index>::max();
+		//! the invalid value
+		static constexpr auto InvalidValue = std::numeric_limits<T>::infinity();
+
 		//! type of search
 		enum SearchType
 		{
