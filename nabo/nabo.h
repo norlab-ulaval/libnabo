@@ -217,11 +217,13 @@ namespace Nabo
 	// TODO (c++14) Convert invalidIndex, invalidValue to constexpr templated variables.
 	template <typename IndexType>
 	inline constexpr IndexType invalidIndex() {
+		static_assert(std::is_integral<IndexType>::value, "");
 		return std::is_unsigned<IndexType>::value ? std::numeric_limits<IndexType>::max() : IndexType(-1);
 	}
 
 	template <typename ValueType>
 	inline constexpr ValueType invalidValue() {
+		static_assert(std::is_floating_point<ValueType>::value, "");
 		return std::numeric_limits<ValueType>::infinity();
 	}
 
