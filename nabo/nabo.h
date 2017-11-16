@@ -218,7 +218,7 @@ namespace Nabo
 	template <typename IndexType>
 	inline constexpr IndexType invalidIndex() {
 		static_assert(std::is_integral<IndexType>::value, "");
-		return std::is_unsigned<IndexType>::value ? std::numeric_limits<IndexType>::max() : IndexType(-1);
+		return IndexType(0);
 	}
 
 	template <typename ValueType>
