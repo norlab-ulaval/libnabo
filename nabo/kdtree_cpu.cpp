@@ -340,7 +340,7 @@ namespace Nabo
 	template<typename T, typename Heap, typename CloudType>
 	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap, CloudType>::onePointKnn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, int i, Heap& heap, std::vector<T>& off, const T maxError2, const T maxRadius2, const bool allowSelfMatch, const bool collectStatistics, const bool sortResults) const
 	{
-		fill(off.begin(), off.end(), 0);
+		fill(off.begin(), off.end(), static_cast<T>(0));
 		heap.reset();
 		unsigned long leafTouchedCount(0);
 		
