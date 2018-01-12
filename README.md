@@ -38,7 +38,12 @@ Compilation options
 
 libnabo provides the following compilation options, available through [CMake]:
 
- * `SHARED_LIBS` (boolean, default: `false`): if `true`, build a shared library, otherwise build a static library
+* `NABO_EIGEN_INCLUDE_DIR` (string, default: `""`, *advanced*): libnabo supports both legacy Eigen 2, as well as modern Eigen 3.  By default, libnabo will search for the package Eigen3.  If you desire to use Eigen 2 you need to set this variable.  For example, `cmake .. -DNABO_EIGEN_INCLUDE_DIR='/usr/local/include/eigen2'`.  This can also be used to specify an alternative Eigen 3 installation to be used **instead** of trying `find_package`.
+* `NABO_EXPORT_PACKAGE` (boolean, default: `OFF`) If `ON`, `export(PACKAGE libnabo)` will be executed.  This means that the binary directory (where you are *building* libnano) *will* be found when a different project executes `find_package(libnabo)`.  This can provide convenience, but may also conflict with installations -- the build directory may be selected before the installed directory.  Users are encouraged to leave this as `OFF` and complete the installation cycle (see next section), unless they know what they are doing.
+* `NABO_SHARED_LIBS` (boolean, default: `OFF`): if `ON`, build a shared library, otherwise build a static library.
+* `NABO_DOC_INSTALL_TARGET` (string, default: `share/doc/nabo/api`): optionally specify where to install the doxygen generated documentation.  The actual installation path will be `${CMAKE_INSTALL_PREFIX}/${NABO_DOC_INSTALL_TARGET}`.  For example, the default `CMAKE_INSTALL_PREFIX` is typically `/usr/local`, so with the default of this variable API documentation will be installed in `/usr/local/share/doc/nabo/api`.
+* `NABO_USE_OPEN_MP` (boolean default: `ON`): if `ON`, and OpenMP is supported by the current compiler, use OpenMP for parallel tree operations.
+* `NABO_USE_OPEN_CL` (boolean, default: `OFF`): OpenCL support at this time is not in sync with the rest of the API, but this may change in the future.
 
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.

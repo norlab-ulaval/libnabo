@@ -7,20 +7,35 @@ endif ()
 set(LIB_NAME nabo)
 project("lib${LIB_NAME}")
 
+#=============================
+# All available CMake options.
+#=============================
+set(NABO_EIGEN_INCLUDE_DIR "" CACHE STRING "Manually specify the path to Eigen (2 or 3). Empty string means search for Eigen *3*.")
+mark_as_advanced(NABO_EIGEN_INCLUDE_DIR)
+option(NABO_EXPORT_PACKAGE "Use `export(PACKAGE libnabo)` with CMake?  Makes build directory available for `find_package`, MAY CONFLICT WITH INSTALL." OFF)
+mark_as_advanced(NABO_EXPORT_PACKAGE)
+set(NABO_DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation.")
+option(NABO_SHARED_LIBS "Set to ON to build shared library (default: OFF)." OFF)
+# OpenCL disabled as its code is not up-to-date with API
+option(NABO_USE_OPEN_CL "Set to ON to look for OpenCL (note: OpenCL code not up to date with API)" OFF)
+option(NABO_USE_OPEN_MP "Use OpenMP by default (if OpenMP is available)? Set to OFF to not use OpenMP." ON)
+
+# end options
+
 # Extract version from header
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 file(
 	STRINGS                       # Read in a file to memory.
 	nabo/nabo.h                   # File to parse for version number.
-	PROJECT_VERSION               # Where to store the results (should just be one line)
+	NABO_PROJECT_VERSION          # Where to store the results (should just be one line)
 	REGEX "#define NABO_VERSION " # The space after is important to ignore 'NABO_VERSION_INT'
 )
 # If no matches found, something is wrong with nabo.h
-if (NOT PROJECT_VERSION)
+if (NOT NABO_PROJECT_VERSION)
 	message(SEND_ERROR "Cannot find version number in '${CMAKE_CURRENT_SOURCE_DIR}/nabo/nabo.h'.")
-endif (NOT PROJECT_VERSION)
+endif (NOT NABO_PROJECT_VERSION)
 # Transform '#define NABO_VERSION "X.Y.Z"' into 'X.Y.Z'
-string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
+string(REGEX REPLACE ".*\"(.*)\".*" "\\1" NABO_PROJECT_VERSION "${NABO_PROJECT_VERSION}" )
 
 if (NOT CMAKE_BUILD_TYPE)
 	message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
@@ -91,33 +106,44 @@ if(MSVC AND (MSVC_VERSION LESS 1600))
 endif(MSVC AND (MSVC_VERSION LESS 1600))
 
 # openmp
-set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
-if (USE_OPEN_MP)
+if (NABO_USE_OPEN_MP)
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
+		message(STATUS "Nabo: OpenMP found!")
 		add_definitions(-fopenmp -DHAVE_OPENMP)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 		if (CMAKE_COMPILER_IS_GNUCC)
 			set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
 		endif(CMAKE_COMPILER_IS_GNUCC)
+	else (OPENMP_FOUND)
+		message(STATUS "Nabo: OpenMP *NOT* found -- skipping.")
 	endif(OPENMP_FOUND)
-endif (USE_OPEN_MP)
+endif (NABO_USE_OPEN_MP)
 
-# eigen 2 or 3
-find_path(EIGEN_INCLUDE_DIR Eigen/Core
-	/usr/local/include/eigen3
-	/usr/local/include/eigen2
-	/usr/local/include/eigen
-	/usr/include/eigen3
-	/usr/include/eigen2
-	/usr/include/eigen
-	/opt/local/include/eigen3
-)
+# eigen 2 or 3 supported, if 'NABO_EIGEN_INCLUDE_DIR' not specified then only v3 is
+# searched for.
+if (NABO_EIGEN_INCLUDE_DIR)
+	# If specified, make sure Eigen/Core exists.
+	if (NOT EXISTS "${NABO_EIGEN_INCLUDE_DIR}/Eigen/Core")
+		message(FATAL_ERROR "The file '${NABO_EIGEN_INCLUDE_DIR}/Eigen/Core' does not exist!")
+	endif (NOT EXISTS "${NABO_EIGEN_INCLUDE_DIR}/Eigen/Core")
+else()
+	if (${CMAKE_VERSION} VERSION_LESS 3.0.0)
+		find_package(PkgConfig)
+		if (NOT PkgConfig_FOUND)
+			message(FATAL_ERROR "PkgConfig not available, please specify 'NABO_EIGEN_INCLUDE_DIR' manually.")
+		endif (NOT PkgConfig_FOUND)
+		pkg_search_module(Eigen3 REQUIRED eigen3)
+		set(NABO_EIGEN_INCLUDE_DIR "${Eigen3_INCLUDE_DIRS}")
+	else (${CMAKE_VERSION} VERSION_LESS 3.0.0)
+		find_package(Eigen3 REQUIRED)# FindEigen3.cmake introduced in 3.0
+		set(NABO_EIGEN_INCLUDE_DIR "${EIGEN3_INCLUDE_DIR}")
+	endif (${CMAKE_VERSION} VERSION_LESS 3.0.0)
+endif()
+
 
 # optionally, opencl
-# OpenCL disabled as its code is not up-to-date with API
-set(USE_OPEN_CL FALSE CACHE BOOL "Set to TRUE to look for OpenCL")
-if (USE_OPEN_CL)
+if (NABO_USE_OPEN_CL)
 	find_path(OPENCL_INCLUDE_DIR CL/cl.h
 		/usr/local/include
 		/usr/include
@@ -139,12 +165,12 @@ if (USE_OPEN_CL)
 	else (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 		message("OpenCL enabled but not found, disabling CL support")
 	endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
-else (USE_OPEN_CL)
+else (NABO_USE_OPEN_CL)
 	message("OpenCL disabled, not looking for it")
-endif (USE_OPEN_CL)
+endif (NABO_USE_OPEN_CL)
 
 # include all libs so far
-include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR} ${NABO_EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
 # main nabo lib
 set(NABO_SRC
@@ -153,24 +179,23 @@ set(NABO_SRC
 	nabo/kdtree_cpu.cpp
 	nabo/kdtree_opencl.cpp
 )
-set(SHARED_LIBS FALSE CACHE BOOL "Set to TRUE to build shared library")
-if (SHARED_LIBS)
+
+if (NABO_SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
-else (SHARED_LIBS)
+else (NABO_SHARED_LIBS)
 	add_library(${LIB_NAME} ${NABO_SRC})
 	add_definitions(-fPIC)
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
-endif (SHARED_LIBS)
-set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
+endif (NABO_SHARED_LIBS)
+set_target_properties(${LIB_NAME} PROPERTIES VERSION "${NABO_PROJECT_VERSION}" SOVERSION 1)
 
 # create doc before installing
-set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 install(FILES nabo/nabo.h DESTINATION include/nabo)
 install(FILES nabo/third_party/any.hpp DESTINATION include/nabo/third_party)
 install(FILES README.md DESTINATION share/doc/${PROJECT_NAME})
 if (DOXYGEN_FOUND)
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${DOC_INSTALL_TARGET})
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${NABO_DOC_INSTALL_TARGET})
 endif (DOXYGEN_FOUND)
 
 enable_testing()
@@ -198,7 +223,9 @@ install(FILES package.xml DESTINATION share/libnabo)
 # 1- local build #
 
 # Register the local build in case one doesn't use "make install"
-export(PACKAGE libnabo)
+if (NABO_EXPORT_PACKAGE)
+	export(PACKAGE libnabo)
+endif (NABO_EXPORT_PACKAGE)
 
 # Create variable with the library location
 set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
