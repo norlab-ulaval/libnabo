@@ -9,16 +9,17 @@ project("lib${LIB_NAME}")
 
 # Extract version from header
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-execute_process(
-	COMMAND grep "NABO_VERSION " nabo/nabo.h
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-	RESULT_VARIABLE GREP_VERSION_RESULT
-	OUTPUT_VARIABLE PROJECT_VERSION
-	OUTPUT_STRIP_TRAILING_WHITESPACE
+file(
+	STRINGS                       # Read in a file to memory.
+	nabo/nabo.h                   # File to parse for version number.
+	PROJECT_VERSION               # Where to store the results (should just be one line)
+	REGEX "#define NABO_VERSION " # The space after is important to ignore 'NABO_VERSION_INT'
 )
-if (NOT GREP_VERSION_RESULT EQUAL 0)
-	message(SEND_ERROR "Cannot grep version number: ${GREP_VERSION_RESULT}")
-endif (NOT GREP_VERSION_RESULT EQUAL 0)
+# If no matches found, something is wrong with nabo.h
+if (NOT PROJECT_VERSION)
+	message(SEND_ERROR "Cannot find version number in '${CMAKE_CURRENT_SOURCE_DIR}/nabo/nabo.h'.")
+endif (NOT PROJECT_VERSION)
+# Transform '#define NABO_VERSION "X.Y.Z"' into 'X.Y.Z'
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -184,11 +185,11 @@ install(FILES package.xml DESTINATION share/libnabo)
 #=============================================
 # to allow find_package() on libnabo
 #=============================================
-# 
+#
 # the following case be used in an external project requiring libnabo:
 #  ...
-#  find_package(libnabo) 
-#  include_directories(${libnabo_INCLUDE_DIRS}) 
+#  find_package(libnabo)
+#  include_directories(${libnabo_INCLUDE_DIRS})
 #  target_link_libraries(executableName ${libnabo_LIBRARIES})
 #  ...
 
