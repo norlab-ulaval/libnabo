@@ -38,8 +38,10 @@ Compilation options
 
 libnabo provides the following compilation options, available through [CMake]:
 
+* `NABO_BUILD_EXAMPLES` (boolean, default: `ON`): when `ON`, the [examples](examples/) will be built.
+* `NABO_BUILD_TESTS` (boolean, default: `ON`): when `ON`, the [tests](tests/) will be built.
 * `NABO_EIGEN_INCLUDE_DIR` (string, default: `""`, *advanced*): libnabo supports both legacy Eigen 2, as well as modern Eigen 3.  By default, libnabo will search for the package Eigen3.  If you desire to use Eigen 2 you need to set this variable.  For example, `cmake .. -DNABO_EIGEN_INCLUDE_DIR='/usr/local/include/eigen2'`.  This can also be used to specify an alternative Eigen 3 installation to be used **instead** of trying `find_package`.
-* `NABO_EXPORT_PACKAGE` (boolean, default: `OFF`) If `ON`, `export(PACKAGE libnabo)` will be executed.  This means that the binary directory (where you are *building* libnano) *will* be found when a different project executes `find_package(libnabo)`.  This can provide convenience, but may also conflict with installations -- the build directory may be selected before the installed directory.  Users are encouraged to leave this as `OFF` and complete the installation cycle (see next section), unless they know what they are doing.
+* `NABO_EXPORT_PACKAGE` (boolean, default: `OFF`) If `ON`, `export(PACKAGE libnabo)` will be executed.  This means that the binary directory (where you are *building* libnabo) *will* be found when a different project executes `find_package(libnabo)`.  This can provide convenience, but may also conflict with installations -- the build directory may be selected before the installed directory.  Users are encouraged to leave this as `OFF` and complete the installation cycle (see next section), unless they know what they are doing.
 * `NABO_SHARED_LIBS` (boolean, default: `OFF`): if `ON`, build a shared library, otherwise build a static library.
 * `NABO_DOC_INSTALL_TARGET` (string, default: `share/doc/nabo/api`): optionally specify where to install the doxygen generated documentation.  The actual installation path will be `${CMAKE_INSTALL_PREFIX}/${NABO_DOC_INSTALL_TARGET}`.  For example, the default `CMAKE_INSTALL_PREFIX` is typically `/usr/local`, so with the default of this variable API documentation will be installed in `/usr/local/share/doc/nabo/api`.
 * `NABO_USE_OPEN_MP` (boolean default: `ON`): if `ON`, and OpenMP is supported by the current compiler, use OpenMP for parallel tree operations.
@@ -47,6 +49,35 @@ libnabo provides the following compilation options, available through [CMake]:
 
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
+
+libnabo is also capable of building python bindings, provided that you have Boost.Python installed.
+
+* `NABO_BUILD_PYTHON` (boolean, default: `ON`): if `ON`, the python bindings will be built.  If the interpretor, libraries, or Boost.Python cannot be found, the bindings will be skipped.  Set to `OFF` to disable building the python bindings completely.
+
+When building the python bindings, libnabo uses the `PythonInterp` and `PythonLibs` CMake packages.  By default, these may find a different version of python than you want to use.  To control which version of python to build with, you would set the CMake string variable `Python_ADDITIONAL_VERSIONS`.  As with the other options, you can set this when you run `cmake`, or with `ccmake` / `cmake-gui`.  This string is to be a version string of the form `MAJOR.MINOR.PATCH`.  You can omit both `MINOR` and `PATCH`, or omit `PATCH`.  Some examples:
+
+	# We are in the root `libnabo` directory, where CMakeLists.txt is
+	$ mkdir build
+	$ cd build
+
+	# You can run `python3 --version` to get your current version
+	# or similarly `python --version` for python2
+	#
+	# Build exactly 3.6.3
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3.6.3'
+	# Build any 3.6.x
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3.6'
+	# Build any 3.x
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3'
+
+	# Build any 2.x
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='2'
+
+**Note**: for Python 3, you may see a message like the following, which is safe to *ignore*:
+
+	CMake Warning at /long/path/FindBoost.cmake:1587 (message):
+	  No header defined for python3; skipping header check
+
 
 Quick compilation and installation under Unix
 ---------------------------------------------

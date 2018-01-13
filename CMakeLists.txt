@@ -4,25 +4,8 @@ if (NOT CMAKE_VERSION VERSION_LESS "3.1")
 	cmake_policy(SET CMP0054 NEW)
 endif ()
 
-set(LIB_NAME nabo)
-project("lib${LIB_NAME}")
-
-#=============================
-# All available CMake options.
-#=============================
-set(NABO_EIGEN_INCLUDE_DIR "" CACHE STRING "Manually specify the path to Eigen (2 or 3). Empty string means search for Eigen *3*.")
-mark_as_advanced(NABO_EIGEN_INCLUDE_DIR)
-option(NABO_EXPORT_PACKAGE "Use `export(PACKAGE libnabo)` with CMake?  Makes build directory available for `find_package`, MAY CONFLICT WITH INSTALL." OFF)
-mark_as_advanced(NABO_EXPORT_PACKAGE)
-set(NABO_DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation.")
-option(NABO_SHARED_LIBS "Set to ON to build shared library (default: OFF)." OFF)
-# OpenCL disabled as its code is not up-to-date with API
-option(NABO_USE_OPEN_CL "Set to ON to look for OpenCL (note: OpenCL code not up to date with API)" OFF)
-option(NABO_USE_OPEN_MP "Use OpenMP by default (if OpenMP is available)? Set to OFF to not use OpenMP." ON)
-
-# end options
-
-# Extract version from header
+# Extract version from header, done first to satisfy CMP0048,
+# see `cmake --help-policy CMP0048` for more information.
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 file(
 	STRINGS                       # Read in a file to memory.
@@ -37,8 +20,37 @@ endif (NOT NABO_PROJECT_VERSION)
 # Transform '#define NABO_VERSION "X.Y.Z"' into 'X.Y.Z'
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" NABO_PROJECT_VERSION "${NABO_PROJECT_VERSION}" )
 
+# In 3.0+, project(...) should specify VERSION to satisfy CMP0048
+set(LIB_NAME nabo)
+if (CMAKE_VERSION VERSION_LESS 3.0.0)
+	project("lib${LIB_NAME}")
+else (CMAKE_VERSION VERSION_LESS 3.0.0)
+	cmake_policy(SET CMP0048 NEW)
+	project("lib${LIB_NAME}" VERSION ${NABO_PROJECT_VERSION})
+endif (CMAKE_VERSION VERSION_LESS 3.0.0)
+
+
+
+#=============================
+# All available CMake options.
+#=============================
+option(NABO_BUILD_EXAMPLES "Build the example applications?" ON)
+option(NABO_BUILD_TESTS "Build the unit tests?" ON)
+option(NABO_BUILD_PYTHON "Build the python bindings? See the README.md for how to specify 'Python_ADDITIONAL_VERSIONS'." ON)
+set(NABO_EIGEN_INCLUDE_DIR "" CACHE STRING "Manually specify the path to Eigen (2 or 3). Empty string means search for Eigen *3*.")
+mark_as_advanced(NABO_EIGEN_INCLUDE_DIR)
+option(NABO_EXPORT_PACKAGE "Use `export(PACKAGE libnabo)` with CMake?  Makes build directory available for `find_package`, MAY CONFLICT WITH INSTALL." OFF)
+mark_as_advanced(NABO_EXPORT_PACKAGE)
+set(NABO_DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation.")
+option(NABO_SHARED_LIBS "Set to ON to build shared library (default: OFF)." OFF)
+# OpenCL disabled as its code is not up-to-date with API
+option(NABO_USE_OPEN_CL "Set to ON to look for OpenCL (note: OpenCL code not up to date with API)" OFF)
+option(NABO_USE_OPEN_MP "Use OpenMP by default (if OpenMP is available)? Set to OFF to not use OpenMP." ON)
+
+# end options
+
 if (NOT CMAKE_BUILD_TYPE)
-	message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
+	message(STATUS "No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
 	set(CMAKE_BUILD_TYPE Release CACHE STRING
 	  "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
 	  FORCE)
@@ -161,12 +173,12 @@ if (NABO_USE_OPEN_CL)
 		set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
 		include_directories(${OPENCL_INCLUDE_DIR})
 		add_definitions(-DOPENCL_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}/nabo/opencl/\")
-		message("OpenCL enabled and found, enabling CL support")
+		message(STATUS "OpenCL enabled and found, enabling CL support")
 	else (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
-		message("OpenCL enabled but not found, disabling CL support")
+		message(STATUS "OpenCL enabled but not found, disabling CL support")
 	endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 else (NABO_USE_OPEN_CL)
-	message("OpenCL disabled, not looking for it")
+	message(STATUS "OpenCL disabled, not looking for it")
 endif (NABO_USE_OPEN_CL)
 
 # include all libs so far
@@ -198,11 +210,16 @@ if (DOXYGEN_FOUND)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc/html DESTINATION ${NABO_DOC_INSTALL_TARGET})
 endif (DOXYGEN_FOUND)
 
-enable_testing()
-
-add_subdirectory(examples)
-add_subdirectory(tests)
-add_subdirectory(python)
+if (NABO_BUILD_EXAMPLES)
+	add_subdirectory(examples)
+endif (NABO_BUILD_EXAMPLES)
+if (NABO_BUILD_TESTS)
+	enable_testing()
+	add_subdirectory(tests)
+endif (NABO_BUILD_TESTS)
+if (NABO_BUILD_PYTHON)
+	add_subdirectory(python)
+endif (NABO_BUILD_PYTHON)
 
 # Install catkin package.xml
 install(FILES package.xml DESTINATION share/libnabo)
