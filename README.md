@@ -119,7 +119,7 @@ want to use.  To control which version of python to build with, you would set
 the CMake string variable `Python_ADDITIONAL_VERSIONS`.
 
 **Unlike** the other options, you must set this when you run `cmake` (the option
-is not available in `ccmake` or `cmake-gui`.  More specifically, because of how
+is not available in `ccmake` or `cmake-gui`).  More specifically, because of how
 the python packages work, **if the wrong interpretor was found, you need to
 re-run `cmake` in a CLEAN directory**.  Clean here would mean delete the entire
 `build/` directory and start over.
