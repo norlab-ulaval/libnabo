@@ -39,6 +39,7 @@ Compilation options
 libnabo provides the following compilation options, available through [CMake]:
 
 * `NABO_BUILD_EXAMPLES` (boolean, default: `ON`): when `ON`, the [examples](examples/) will be built.
+* `NABO_BUILD_PYTHON` (boolean, default: `ON`): if `ON`, the python bindings will be built.  If the interpretor, libraries, or Boost.Python cannot be found, the bindings will be skipped.  Set to `OFF` to disable building the python bindings completely.  **See the [Python bindings](#python-bindings) section below for more information**.
 * `NABO_BUILD_TESTS` (boolean, default: `ON`): when `ON`, the [tests](tests/) will be built.
 * `NABO_EIGEN_INCLUDE_DIR` (string, default: `""`, *advanced*): libnabo supports both legacy Eigen 2, as well as modern Eigen 3.  By default, libnabo will search for the package Eigen3.  If you desire to use Eigen 2 you need to set this variable.  For example, `cmake .. -DNABO_EIGEN_INCLUDE_DIR='/usr/local/include/eigen2'`.  This can also be used to specify an alternative Eigen 3 installation to be used **instead** of trying `find_package`.
 * `NABO_EXPORT_PACKAGE` (boolean, default: `OFF`) If `ON`, `export(PACKAGE libnabo)` will be executed.  This means that the binary directory (where you are *building* libnabo) *will* be found when a different project executes `find_package(libnabo)`.  This can provide convenience, but may also conflict with installations -- the build directory may be selected before the installed directory.  Users are encouraged to leave this as `OFF` and complete the installation cycle (see next section), unless they know what they are doing.
@@ -49,34 +50,6 @@ libnabo provides the following compilation options, available through [CMake]:
 
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
-
-libnabo is also capable of building python bindings, provided that you have Boost.Python installed.
-
-* `NABO_BUILD_PYTHON` (boolean, default: `ON`): if `ON`, the python bindings will be built.  If the interpretor, libraries, or Boost.Python cannot be found, the bindings will be skipped.  Set to `OFF` to disable building the python bindings completely.
-
-When building the python bindings, libnabo uses the `PythonInterp` and `PythonLibs` CMake packages.  By default, these may find a different version of python than you want to use.  To control which version of python to build with, you would set the CMake string variable `Python_ADDITIONAL_VERSIONS`.  As with the other options, you can set this when you run `cmake`, or with `ccmake` / `cmake-gui`.  This string is to be a version string of the form `MAJOR.MINOR.PATCH`.  You can omit both `MINOR` and `PATCH`, or omit `PATCH`.  Some examples:
-
-	# We are in the root `libnabo` directory, where CMakeLists.txt is
-	$ mkdir build
-	$ cd build
-
-	# You can run `python3 --version` to get your current version
-	# or similarly `python --version` for python2
-	#
-	# Build exactly 3.6.3
-	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3.6.3'
-	# Build any 3.6.x
-	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3.6'
-	# Build any 3.x
-	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3'
-
-	# Build any 2.x
-	$ cmake .. -DPython_ADDITIONAL_VERSIONS='2'
-
-**Note**: for Python 3, you may see a message like the following, which is safe to *ignore*:
-
-	CMake Warning at /long/path/FindBoost.cmake:1587 (message):
-	  No header defined for python3; skipping header check
 
 
 Quick compilation and installation under Unix
@@ -139,11 +112,42 @@ You can find more information in the docstring-based documentation:
 Building
 --------
 
-The Python bindings can be generated for Python 2 or Python 3.
-To specify the version of the interpreter to use when building the bindings, set the `PYTHON_VERSION_MAJOR` and `PYTHON_VERSION_MINOR` variables.
-For example if you have both Python 2.7 and 3.5 installed, you could ask CMake to generate Python 3 bindings by using the following command.
+The Python bindings can be generated for Python 2 or Python 3.  When building
+the python bindings, libnabo uses the `PythonInterp` and `PythonLibs` CMake
+packages.  By default, these may find a different version of python than you
+want to use.  To control which version of python to build with, you would set
+the CMake string variable `Python_ADDITIONAL_VERSIONS`.
 
-    cmake -DPYTHON_VERSION_MAJOR=3 -DPYTHON_VERSION_MINOR=5 ..
+**Unlike** the other options, you must set this when you run `cmake` (the option
+is not available in `ccmake` or `cmake-gui`.  More specifically, because of how
+the python packages work, **if the wrong interpretor was found, you need to
+re-run `cmake` in a CLEAN directory**.  Clean here would mean delete the entire
+`build/` directory and start over.
+
+This string is to be a version string of the form `MAJOR.MINOR.PATCH`.  You can
+omit both `MINOR` and `PATCH`, or omit `PATCH`.  Some examples:
+
+	# We are in the root `libnabo` directory, where CMakeLists.txt is
+	$ mkdir build
+	$ cd build
+
+	# You can run `python3 --version` to get your current version
+	# or similarly `python --version` for python2
+	#
+	# Build exactly 3.6.3
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3.6.3'
+	# Build any 3.6.x
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3.6'
+	# Build any 3.x
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='3'
+
+	# Build any 2.x
+	$ cmake .. -DPython_ADDITIONAL_VERSIONS='2'
+
+**Note**: for Python 3, you may see a message like the following, which is safe to *ignore*:
+
+	CMake Warning at /long/path/FindBoost.cmake:1587 (message):
+	  No header defined for python3; skipping header check
 
 On Debian-based distributions you may also need the `-DPYTHON_DEB_INSTALL_TARGET` option enabled.
 
