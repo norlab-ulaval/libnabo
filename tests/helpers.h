@@ -51,24 +51,24 @@ template<typename T>
 typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 {
 	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-	
+
 	ifstream ifs(fileName);
 	if (!ifs.good())
 	{
 		cerr << "Cannot open file "<< fileName << endl;
 		exit(1);
 	}
-	
+
 	vector<T> data;
 	int dim(0);
 	bool firstLine(true);
-	
+
 	while (!ifs.eof())
 	{
 		char line[1024];
 		ifs.getline(line, sizeof(line));
 		line[sizeof(line)-1] = 0;
-		
+
 		char *token = strtok(line, " \t,;");
 		while (token)
 		{
@@ -79,7 +79,7 @@ typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 		}
 		firstLine = false;
 	}
-	
+
 	return Matrix::Map(&data[0], dim, data.size() / dim);
 }
 
@@ -136,7 +136,7 @@ typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNei
 #include <time.h>
 #endif
 
-#ifdef _POSIX_TIMERS 
+#ifdef _POSIX_TIMERS
 namespace boost
 {
 	/*
@@ -148,8 +148,8 @@ namespace boost
 	struct timer
 	{
 		typedef uint64_t Time;
-		
-		timer():_start_time(curTime()){ } 
+
+		timer():_start_time(curTime()){ }
 		void restart() { _start_time = curTime(); }
 		double elapsed() const                  // return elapsed time in seconds
 		{ return  double(curTime() - _start_time) / double(1000000000); }

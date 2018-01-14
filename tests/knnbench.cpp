@@ -87,14 +87,14 @@ struct BenchResult
 	double executionDuration;
 	double visitCount;
 	double totalCount;
-	
+
 	BenchResult():
 		creationDuration(0),
 		executionDuration(0),
 		visitCount(0),
 		totalCount(0)
 	{}
-	
+
 	void operator +=(const BenchResult& that)
 	{
 		creationDuration += that.creationDuration;
@@ -102,7 +102,7 @@ struct BenchResult
 		visitCount += that.visitCount;
 		totalCount += that.totalCount;
 	}
-	
+
 	void operator /=(const double factor)
 	{
 		creationDuration /= factor;
@@ -120,19 +120,19 @@ typedef vector<BenchResult> BenchResults;
 // 	boost::timer t;
 // 	T nns(d);
 // 	result.creationDuration = t.elapsed();
-// 	
+//
 // 	t.restart();
 // 	nns.knnM(q, K, 0, 0);
 // 	result.executionDuration = t.elapsed();
-// 	
+//
 // 	result.visitCount = double(nns.getStatistics().totalVisitCount);
 // 	result.totalCount = double(itCount) * double(d.cols());
-// 	
+//
 // 	return result;
 // }
 
 template<typename T>
-BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type, 
+BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType type,
 						const unsigned creationOptionFlags,
 						const typename NearestNeighbourSearch<T>::Matrix& d,
 						const typename NearestNeighbourSearch<T>::Matrix& q,
@@ -143,12 +143,12 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	typedef NearestNeighbourSearch<T> nnsT;
 	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
 	typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
-	
+
 	BenchResult result;
 	boost::timer t;
 	nnsT* nns(nnsT::create(d, d.rows(), type, creationOptionFlags));
 	result.creationDuration = t.elapsed();
-	
+
 	for (int s = 0; s < searchCount; ++s)
 	{
 		t.restart();
@@ -160,11 +160,11 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	}
 	result.executionDuration /= double(searchCount);
 	result.visitCount /= double(searchCount);
-	
+
 	delete nns;
-	
+
 	result.totalCount = double(q.cols()) * double(d.cols());
-	
+
 	return result;
 }
 
@@ -180,7 +180,7 @@ BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, con
 		pa[i] = &d.coeff(0, i);
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows(), 8);
 	result.creationDuration = t.elapsed();
-	
+
 	for (int s = 0; s < searchCount; ++s)
 	{
 		t.restart();
@@ -200,7 +200,7 @@ BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, con
 		result.executionDuration += t.elapsed();
 	}
 	result.executionDuration /= double(searchCount);
-	
+
 	return result;
 }
 
@@ -214,7 +214,7 @@ BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, 
 		pa[i] = &d.coeff(0, i);
 	ANNkd_tree* ann_kdt = new ANNkd_tree(const_cast<double**>(pa), ptCount, d.rows(), 8);
 	result.creationDuration = t.elapsed();
-	
+
 	for (int s = 0; s < searchCount; ++s)
 	{
 		t.restart();
@@ -234,7 +234,7 @@ BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, 
 		result.executionDuration += t.elapsed();
 	}
 	result.executionDuration /= double(searchCount);
-	
+
 	return result;
 }
 
@@ -249,7 +249,7 @@ BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const 
 	const int dimCount(d.rows());
 	const int dPtCount(d.cols());
 	const int qPtCount(itCount);
-	
+
 	flann::Matrix<T> dataset(new T[dPtCount*dimCount], dPtCount, dimCount);
 	for (int point = 0; point < dPtCount; ++point)
 		for (int dim = 0; dim < dimCount; ++dim)
@@ -258,26 +258,26 @@ BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const 
 	for (int point = 0; point < qPtCount; ++point)
 		for (int dim = 0; dim < dimCount; ++dim)
 			query[point][dim] = q(dim, point);
-	
+
 	flann::Matrix<int> indices(new int[query.rows*K], query.rows, K);
 	flann::Matrix<float> dists(new float[query.rows*K], query.rows, K);
-	
+
 	// construct an randomized kd-tree index using 4 kd-trees
 	boost::timer t;
 	flann::Index<T> index(dataset, flann::KDTreeIndexParams(4) /*flann::AutotunedIndexParams(0.9)*/); // exact search
 	index.buildIndex();
 	result.creationDuration = t.elapsed();
-	
+
 	t.restart();
 	// do a knn search, using 128 checks
 	index.knnSearch(query, indices, dists, int(K), flann::SearchParams(128)); // last parameter ignored because of autotuned
 	result.executionDuration = t.elapsed();
-	
+
 	dataset.free();
 	query.free();
 	indices.free();
 	dists.free();
-	
+
 	return result;
 }
 
@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage " << argv[0] << " DATA K METHOD RUN_COUNT SEARCH_COUNT" << endl;
 		return 1;
 	}
-	
+
 	const MatrixD dD(load<double>(argv[1]));
 	const MatrixF dF(load<float>(argv[1]));
 	const int K(atoi(argv[2]));
@@ -299,18 +299,18 @@ int main(int argc, char* argv[])
 	const int itCount(method >= 0 ? method : dD.cols() * 2);
 	const int runCount(atoi(argv[4]));
 	const int searchCount(atoi(argv[5]));
-	
+
 	// compare KDTree with brute force search
 	if (K >= dD.cols())
 	{
 		cerr << "Requested more nearest neighbour than points in the data set" << endl;
 		return 2;
 	}
-	
+
 	// create queries
 	MatrixD qD(createQuery<double>(dD, itCount, method));
 	MatrixF qF(createQuery<float>(dF, itCount, method));
-	
+
 	const char* benchLabels[] =
 	{
 		//doBench<KDTD1>("Nabo, pt in nodes, priority, balance variance",
@@ -339,7 +339,7 @@ int main(int argc, char* argv[])
 		"FLANN, float",
 		#endif // HAVE_FLANN
 	};
-	
+
 	// do bench themselves, accumulate over several times
 	size_t benchCount(sizeof(benchLabels) / sizeof(const char *));
 	cout << "Doing " << benchCount << " different benches " << runCount << " times, with " << searchCount << " query per run" << endl;
@@ -372,7 +372,7 @@ int main(int argc, char* argv[])
 		results.at(i++) += doBenchFLANN<float>(dF, qF, K, itCount, searchCount);
 		#endif // HAVE_FLANN
 	}
-	
+
 	// print results
 	cout << "Showing average over " << runCount << " runs\n\n";
 	for (size_t i = 0; i < benchCount; ++i)
@@ -391,6 +391,6 @@ int main(int argc, char* argv[])
 			cout << "  no stats for visits\n";
 		cout << endl;
 	}
-	
+
 	return 0;
 }

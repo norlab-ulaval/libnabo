@@ -17,12 +17,12 @@ kernel void knnBruteForce(const global T* cloud,
 {
 	HeapEntry heap[MAX_K];
 	heapInit(heap, K);
-	
+
 	const size_t queryId = get_global_id(0);
 	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
 	const bool doSort = optionFlags & SORT_RESULTS;
 	const global T* q = &query[queryId * POINT_STRIDE];
-	
+
 	for (uint index = 0; index < pointCount; ++index)
 	{
 		const global T* p = &cloud[index * POINT_STRIDE];
@@ -37,7 +37,7 @@ kernel void knnBruteForce(const global T* cloud,
 			(allowSelfMatch || (dist > 0)))
 			heapHeadReplace(heap, index, dist, K);
 	}
-	
+
 	if (doSort)
 		heapSort(heap);
 	heapCopy(&indices[queryId * indexStride], &dists2[queryId * dists2Stride], heap, K);

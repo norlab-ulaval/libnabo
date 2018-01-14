@@ -1,4 +1,4 @@
-typedef struct { 
+typedef struct {
 	int dim;  // >=0 cut dim, -1 == leaf, -2 == invalid
 	int index;
 } Node;
@@ -37,22 +37,22 @@ kernel void knnKDTree(	const global T* cloud,
 {
 	StackEntry stack[MAX_STACK_DEPTH];
 	HeapEntry heap[MAX_K];
-	
+
 #ifdef TOUCH_STATISTICS
 	uint visitCount = 0;
 #endif
-	
+
 	const size_t queryId = get_global_id(0);
 	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
 	const bool doSort = optionFlags & SORT_RESULTS;
 	const global T* q = &query[queryId * POINT_STRIDE];
-	
+
 	heapInit(heap, K);
-	
+
 	uint stackPtr = 1;
 	stack[0].state = ONSIDE;
 	stack[0].n = 0;
-	
+
 	while (stackPtr != 0)
 	{
 		--stackPtr;
@@ -114,7 +114,7 @@ kernel void knnKDTree(	const global T* cloud,
 			++stackPtr;
 		}
 	}
-	
+
 	if (doSort)
 		heapSort(heap);
 	heapCopy(&indices[queryId * indexStride], &dists2[queryId * dists2Stride], heap, K);

@@ -78,7 +78,7 @@ void validate(const char *fileName, const int K, const int dim, const int method
 	typedef typename NNS::Matrix Matrix;
 	typedef typename NNS::Vector Vector;
 	typedef typename NNS::IndexMatrix IndexMatrix;
-	
+
 	Loader<T, CloudType> loader;
 	loader.loadMatrix(fileName);
 
@@ -94,7 +94,7 @@ void validate(const char *fileName, const int K, const int dim, const int method
 		cerr << "Requested more nearest neighbour than points in the data set" << endl;
 		exit(2);
 	}
-	
+
 	// create different methods
 	NNSV nnss;
 	unsigned searchTypeCount(NNS::SEARCH_TYPE_COUNT);
@@ -104,11 +104,11 @@ void validate(const char *fileName, const int K, const int dim, const int method
 	for (unsigned i = 0; i < searchTypeCount; ++i)
 		nnss.push_back(NNS::create(d, d.rows(), typename NNS::SearchType(i)));
 	//nnss.push_back(new KDTreeBalancedPtInLeavesStack<T>(d, false));
-	
-	
+
+
 	// check methods together
 	const int itCount(method != -1 ? method : d.cols() * 2);
-	
+
 	/*
 	// element-by-element search
 	typedef typename NNS::IndexVector IndexVector;
@@ -173,7 +173,7 @@ void validate(const char *fileName, const int K, const int dim, const int method
 			cerr << "Different number of points found between brute force and NNS type "<< j  << endl;
 			exit(3);
 		}
-		
+
 		for (int i = 0; i < q.cols(); ++i)
 		{
 			for (size_t k = 0; k < size_t(K); ++k)
@@ -213,13 +213,13 @@ void validate(const char *fileName, const int K, const int dim, const int method
 			}
 		}
 	}
-	
+
 // 	cout << "\tstats kdtree: "
 // 		<< kdt.getStatistics().totalVisitCount << " on "
 // 		<< (long long)(itCount) * (long long)(d.cols()) << " ("
 // 		<< (100. * double(kdt.getStatistics().totalVisitCount)) /  (double(itCount) * double(d.cols())) << " %"
 // 		<< ")\n" << endl;
-	
+
 	// delete searches
 	for (typename NNSV::iterator it(nnss.begin()); it != nnss.end(); ++it)
 		delete (*it);
@@ -232,12 +232,12 @@ int main(int argc, char* argv[])
 		cerr << "Usage " << argv[0] << " DATA K DIM METHOD [MAX_RADIUS]" << endl;
 		return 1;
 	}
-	
+
 	const int K(atoi(argv[2]));
 	const int dim(atoi(argv[3]));
 	const int method(atoi(argv[4]));
 	const float maxRadius(argc >= 6 ? float(atof(argv[5])) : numeric_limits<float>::infinity());
-	
+
 	if (dim == 3)
 	{
 		validate<float, Eigen::MatrixXf>(argv[1], K, dim, method, maxRadius);
@@ -248,6 +248,6 @@ int main(int argc, char* argv[])
 		validate<float, Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >(argv[1], K, dim, method, maxRadius);
 	}
 	//validate<double>(argv[1], K, method);
-	
+
 	return 0;
 }

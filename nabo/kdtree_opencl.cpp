@@ -79,19 +79,19 @@ namespace Nabo
 		}
 		return maxIdx;
 	}
-	
+
 	//! \ingroup private
 	//@{
-	
+
 	//! Maximum number of points acceptable in a query
 	#define MAX_K 32
-	
+
 	using namespace std;
-	
+
 	//! Template to retrieve type-specific code for CL support
 	template<typename T, typename CloudType>
 	struct EnableCLTypeSupport {};
-	
+
 	//! CL support code for float
 	template<typename CloudType>
 	struct EnableCLTypeSupport<float, CloudType>
@@ -102,7 +102,7 @@ namespace Nabo
 			return "typedef float T;\n";
 		}
 	};
-	
+
 	//! CL support code for double
 	template<typename CloudType>
 	struct EnableCLTypeSupport<double, CloudType>
@@ -125,7 +125,7 @@ namespace Nabo
 			return s;
 		}
 	};
-	
+
 	//! Cache CL source code (including defines and support code)
 	struct SourceCacher
 	{
@@ -133,11 +133,11 @@ namespace Nabo
 		typedef std::vector<cl::Device> Devices;
 		//! Map of cached programmes
 		typedef std::map<std::string, cl::Program> ProgramCache;
-		
+
 		cl::Context context; //!< context in which programs are cached
 		Devices devices; //!< devices linked to the context
 		ProgramCache cachedPrograms; //!< cached programs
-		
+
 		//! Create a source cacher for a given device type, retrieves a list of devices
 		SourceCacher(const cl_device_type deviceType)
 		{
@@ -156,7 +156,7 @@ namespace Nabo
 				if (userDefinedPlatformId < platforms.size())
 					platform = platforms[userDefinedPlatformId];
 			}
-			
+
 			// create OpenCL contexts
 			cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platform(), 0 };
 			bool deviceFound = false;
@@ -172,27 +172,27 @@ namespace Nabo
 			if (devices.empty())
 				throw runtime_error("No devices on OpenCL platform");
 		}
-		
+
 		//! Destroy the cache, programs will be released automatically
 		~SourceCacher()
 		{
 			cerr << "Destroying source cacher containing " << cachedPrograms.size() << " cached programs" << endl;
 		}
-		
+
 		//! Return whether program source is cached
 		bool contains(const std::string& source)
 		{
 			return cachedPrograms.find(source) != cachedPrograms.end();
 		}
 	};
-	
+
 	//! Create and manage CL contexts and corresponding source caches
 	class ContextManager
 	{
 	public:
 		//! A map from device to caches
 		typedef std::map<cl_device_type, SourceCacher*> Devices;
-		
+
 		//! Destroy the manager and all caches
 		~ContextManager()
 		{
@@ -222,15 +222,15 @@ namespace Nabo
 				throw runtime_error("Attempt to get source cacher before creating a context");
 			return it->second;
 		}
-		
+
 	protected:
 		Devices devices; //!< devices with caches
 		boost::mutex mutex; //!< mutex to protect concurrent accesses to devices
 	};
-	
+
 	//! Static instance of context manager
 	static ContextManager contextManager;
-	
+
 	template<typename T, typename CloudType>
 	OpenCLSearch<T, CloudType>::OpenCLSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud, dim, creationOptionFlags),
@@ -238,15 +238,15 @@ namespace Nabo
 		context(contextManager.createContext(deviceType))
 	{
 	}
-	
+
 	template<typename T, typename CloudType>
 	void OpenCLSearch<T, CloudType>::initOpenCL(const char* clFileName, const char* kernelName, const std::string& additionalDefines)
 	{
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T, CloudType>::TOUCH_STATISTICS);
-		
+
 		SourceCacher* sourceCacher(contextManager.getSourceCacher(deviceType));
 		SourceCacher::Devices& devices(sourceCacher->devices);
-		
+
 		// build and load source files
 		cl::Program::Sources sources;
 		// build defines
@@ -261,7 +261,7 @@ namespace Nabo
 			oss << "#define TOUCH_STATISTICS\n";
 		oss << additionalDefines;
 		//cerr << "params:\n" << oss.str() << endl;
-		
+
 		const std::string& source(oss.str());
 		if (!sourceCacher->contains(source))
 		{
@@ -276,28 +276,28 @@ namespace Nabo
 				OPENCL_SOURCE_DIR "structure.cl",
 				OPENCL_SOURCE_DIR "heap.cl",
 				sourceFileName.c_str(),
-				NULL 
+				NULL
 			};
 			for (const char** file = files; *file != NULL; ++file)
 			{
 				std::ifstream stream(*file);
 				if (!stream.good())
 					throw runtime_error((string("cannot open file: ") + *file));
-				
+
 				stream.seekg(0, std::ios_base::end);
 				size_t size(stream.tellg());
 				stream.seekg(0, std::ios_base::beg);
-				
+
 				char* content(new char[size + 1]);
 				std::copy(std::istreambuf_iterator<char>(stream),
 							std::istreambuf_iterator<char>(), content);
 				content[size] = '\0';
-				
+
 				sources.push_back(std::make_pair(content, size));
 			}
 			sourceCacher->cachedPrograms[source] = cl::Program(context, sources);
 			cl::Program& program = sourceCacher->cachedPrograms[source];
-			
+
 			// build
 			cl::Error error(CL_SUCCESS);
 			try {
@@ -305,7 +305,7 @@ namespace Nabo
 			} catch (cl::Error e) {
 				error = e;
 			}
-			
+
 			// dump
 			for (cl::Devices::const_iterator it = devices.begin(); it != devices.end(); ++it)
 			{
@@ -318,17 +318,17 @@ namespace Nabo
 				delete[] it->first;
 			}
 			sources.clear();
-			
+
 			// make sure to stop if compilation failed
 			if (error.err() != CL_SUCCESS)
 				throw error;
 		}
 		cl::Program& program = sourceCacher->cachedPrograms[source];
-		
+
 		// build kernel and command queue
-		knnKernel = cl::Kernel(program, kernelName); 
+		knnKernel = cl::Kernel(program, kernelName);
 		queue = cl::CommandQueue(context, devices.back());
-		
+
 		// map cloud
 		if (!(cloud.Flags & Eigen::DirectAccessBit) || (cloud.Flags & Eigen::RowMajorBit))
 			throw runtime_error("wrong memory mapping in point cloud");
@@ -336,22 +336,22 @@ namespace Nabo
 		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
 		knnKernel.setArg(0, sizeof(cl_mem), &cloudCL);
 	}
-	
+
 	template<typename T, typename CloudType>
 	unsigned long OpenCLSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
 		checkSizesKnn(query, indices, dists2, k, optionFlags);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T, CloudType>::TOUCH_STATISTICS);
-		
+
 		// check K
 		if (k > MAX_K)
 			throw runtime_error("number of neighbors too large for OpenCL");
-		
+
 		// check consistency of query wrt cloud
 		if (query.stride() != cloud.stride() ||
 			query.rows() != cloud.rows())
 			throw runtime_error("query is not of the same dimensionality as the point cloud");
-		
+
 		// map query
 		if (!(query.Flags & Eigen::DirectAccessBit) || (query.Flags & Eigen::RowMajorBit))
 			throw runtime_error("wrong memory mapping in query data");
@@ -370,7 +370,7 @@ namespace Nabo
 		const size_t dists2CLSize(dists2.cols() * dists2Stride * sizeof(T));
 		cl::Buffer dists2CL(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, dists2CLSize, &dists2.coeffRef(0,0));
 		knnKernel.setArg(3, sizeof(cl_mem), &dists2CL);
-		
+
 		// set resulting parameters
 		knnKernel.setArg(4, k);
 		knnKernel.setArg(5, (1 + epsilon)*(1 + epsilon));
@@ -379,7 +379,7 @@ namespace Nabo
 		knnKernel.setArg(8, indexStride);
 		knnKernel.setArg(9, dists2Stride);
 		knnKernel.setArg(10, cl_uint(cloud.cols()));
-		
+
 		// if required, map visit count
 		vector<cl_uint> visitCounts;
 		const size_t visitCountCLSize(query.cols() * sizeof(cl_uint));
@@ -390,7 +390,7 @@ namespace Nabo
 			visitCountCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, visitCountCLSize, &visitCounts[0]);
 			knnKernel.setArg(11, sizeof(cl_mem), &visitCountCL);
 		}
-		
+
 		// execute query
 		queue.enqueueNDRangeKernel(knnKernel, cl::NullRange, cl::NDRange(query.cols()), cl::NullRange);
 		queue.enqueueMapBuffer(indicesCL, true, CL_MAP_READ, 0, indicesCLSize, 0, 0);
@@ -398,7 +398,7 @@ namespace Nabo
 		if (collectStatistics)
 			queue.enqueueMapBuffer(visitCountCL, true, CL_MAP_READ, 0, visitCountCLSize, 0, 0);
 		queue.finish();
-		
+
 		// if required, collect statistics
 		if (collectStatistics)
 		{
@@ -410,7 +410,7 @@ namespace Nabo
 		else
 			return 0;
 	}
-	
+
 	template<typename T, typename CloudType>
 	BruteForceSearchOpenCL<T, CloudType>::BruteForceSearchOpenCL(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 	OpenCLSearch<T, CloudType>::OpenCLSearch(cloud, dim, creationOptionFlags, deviceType)
@@ -437,8 +437,8 @@ namespace Nabo
 	template struct BruteForceSearchOpenCL<double, Eigen::Matrix3Xd>;
 	template struct BruteForceSearchOpenCL<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
 	template struct BruteForceSearchOpenCL<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
-	
-	
+
+
 
 	template<typename T, typename CloudType>
 	size_t KDTreeBalancedPtInLeavesStackOpenCL<T, CloudType>::getTreeSize(size_t elCount) const
@@ -459,7 +459,7 @@ namespace Nabo
 		count |= 1;
 		return count;
 	}
-	
+
 	template<typename T, typename CloudType>
 	size_t KDTreeBalancedPtInLeavesStackOpenCL<T, CloudType>::getTreeDepth(size_t elCount) const
 	{
@@ -487,42 +487,42 @@ namespace Nabo
 			nodes[pos] = Node(d);
 			return;
 		}
-		
+
 		// find the largest dimension of the box
 		size_t cutDim = argMax<T, CloudType>(maxValues - minValues);
-		
+
 		// compute number of elements
 		const size_t rightCount(count/2);
 		const size_t leftCount(count - rightCount);
 		assert(last - rightCount == first + leftCount);
-		
+
 		// sort
 		nth_element(first, first + leftCount, last, CompareDim(cutDim));
-		
+
 		// set node
 		const T cutVal((first+leftCount)->pos.coeff(cutDim));
 		nodes[pos] = Node(cutDim, cutVal);
-		
+
 		//cerr << pos << " cutting on " << cutDim << " at " << (first+leftCount)->pos[cutDim] << endl;
-		
+
 		// update bounds for left
 		Vector leftMaxValues(maxValues);
 		leftMaxValues[cutDim] = cutVal;
 		// update bounds for right
 		Vector rightMinValues(minValues);
 		rightMinValues[cutDim] = cutVal;
-		
+
 		// recurse
 		buildNodes(first, first + leftCount, childLeft(pos), minValues, leftMaxValues);
 		buildNodes(first + leftCount, last, childRight(pos), rightMinValues, maxValues);
 	}
-	
+
 	template<typename T, typename CloudType>
 	KDTreeBalancedPtInLeavesStackOpenCL<T, CloudType>::KDTreeBalancedPtInLeavesStackOpenCL(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 		OpenCLSearch<T, CloudType>::OpenCLSearch(cloud, dim, creationOptionFlags, deviceType)
 	{
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
-		
+
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
@@ -538,16 +538,16 @@ namespace Nabo
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
 #endif // EIGEN3_API
 		}
-		
+
 		// create nodes
 		nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
 		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
-		
+
 		// init openCL
 		initOpenCL("knn_kdtree_pt_in_leaves.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
-		
-		// map nodes, for info about alignment, see sect 6.1.5 
+
+		// map nodes, for info about alignment, see sect 6.1.5
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
 		if (collectStatistics)
@@ -562,8 +562,8 @@ namespace Nabo
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<double, Eigen::Matrix3Xd>;
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
 	template struct KDTreeBalancedPtInLeavesStackOpenCL<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
-	
-	
+
+
 	template<typename T, typename CloudType>
 	size_t KDTreeBalancedPtInNodesStackOpenCL<T, CloudType>::getTreeSize(size_t elCount) const
 	{
@@ -580,7 +580,7 @@ namespace Nabo
 		//cerr << "tree size " << count << " (" << elCount << " elements)\n";
 		return count;
 	}
-	
+
 	template<typename T, typename CloudType>
 	size_t KDTreeBalancedPtInNodesStackOpenCL<T, CloudType>::getTreeDepth(size_t elCount) const
 	{
@@ -593,7 +593,7 @@ namespace Nabo
 		}
 		return i + 1;
 	}
-	
+
 	template<typename T, typename CloudType>
 	void KDTreeBalancedPtInNodesStackOpenCL<T, CloudType>::buildNodes(const BuildPointsIt first, const BuildPointsIt last, const size_t pos, const Vector minValues, const Vector maxValues)
 	{
@@ -604,33 +604,33 @@ namespace Nabo
 			nodes[pos] = Node(-1, *first);
 			return;
 		}
-		
+
 		// find the largest dimension of the box
 		const size_t cutDim = argMax<T, CloudType>(maxValues - minValues);
-		
+
 		// compute number of elements
 		const size_t recurseCount(count-1);
 		const size_t rightCount(recurseCount/2);
 		const size_t leftCount(recurseCount-rightCount);
 		assert(last - rightCount == first + leftCount + 1);
-		
+
 		// sort
 		nth_element(first, first + leftCount, last, CompareDim(cloud, cutDim));
-		
+
 		// set node
 		const Index index(*(first+leftCount));
 		const T cutVal(cloud.coeff(cutDim, index));
 		nodes[pos] = Node(cutDim, index);
-		
+
 		//cerr << pos << " cutting on " << cutDim << " at " << (first+leftCount)->pos[cutDim] << endl;
-		
+
 		// update bounds for left
 		Vector leftMaxValues(maxValues);
 		leftMaxValues[cutDim] = cutVal;
 		// update bounds for right
 		Vector rightMinValues(minValues);
 		rightMinValues[cutDim] = cutVal;
-		
+
 		// recurse
 		if (count > 2)
 		{
@@ -643,13 +643,13 @@ namespace Nabo
 			nodes[childRight(pos)] = Node(-2, 0);
 		}
 	}
-	
+
 	template<typename T, typename CloudType>
 	KDTreeBalancedPtInNodesStackOpenCL<T, CloudType>::KDTreeBalancedPtInNodesStackOpenCL(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags, const cl_device_type deviceType):
 	OpenCLSearch<T, CloudType>::OpenCLSearch(cloud, dim, creationOptionFlags, deviceType)
 	{
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T, CloudType>::TOUCH_STATISTICS);
-		
+
 		// build point vector and compute bounds
 		BuildPoints buildPoints;
 		buildPoints.reserve(cloud.cols());
@@ -665,16 +665,16 @@ namespace Nabo
 			const_cast<Vector&>(maxBound) = maxBound.cwise().max(v);
 #endif // EIGEN3_API
 		}
-		
+
 		// create nodes
 		nodes.resize(getTreeSize(cloud.cols()));
 		buildNodes(buildPoints.begin(), buildPoints.end(), 0, minBound, maxBound);
 		const unsigned maxStackDepth(getTreeDepth(nodes.size()) + 1);
-		
+
 		// init openCL
 		initOpenCL("knn_kdtree_pt_in_nodes.cl", "knnKDTree", (boost::format("#define MAX_STACK_DEPTH %1%\n") % maxStackDepth).str());
-		
-		// map nodes, for info about alignment, see sect 6.1.5 
+
+		// map nodes, for info about alignment, see sect 6.1.5
 		const size_t nodesCLSize(nodes.size() * sizeof(Node));
 		nodesCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, nodesCLSize, &nodes[0]);
 		if (collectStatistics)
@@ -682,14 +682,14 @@ namespace Nabo
 		else
 			knnKernel.setArg(11, sizeof(cl_mem), &nodesCL);
 	}
-	
+
 	template struct KDTreeBalancedPtInNodesStackOpenCL<float>;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<double>;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<float, Eigen::Matrix3Xf>;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<double, Eigen::Matrix3Xd>;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<float, Eigen::Map<const Eigen::Matrix3Xf, Eigen::Aligned> >;
 	template struct KDTreeBalancedPtInNodesStackOpenCL<double, Eigen::Map<const Eigen::Matrix3Xd, Eigen::Aligned> >;
-	
+
 	//@}
 }
 

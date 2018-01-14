@@ -78,7 +78,7 @@ namespace Nabo
 		if (cloud.rows() == 0)
 			throw runtime_error() << "Cloud has 0 dimensions";
 	}
-	
+
 	template<typename T, typename CloudType>
 	unsigned long NearestNeighbourSearch<T, CloudType>::knn(const Vector& query, IndexVector& indices, Vector& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
 	{
@@ -129,7 +129,7 @@ namespace Nabo
 		if (optionFlags > maxOptionFlagsValue)
 			throw runtime_error() << "OR-ed value of option flags (" << optionFlags << ") is larger than maximal valid value (" << maxOptionFlagsValue << ")";
 	}
-	
+
 
 	template<typename T, typename CloudType>
 	NearestNeighbourSearch<T, CloudType>* NearestNeighbourSearch<T, CloudType>::create(const CloudType& cloud, const Index dim, const SearchType preferedType, const unsigned creationOptionFlags, const Parameters& additionalParameters)
@@ -177,7 +177,7 @@ namespace Nabo
 			throw runtime_error() << "Your space must have at least one dimension";
 		return new KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, IndexHeapSTL<Index,T>, CloudType>(cloud, dim, creationOptionFlags, additionalParameters);
 	}
-	
+
 	template struct NearestNeighbourSearch<float>;
 	template struct NearestNeighbourSearch<double>;
 	template struct NearestNeighbourSearch<float, Eigen::Matrix3Xf>;

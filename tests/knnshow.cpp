@@ -41,21 +41,21 @@ template<typename T>
 typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 {
 	typedef typename NearestNeighbourSearch<T>::Matrix Matrix;
-	
+
 	ifstream ifs(fileName);
 	if (!ifs.good())
 		throw runtime_error(string("Cannot open file ") + fileName);
-	
+
 	vector<T> data;
 	int dim(0);
 	bool firstLine(true);
-	
+
 	while (!ifs.eof())
 	{
 		char line[1024];
 		ifs.getline(line, sizeof(line));
 		line[sizeof(line)-1] = 0;
-		
+
 		char *token = strtok(line, " \t,;");
 		while (token)
 		{
@@ -67,7 +67,7 @@ typename NearestNeighbourSearch<T>::Matrix load(const char *fileName)
 		}
 		firstLine = false;
 	}
-	
+
 	return Matrix::Map(&data[0], dim, data.size() / dim);
 }
 
@@ -93,18 +93,18 @@ int main(int argc, char* argv[])
 	typedef Nabo::NearestNeighbourSearch<float>::Indexes Indexes;
 	typedef Nabo::BruteForceSearch<float> BFSF;
 	typedef Nabo::KDTree<float> KDTF;
-	
+
 	if (argc != 2)
 	{
 		cerr << "Usage " << argv[0] << " DATA" << endl;
 		return 1;
 	}
-	
+
 	Matrix d(load<float>(argv[1]));
 	BFSF bfs(d);
 	KDTF kdt(d);
 	const Index K(10);
-	
+
 	// uncomment to compare KDTree with brute force search
 	if (K >= d.size())
 		return 2;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 		{
 			Vector pbf(d.col(indexes_bf[j]));
 			Vector pkdtree(d.col(indexes_kdtree[j]));
-			//cerr << "index " << j << ": " << indexes_bf[j] << ", " << indexes_kdtree[j] << "\n";	
+			//cerr << "index " << j << ": " << indexes_bf[j] << ", " << indexes_kdtree[j] << "\n";
 			//cerr << "point " << j << ": " << "\nbf:\n" << pbf << "\nkdtree:\n" << pkdtree << "\n\n";
 			assert(indexes_bf[j] == indexes_kdtree[j]);
 			assert(dist2(pbf, pkdtree) < numeric_limits<float>::epsilon());
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 		<< itCount * d.cols() << " ("
 		<< double(100 * kdt.getStatistics().totalVisitCount) /  double(itCount * d.cols()) << " %"
 		<< ")" << endl;
-	
+
 	/*
 	// uncomment to randomly get a point and find its minimum
 	cout << "<?xml version=\"1.0\" standalone=\"no\"?>" << endl;
@@ -159,9 +159,9 @@ int main(int argc, char* argv[])
 	dumpCoordinateForSVG<float>(q, 100, 1,  "stroke=\"black\" fill=\"blue\"");
 	cout << "</svg>" << endl;
 	*/
-	
+
 	//cout << "Average KDTree visit count: " << double(totKDTreeVisitCount) * 100. / double(itCount * d.cols()) << " %" << endl;
-	
-	
+
+
 	return 0;
 }

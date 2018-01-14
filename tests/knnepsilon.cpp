@@ -44,7 +44,7 @@ void doTestEpsilon(const char *fileName, const int K, const int method, const in
 	typedef Nabo::NearestNeighbourSearch<T> NNS;
 	typedef typename NNS::Matrix Matrix;
 	typedef typename NNS::IndexMatrix IndexMatrix;
-	
+
 	// check if file is ok
 	const Matrix d(load<T>(fileName));
 	if (K >= d.cols())
@@ -52,15 +52,15 @@ void doTestEpsilon(const char *fileName, const int K, const int method, const in
 		cerr << "Requested more nearest neighbour than points in the data set" << endl;
 		exit(2);
 	}
-	
+
 	// check methods together
 	const int itCount(method >= 0 ? method : d.cols() * 2);
-	
+
 	// create big query
 	const Matrix q(createQuery<T>(d, itCount, method));
 	IndexMatrix indexes_bf(K, q.cols());
 	Matrix dists2_bf(K, q.cols());
-	
+
 	NNS* nns = NNS::createKDTreeLinearHeap(d, std::numeric_limits<typename NNS::Index>::max(), NNS::TOUCH_STATISTICS);
 	for (T epsilon = 0; epsilon < 2; epsilon += 0.01)
 	{
@@ -85,15 +85,15 @@ int main(int argc, char* argv[])
 		cerr << "Usage " << argv[0] << " DATA K METHOD SEARCH_COUNT" << endl;
 		return 1;
 	}
-	
+
 	const int K(atoi(argv[2]));
 	const int method(atoi(argv[3]));
 	const int searchCount(atoi(argv[4]));
-	
+
 	//cout << "Float: (epsilon, average duration)\n";
 	//doTestEpsilon<float>(argv[1], K, method, searchCount);
 	cout << "epsilon average_duration search_count\n";
 	doTestEpsilon<double>(argv[1], K, method, searchCount);
-	
+
 	return 0;
 }

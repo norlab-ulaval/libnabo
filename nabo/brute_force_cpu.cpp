@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Nabo
 {
 	using namespace std;
-	
+
 	template<typename T, typename CloudType>
 	BruteForceSearch<T, CloudType>::BruteForceSearch(const CloudType& cloud, const Index dim, const unsigned creationOptionFlags):
 		NearestNeighbourSearch<T, CloudType>::NearestNeighbourSearch(cloud, dim, creationOptionFlags)
@@ -58,7 +58,7 @@ namespace Nabo
 		}
 #endif // EIGEN3_API
 	}
-	
+
 
 	template<typename T, typename CloudType>
 	unsigned long BruteForceSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const
@@ -66,18 +66,18 @@ namespace Nabo
 		const Vector maxRadii(Vector::Constant(query.cols(), maxRadius));
 		return knn(query, indices, dists2, maxRadii, k, epsilon, optionFlags);
 	}
-	
+
 	template<typename T, typename CloudType>
 	unsigned long BruteForceSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T /*epsilon*/, const unsigned optionFlags) const
 	{
 		checkSizesKnn(query, indices, dists2, k, optionFlags, &maxRadii);
-		
+
 		const bool allowSelfMatch(optionFlags & NearestNeighbourSearch<T>::ALLOW_SELF_MATCH);
 		const bool sortResults(optionFlags & NearestNeighbourSearch<T>::SORT_RESULTS);
 		const bool collectStatistics(creationOptionFlags & NearestNeighbourSearch<T>::TOUCH_STATISTICS);
-		
+
 		IndexHeapSTL<Index, T> heap(k);
-		
+
 		for (int c = 0; c < query.cols(); ++c)
 		{
 			const T maxRadius(maxRadii[c]);
@@ -93,7 +93,7 @@ namespace Nabo
 					heap.replaceHead(i, dist);
 			}
 			if (sortResults)
-				heap.sort();	
+				heap.sort();
 			heap.getData(indices.col(c), dists2.col(c));
 		}
 		if (collectStatistics)
@@ -101,7 +101,7 @@ namespace Nabo
 		else
 			return 0;
 	}
-	
+
 	template struct BruteForceSearch<float>;
 	template struct BruteForceSearch<double>;
 	template struct BruteForceSearch<float, Eigen::Matrix3Xf>;

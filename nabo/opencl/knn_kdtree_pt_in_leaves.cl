@@ -4,9 +4,9 @@
 #define OP_REC1 1
 #define OP_REC2 2
 
-typedef struct { 
+typedef struct {
 	int dim; // -1 == invalid, <= -2 = index of pt
-	T cutVal; //!< for split node, split value 
+	T cutVal; //!< for split node, split value
 } Node;
 
 typedef struct {
@@ -60,10 +60,10 @@ kernel void knnKDTree(	const global T* cloud,
 	const bool allowSelfMatch = optionFlags & ALLOW_SELF_MATCH;
 	const bool doSort = optionFlags & SORT_RESULTS;
 	const global T* q = &query[queryId * POINT_STRIDE];
-	
+
 	heapInit(heap, K);
 	offInit(off);
-	
+
 	uint stackPtr = 1;
 	stack[0].op = OP_BEGIN_FUNCTION;
 	stack[0].n = 0;
@@ -120,7 +120,7 @@ kernel void knnKDTree(	const global T* cloud,
 				stackPtr+=2;
 			}
 			break;
-			
+
 			case OP_REC1:
 			{
 				T rdE;
@@ -137,13 +137,13 @@ kernel void knnKDTree(	const global T* cloud,
 				}
 			}
 			break;
-			
+
 			case OP_REC2:
 			off[cd] = s->old_off;
 			break;
 		}
 	}
-	
+
 	if (doSort)
 		heapSort(heap);
 	heapCopy(&indices[queryId * indexStride], &dists2[queryId * dists2Stride], heap, K);
