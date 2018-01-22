@@ -227,7 +227,7 @@ namespace Nabo
 		 * 	\param value new distance value */
 		inline void replaceHead(const Index index, const Value value)
 		{
-			register size_t i = 0;
+			size_t i = 0;
 			for (; i < sizeMinusOne; ++i)
 			{
 				if (data[i + 1].value > value)
@@ -321,7 +321,7 @@ namespace Nabo
 		 * 	\param value new distance value */
 		inline void replaceHead(const Index index, const Value value)
 		{
-			register size_t i;
+			size_t i;
 			for (i = sizeMinusOne; i > 0; --i)
 			{
 				if (data[i-1].value > value)
