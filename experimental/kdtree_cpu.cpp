@@ -36,8 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <queue>
 #include <algorithm>
-#include <boost/numeric/conversion/bounds.hpp>
-#include <boost/limits.hpp>
 
 namespace Nabo
 {
