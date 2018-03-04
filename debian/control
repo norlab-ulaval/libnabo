@@ -1,7 +1,7 @@
 Source: libnabo
 Priority: extra
 Maintainer: Stéphane Magnenat <stephane@nospam.magnenat.net>
-Build-Depends: debhelper (>= 7.0.50~), cmake, doxygen, cdbs, libboost-dev, libboost-python-dev, libeigen3-dev, python-dev, python-numpy
+Build-Depends: debhelper (>= 7.0.50~), cmake, doxygen, cdbs, libboost-python-dev, libeigen3-dev, python-dev, python-numpy
 Standards-Version: 3.9.1
 Section: libs
 Homepage: https://github.com/ethz-asl/libnabo
@@ -11,7 +11,7 @@ Vcs-Browser: https://github.com/ethz-asl/libnabo
 Package: libnabo-dev
 Section: libdevel
 Architecture: any
-Depends: libnabo1 (= ${binary:Version}), libboost-dev, libeigen3-dev
+Depends: libnabo1 (= ${binary:Version}), libeigen3-dev
 Suggests: libnabo-doc
 Description: Development headers of libnabo, a fast K Nearset Neighbor library.
  libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.

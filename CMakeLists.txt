@@ -83,12 +83,6 @@ else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
 
-# Boost required for any and cstdint on MSVC < 2010
-find_package(Boost COMPONENTS REQUIRED)
-if(MSVC AND (MSVC_VERSION LESS 1600))
-	add_definitions(-DBOOST_STDINT)
-endif(MSVC AND (MSVC_VERSION LESS 1600))
-
 # openmp
 set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
 if (USE_OPEN_MP)
@@ -143,7 +137,7 @@ else (USE_OPEN_CL)
 endif (USE_OPEN_CL)
 
 # include all libs so far
-include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR})
 
 # main nabo lib
 set(NABO_SRC
