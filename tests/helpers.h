@@ -33,12 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NABE_TEST_HELPERS_H
 
 #include "nabo/nabo.h"
+#include <chrono>
 #include <limits>
 #include <iostream>
 #include <fstream>
 
 #include <cstdint>
-using std::uint64_t;
 
 using namespace std;
 using namespace Nabo;
@@ -125,18 +125,24 @@ typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNei
 	return q;
 }
 
-#include <chrono>
-using std::chrono::high_resolution_clock;
-using std::chrono::duration_cast;
 struct timer
 {
-	timer():_start_time(high_resolution_clock::now()){ }
-	void restart() { _start_time = high_resolution_clock::now(); }
+	using Clock = std::chrono::high_resolution_clock;
+	using Time = Clock::time_point;
+
+	timer():_start_time(curTime()){ }
+	void restart() { _start_time = curTime(); }
 	double elapsed() const                  // return elapsed time in seconds
-	{ return duration_cast<chrono::nanoseconds>(high_resolution_clock::now() - _start_time).count() / double(1000000000); }
+	{ 
+		using namespace std::chrono;
+		return duration_cast<duration<double>>(curTime() - _start_time).count();
+	}
 
 private:
-	high_resolution_clock::time_point _start_time;
+	Time curTime() const {
+		return Clock::now();
+	}
+	Time _start_time;
 };
 
 #endif // __NABE_TEST_HELPERS_H
