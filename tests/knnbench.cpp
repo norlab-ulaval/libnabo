@@ -117,7 +117,7 @@ typedef vector<BenchResult> BenchResults;
 // BenchResult doBench(const Matrix& d, const Matrix& q, const Index K, const int itCount)
 // {
 // 	BenchResult result;
-// 	boost::timer t;
+// 	timer t;
 // 	T nns(d);
 // 	result.creationDuration = t.elapsed();
 //
@@ -145,7 +145,7 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 	typedef typename NearestNeighbourSearch<T>::IndexMatrix IndexMatrix;
 
 	BenchResult result;
-	boost::timer t;
+	timer t;
 	nnsT* nns(nnsT::create(d, d.rows(), type, creationOptionFlags));
 	result.creationDuration = t.elapsed();
 
@@ -173,7 +173,7 @@ BenchResult doBenchType(const typename NearestNeighbourSearch<T>::SearchType typ
 BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, const int itCount, const int searchCount)
 {
 	BenchResult result;
-	boost::timer t;
+	timer t;
 	const int ptCount(d.cols());
 	const double **pa = new const double *[d.cols()];
 	for (int i = 0; i < ptCount; ++i)
@@ -207,7 +207,7 @@ BenchResult doBenchANNStack(const MatrixD& d, const MatrixD& q, const int K, con
 BenchResult doBenchANNPriority(const MatrixD& d, const MatrixD& q, const int K, const int itCount, const int searchCount)
 {
 	BenchResult result;
-	boost::timer t;
+	timer t;
 	const int ptCount(d.cols());
 	const double **pa = new const double *[d.cols()];
 	for (int i = 0; i < ptCount; ++i)
@@ -263,7 +263,7 @@ BenchResult doBenchFLANN(const Matrix& d, const Matrix& q, const Index K, const 
 	flann::Matrix<float> dists(new float[query.rows*K], query.rows, K);
 
 	// construct an randomized kd-tree index using 4 kd-trees
-	boost::timer t;
+	timer t;
 	flann::Index<T> index(dataset, flann::KDTreeIndexParams(4) /*flann::AutotunedIndexParams(0.9)*/); // exact search
 	index.buildIndex();
 	result.creationDuration = t.elapsed();

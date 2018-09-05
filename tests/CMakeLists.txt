@@ -3,8 +3,8 @@ include (CheckSymbolExists)
 include_directories(..)
 
 add_executable(knnvalidate knnvalidate.cpp)
-target_link_libraries(knnvalidate ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
-# disable as experimental is broken target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnvalidate ${LIB_NAME} ${EXTRA_LIBS})
+# disable as experimental is broken target_link_libraries(knnvalidate naboexperimental nabo  ${EXTRA_LIBS})
 
 add_test(validation-2D-exhaustive ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 2 -1)
 add_test(validation-2D-random ${EXECUTABLE_OUTPUT_PATH}/knnvalidate ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.2d.txt 10 2 10000)
@@ -51,16 +51,11 @@ else (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 	message("FLANN not found, disabling it in benchmarks")
 endif (FLANN_INCLUDE_DIR AND FLANN_LIBRARY)
 
-check_symbol_exists(_POSIX_TIMERS "unistd.h;time.h" POSIX_TIMERS)
-if (POSIX_TIMERS AND NOT APPLE)
-	set(EXTRA_LIBS ${EXTRA_LIBS} rt)
-endif (POSIX_TIMERS AND NOT APPLE)
-
 include_directories(..)
 
 add_executable(knnbench knnbench.cpp)
-target_link_libraries(knnbench ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
-# disable as experimental is broken target_link_libraries(knnbench naboexperimental nabo ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnbench ${LIB_NAME} ${EXTRA_LIBS})
+# disable as experimental is broken target_link_libraries(knnbench naboexperimental nabo ${EXTRA_LIBS})
 
 add_test(bench-3D-large-exhaustive-10000-K1 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 1 -10000 3 5)
 add_test(bench-3D-large-exhaustive-1000-K1 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 1 -1000 3 5)
@@ -76,10 +71,10 @@ add_test(bench-3D-large-exhaustive-100-K30 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${
 add_test(bench-3D-large-random-K30 ${EXECUTABLE_OUTPUT_PATH}/knnbench ${CMAKE_CURRENT_SOURCE_DIR}/data/scan.3d.large.txt 30 40000 3 5)
 
 add_executable(knnepsilon knnepsilon.cpp)
-target_link_libraries(knnepsilon ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnepsilon ${LIB_NAME} ${EXTRA_LIBS})
 
 add_executable(knnbucketsize knnbucketsize.cpp)
-target_link_libraries(knnbucketsize ${LIB_NAME} ${EXTRA_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(knnbucketsize ${LIB_NAME} ${EXTRA_LIBS})
 
 # Ensure that users cannot instantiate a tree with wrong matrix types.
 macro(try_compile_cloud_types MAT_TYPE TREE_TYPE EXPECT)

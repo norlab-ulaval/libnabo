@@ -62,7 +62,6 @@ On the average, libnabo is 5% to 20% faster than \ref ANN.
 
 libnabo depends on \ref Eigen, a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
-libnabo also depends on \ref Boost, a C++ general library.
 
 \section Compilation
 
@@ -192,14 +191,13 @@ libnabo differs from \ref ANN on the following points:
 
 * performances
 - about 5% to 20% faster than ANN (both -O3 -NDEBUG), probably due to the smaller memory footprint
-- clearly memory-bound, neither OpenMP nor boost::thread improve performances
+- clearly memory-bound, neither OpenMP nor std::thread improve performances
 
 \section References
 
 \li \anchor Eigen Eigen: http://eigen.tuxfamily.org
 \li \anchor ANN ANN: http://www.cs.umd.edu/~mount/ANN
 \li \anchor CMake CMake: http://www.cmake.org
-\li \anchor Boost Boost: http://www.boost.org
 
 */
 
