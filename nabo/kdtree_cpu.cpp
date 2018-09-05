@@ -113,8 +113,7 @@ namespace Nabo
 		assert(count >= 1);
 		const unsigned pos(nodes.size());
 
-		//cerr 
-    <count << endl;
+		//cerr << count << endl;
 		if (count <= int(bucketSize))
 		{
 			const uint32_t initBucketsSize(buckets.size());
