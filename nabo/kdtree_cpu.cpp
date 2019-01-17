@@ -37,9 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <queue>
 #include <algorithm>
 #include <utility>
-#include <boost/numeric/conversion/bounds.hpp>
-#include <boost/limits.hpp>
-#include <boost/format.hpp>
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
@@ -96,8 +93,8 @@ namespace Nabo
 	template<typename T, typename Heap, typename CloudType>
 	pair<T,T> KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap, CloudType>::getBounds(const BuildPointsIt first, const BuildPointsIt last, const unsigned dim)
 	{
-		T minVal(boost::numeric::bounds<T>::highest());
-		T maxVal(boost::numeric::bounds<T>::lowest());
+		T minVal(std::numeric_limits<T>::max());
+		T maxVal(std::numeric_limits<T>::lowest());
 		
 		for (BuildPointsCstIt it(first); it != last; ++it)
 		{
@@ -235,7 +232,7 @@ namespace Nabo
 		dimMask((1<<dimBitCount)-1)
 	{
 		if (bucketSize < 2)
-			throw runtime_error((boost::format("Requested bucket size %1%, but must be larger than 2") % bucketSize).str());
+			throw runtime_error("Requested bucket size " + std::to_string(bucketSize) + ", but must be larger than 2");
 		if (cloud.cols() <= bucketSize)
 		{
 			// make a single-bucket tree
@@ -249,7 +246,8 @@ namespace Nabo
 		const uint64_t estimatedNodeCount(cloud.cols() / (bucketSize / 2));
 		if (estimatedNodeCount > maxNodeCount)
 		{
-			throw runtime_error((boost::format("Cloud has a risk to have more nodes (%1%) than the kd-tree allows (%2%). The kd-tree has %3% bits for dimensions and %4% bits for node indices") % estimatedNodeCount % maxNodeCount % dimBitCount % (32-dimBitCount)).str());
+			throw runtime_error("Cloud has a risk to have more nodes (" + std::to_string(estimatedNodeCount) + ") than the kd-tree allows (" + std::to_string(maxNodeCount) + "). "
+					"The kd-tree has " + std::to_string(dimBitCount) + " bits for dimensions and " + std::to_string((32-dimBitCount)) + " bits for node indices");
 		}
 		
 		// build point vector and compute bounds
@@ -340,7 +338,7 @@ namespace Nabo
 	template<typename T, typename Heap, typename CloudType>
 	unsigned long KDTreeUnbalancedPtInLeavesImplicitBoundsStackOpt<T, Heap, CloudType>::onePointKnn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, int i, Heap& heap, std::vector<T>& off, const T maxError2, const T maxRadius2, const bool allowSelfMatch, const bool collectStatistics, const bool sortResults) const
 	{
-		fill(off.begin(), off.end(), 0);
+		fill(off.begin(), off.end(), static_cast<T>(0));
 		heap.reset();
 		unsigned long leafTouchedCount(0);
 		
@@ -465,3 +463,4 @@ namespace Nabo
 
 	//@}
 }
+/* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
