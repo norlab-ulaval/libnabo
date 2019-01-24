@@ -44,7 +44,11 @@ set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
 # Switch on warnings.
-add_definitions(-Wall -Wextra)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall")
+else ()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+endif ()
 
 # Check the compiler version as we need C++11 support.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
