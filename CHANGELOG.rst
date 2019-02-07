@@ -2,6 +2,36 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.7 (2019-02-07)
+------------------
+* Disabled cmake compile tests by default and on compilers that do not support them (#95)
+* Fix Python 2 bindings support in CMake scripts (#90)
+* Port libnabo to c++11 (#89)
+* Remove register keyword in index_heap.h (#88)
+* Fix compilation warning for MSVC (#85)
+* Assert template type for invalid setters (#80)
+* Return numerically maximal index (unsigned) or -1 (signed) for no match case (#79)
+* Add generate step for ${PROJECT_BINARY_DIR}/libnaboConfig.cmake (#76)
+* Removed compiler-specific flags for compilers that do not support them (#74)
+* Added cmake_policy(SET CMP0054 NEW) (#73)
+* Output compiler message with compile test fatal error in cmake (#72)
+* Removed erroneous commas from test/CMakeLists.txt (#71)
+* Removed fatal "," suffix from FATAL_ERROR in CMakeLists.txt (#70)
+* Fixed regression concerning installed libnaboConfig.cmake (#65)
+* Fix/relax compiler requirements (#63)
+* Removed hard dependency on the doc target (#62)
+* Install any.hpp (#61)
+* Remove boost::any and boost:format dependencies (#59)
+* Port the python bindings to python3 (#57)
+* Added cmake switch to disable usage of OpenMP (#53)
+* Zero copy for Eigen::Matrix3XT and Eigen::Map<const Eigen::Matrix3XT> (#43)
+* Fix warnings and switch on Wextra (#42)
+* Disallow instantiation with non dynamic matrices (#41)
+* Update README.md
+* Removed all code dealing with libnaboTargets.cmake (#32)
+* Got rid of unused locally defined typedefs (#27)
+* Contributors: David Landry, Hannes Sommer, Simon Lynen, Simon-Pierre Deschênes, Stéphane Magnenat, cezheng, ffurrer, magehrig, renning22, sandsmark, taketwo, tcies
+
 1.0.6 (2015-03-05)
 ------------------
 * Reset point indices of results with distances exceeding threshold (#23, #24)
