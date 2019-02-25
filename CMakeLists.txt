@@ -87,6 +87,21 @@ else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
 
+#CUDA
+set(USE_CUDA "false" CACHE BOOL "Set phasers to CUDA!")
+if(USE_CUDA)
+	#Sorry Linux support only right now :( I don't own a copy of Windows, so its a bit hard for me to make sure that it'll work on windows. -Louis
+	find_package(CUDA)
+
+	SET(CUDA_SEPARABLE_COMPILATION ON)
+	SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+
+	SET(CUDA_NVCC_FLAGS "-arch=compute_30;-code=sm_30;-Xcompiler=-fPIC;--shared;--use_fast_math;-G")
+
+	link_with(${CUDA_LIBRARIES})
+	message("CUDA has been enabled. Currently only KD_Node is supported in this build")
+endif(USE_CUDA)
+
 # openmp
 set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
 if (USE_OPEN_MP)

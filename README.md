@@ -44,6 +44,38 @@ libnabo provides the following compilation options, available through [CMake]:
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
 
+In order to utilize CUDA, please install the latest NVIDIA developer driver, and atleast CUDA 7.0:
+
+  * For Ubuntu or Debian, follow [these instructions](http://docs.nvidia.com/cuda/cuda-getting-started-guide-for-linux/#axzz3X7AKITTy). 
+  
+  * For Windows, follow [these instructions](http://docs.nvidia.com/cuda/cuda-getting-started-guide-for-microsoft-windows/#axzz3X7AKITTy). Please note that this code has, as of April 12th 2015, NOT been tested on Windows.
+  
+  * For Mac OSX, follow [these instructions](http://docs.nvidia.com/cuda/cuda-getting-started-guide-for-mac-os-x/#axzz3X7AKITTy). Clang 6.0 is required.
+
+Compute Model 3.2 or better is required. Compute Model 3.5 or better is recommended. To see which compute model you have, click [here](https://developer.nvidia.com/cuda-gpus).
+
+CUDA Best Practices 
+-------------------
+
+Query points should be stored in a linearized array, and should be in sub groups of a multiple of 16. No more than 1024 groups should be queried at any given time.
+
+Subgroups should be ordered in regard to their distance from the center of the group in least to greatest. This will insure minimalized thread divergence and greatly improve performance. 
+
+The smaller the overall maximum distance from the center any given point within a subgroup is, the smaller the overall divergence. 
+
+If a path proves to be too divergent, a new kernel will be launched and the query point subgroup will be split. This is suboptimal when compared to a tighly packed subgroup, so avoid it at all costs. It is also only available on Compute Model 3.5. 
+
+Currently, in order to change the dimension could, the kernel must be recompiled. This primarily is due to the simplicity of removing point striding from the in-development version. It will be added at a later date.
+
+In order to call CUDA from libnabo, please create a C to C++ wrapper and properly invoke it from the search function within kdtree_opencl.cpp. I have not created a full C++ wrapper yet for the CUDA code; however, I have plans to eventually do so. 
+
+For optimal performance, restrict BucketSize to 10. Eventually a method to dynamically set BucketSize will be used, as it is highly dependent on the GPU being utilized for the computations.
+
+Double precision is NOT available and I have no intentions of adding it. This code is single precision only. If you wish to utilize doubles, modify it to your liking.
+
+When dynamic parralelism is finalized, tree depth will be limited to 22, as this is the standard limit for Compute Model 3.5. If NVIDIA plans to alleviate this limit for consumer GPUs in the near future, or a work around is discovered, I will remove this limit.
+
+While dynamic parralelism will be used for divergent paths, only 1024 paths will be allowed to launch new kernels at any given point. Therefore, if the number of paths that prove to be divergent is greater than 1024, please optimize or recluster your querry set. A path is considered to be divergent if any given query point is outside of the KNN max_rad2 of the center of the cluster. 
 Quick compilation and installation under Unix
 ---------------------------------------------
 
