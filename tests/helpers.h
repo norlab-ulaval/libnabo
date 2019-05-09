@@ -33,16 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NABE_TEST_HELPERS_H
 
 #include "nabo/nabo.h"
+#include <chrono>
 #include <limits>
 #include <iostream>
 #include <fstream>
 
-#ifdef BOOST_STDINT
-	#include <boost/cstdint.hpp>
-	using boost::uint64_t;
-#else // BOOST_STDINT
-	#include <stdint.h>
-#endif // BOOST_STDINT
+#include <cstdint>
 
 using namespace std;
 using namespace Nabo;
@@ -129,55 +125,26 @@ typename NearestNeighbourSearch<T>::Matrix createQuery(const typename NearestNei
 	return q;
 }
 
-#ifdef __MACH__
-#include <mach/clock.h>
-#include <mach/mach.h>
-#else
-#include <time.h>
-#endif
-
-#ifdef _POSIX_TIMERS 
-namespace boost
+struct timer
 {
-	/*
-		High-precision timer class, using gettimeofday().
-		The interface is a subset of the one boost::timer provides,
-		but the implementation is much more precise
-		on systems where clock() has low precision, such as glibc.
-	*/
-	struct timer
-	{
-		typedef uint64_t Time;
-		
-		timer():_start_time(curTime()){ } 
-		void restart() { _start_time = curTime(); }
-		double elapsed() const                  // return elapsed time in seconds
-		{ return  double(curTime() - _start_time) / double(1000000000); }
+	using Clock = std::chrono::high_resolution_clock;
+	using Time = Clock::time_point;
 
-	private:
-		Time curTime() const {
-			#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
-			clock_serv_t cclock;
-			mach_timespec_t ts;
-			host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-			clock_get_time(cclock, &ts);
-			mach_port_deallocate(mach_task_self(), cclock);
-			#else
-			struct timespec ts;
-			#ifdef CLOCK_PROCESS_CPUTIME_ID
-			clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-			#else // BSD and old Linux
-			clock_gettime(CLOCK_PROF, &ts);
-			#endif
-			#endif
-			return Time(ts.tv_sec) * Time(1000000000) + Time(ts.tv_nsec);
-		}
-		Time _start_time;
-	};
-}
-#else // _POSIX_TIMERS
-	#include <boost/timer.hpp>
-#endif // _POSIX_TIMERS
+	timer():_start_time(curTime()){ }
+	void restart() { _start_time = curTime(); }
+	double elapsed() const                  // return elapsed time in seconds
+	{ 
+		using namespace std::chrono;
+		return duration_cast<duration<double>>(curTime() - _start_time).count();
+	}
+
+private:
+	Time curTime() const {
+		return Clock::now();
+	}
+	Time _start_time;
+};
 
 #endif // __NABE_TEST_HELPERS_H
 
+/* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

@@ -62,7 +62,6 @@ On the average, libnabo is 5% to 20% faster than \ref ANN.
 
 libnabo depends on \ref Eigen, a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
-libnabo also depends on \ref Boost, a C++ general library.
 
 \section Compilation
 
@@ -192,14 +191,13 @@ libnabo differs from \ref ANN on the following points:
 
 * performances
 - about 5% to 20% faster than ANN (both -O3 -NDEBUG), probably due to the smaller memory footprint
-- clearly memory-bound, neither OpenMP nor boost::thread improve performances 
+- clearly memory-bound, neither OpenMP nor std::thread improve performances 
 
 \section References
 
 \li \anchor Eigen Eigen: http://eigen.tuxfamily.org
 \li \anchor ANN ANN: http://www.cs.umd.edu/~mount/ANN
 \li \anchor CMake CMake: http://www.cmake.org
-\li \anchor Boost Boost: http://www.boost.org
 
 */
 
@@ -210,18 +208,20 @@ namespace Nabo
 	//@{
 	
 	//! version of the Nabo library as string
-	#define NABO_VERSION "1.0.6"
+	#define NABO_VERSION "1.0.7"
 	//! version of the Nabo library as an int
-	#define NABO_VERSION_INT 10006
+	#define NABO_VERSION_INT 10007
 
 	// TODO (c++14) Convert invalidIndex, invalidValue to constexpr templated variables.
 	template <typename IndexType>
 	inline constexpr IndexType invalidIndex() {
+		static_assert(std::is_integral<IndexType>::value, "");
 		return std::is_unsigned<IndexType>::value ? std::numeric_limits<IndexType>::max() : IndexType(-1);
 	}
 
 	template <typename ValueType>
 	inline constexpr ValueType invalidValue() {
+		static_assert(std::is_floating_point<ValueType>::value, "");
 		return std::numeric_limits<ValueType>::infinity();
 	}
 

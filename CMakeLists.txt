@@ -44,7 +44,11 @@ set(DOXYFILE_LATEX false)
 include(UseDoxygen)
 
 # Switch on warnings.
-add_definitions(-Wall -Wextra)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall")
+else ()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+endif ()
 
 # Check the compiler version as we need C++11 support.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -82,12 +86,6 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
 else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
-
-# Boost required for any and cstdint on MSVC < 2010
-find_package(Boost COMPONENTS REQUIRED)
-if(MSVC AND (MSVC_VERSION LESS 1600))
-	add_definitions(-DBOOST_STDINT)
-endif(MSVC AND (MSVC_VERSION LESS 1600))
 
 # openmp
 set(USE_OPEN_MP FALSE CACHE BOOL "Set to TRUE to use OpenMP")
@@ -143,7 +141,7 @@ else (USE_OPEN_CL)
 endif (USE_OPEN_CL)
 
 # include all libs so far
-include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR})
 
 # main nabo lib
 set(NABO_SRC
@@ -204,9 +202,12 @@ set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
 
 # Create variable for the local build tree
 get_property(libnabo_include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-# Configure config file for local build tree
+# Configure & generate config file for local build tree
 configure_file(libnaboConfig.cmake.in
-	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake" @ONLY)
+	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf" @ONLY)
+file(GENERATE
+	OUTPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
+	INPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf")
 
 # 2- installation build #
 
@@ -219,7 +220,6 @@ set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
 # We put the generated file for installation in a different repository (i.e., ./CMakeFiles/)
 configure_file(libnaboConfig.cmake.in
 	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf" @ONLY)
-
 file(GENERATE
 	OUTPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
 	INPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf")
