@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __NABO_H
 #define __NABO_H
 
-#include "Eigen/Core"
+#include "eigen3/Eigen/Core"
 #if EIGEN_VERSION_AT_LEAST(2,92,0)
 	#define EIGEN3_API
 #endif
