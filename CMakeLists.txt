@@ -81,14 +81,14 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		set (CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 	else ()
-		set (CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+		set (CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS}")
 	endif ()
 else ()
-	set (CMAKE_CXX_STANDARD 11)
+	set (CMAKE_CXX_STANDARD 14)
 endif ()
 
 # openmp
-set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
+set(USE_OPEN_MP FALSE CACHE BOOL "Set to FALSE to not use OpenMP")
 if (USE_OPEN_MP)
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
@@ -182,11 +182,11 @@ install(FILES package.xml DESTINATION share/libnabo)
 #=============================================
 # to allow find_package() on libnabo
 #=============================================
-# 
+#
 # the following case be used in an external project requiring libnabo:
 #  ...
-#  find_package(libnabo) 
-#  include_directories(${libnabo_INCLUDE_DIRS}) 
+#  find_package(libnabo)
+#  include_directories(${libnabo_INCLUDE_DIRS})
 #  target_link_libraries(executableName ${libnabo_LIBRARIES})
 #  ...
 
