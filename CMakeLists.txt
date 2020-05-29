@@ -161,6 +161,11 @@ else (SHARED_LIBS)
 endif (SHARED_LIBS)
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
+target_include_directories(${LIB_NAME} PUBLIC
+  $<INSTALL_INTERFACE:>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  )
+
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
 install(FILES nabo/nabo.h DESTINATION include/nabo)
@@ -172,9 +177,21 @@ endif (DOXYGEN_FOUND)
 
 enable_testing()
 
-add_subdirectory(examples)
-add_subdirectory(tests)
-add_subdirectory(python)
+
+option(LIBNABO_BUILD_EXAMPLES "Build libnabo examples" ON)
+if (LIBNABO_BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
+option(LIBNABO_BUILD_TESTS "Build libnabo tests" ON)
+if(LIBNABO_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
+
+option(LIBNABO_BUILD_PYTHON "Build libnabo python" ON)
+if(LIBNABO_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
 
 # Install catkin package.xml
 install(FILES package.xml DESTINATION share/libnabo)
@@ -237,10 +254,12 @@ install(FILES
 #=============================================
 # Add uninstall target
 #=============================================
-configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-	IMMEDIATE @ONLY)
+if (NOT TARGET uninstall)
+  configure_file(
+	  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+	  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+	  IMMEDIATE @ONLY)
 
-add_custom_target(uninstall
-	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+  add_custom_target(uninstall
+	  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
