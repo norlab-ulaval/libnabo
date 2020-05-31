@@ -214,6 +214,26 @@ install(FILES package.xml DESTINATION share/libnabo)
 # Register the local build in case one doesn't use "make install"
 export(PACKAGE libnabo)
 
+include(GNUInstallDirs)
+
+# 'make install' to the correct locations (provided by GNUInstallDirs).
+install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}-config
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
+#install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${LIB_NAME})
+
+# This makes the project importable from the install directory
+# Put config file in per-project dir (name MUST match), can also
+# just go into 'cmake'.
+install(EXPORT ${PROJECT_NAME}-config DESTINATION share/${PROJECT_NAME}/cmake)
+
+# This makes the project importable from the build directory
+export(TARGETS ${LIB_NAME} FILE ${PROJECT_NAME}-config.cmake)
+
+
 # Create variable with the library location
 set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
 
