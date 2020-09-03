@@ -90,19 +90,6 @@ else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
 
-# openmp
-set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
-if (USE_OPEN_MP)
-	find_package(OpenMP)
-	if (OPENMP_FOUND)
-		add_definitions(-fopenmp -DHAVE_OPENMP)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		if (CMAKE_COMPILER_IS_GNUCC)
-			set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
-		endif()
-	endif()
-endif ()
-
 # eigen 2 or 3
 find_path(EIGEN_INCLUDE_DIR Eigen/Core
 	/usr/local/include/eigen3
@@ -143,8 +130,6 @@ else ()
 	message("OpenCL disabled, not looking for it")
 endif ()
 
-# include all libs so far
-include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR})
 
 # main nabo lib
 set(NABO_SRC
@@ -159,15 +144,32 @@ if (SHARED_LIBS)
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
 else ()
 	add_library(${LIB_NAME} STATIC ${NABO_SRC})
-	add_definitions(-fPIC)
+	if (NOT MSVC)
+		target_compile_options(${LIB_NAME} PRIVATE -fPIC)
+	endif()
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
 endif ()
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
 
 target_include_directories(${LIB_NAME} PUBLIC
-  $<INSTALL_INTERFACE:>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+	${EIGEN_INCLUDE_DIR}
+	$<INSTALL_INTERFACE:>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   )
+
+# openmp
+set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
+if (USE_OPEN_MP)
+	find_package(OpenMP)
+	if (OPENMP_FOUND)
+		target_compile_options(${LIB_NAME} PRIVATE -fopenmp ${OpenMP_CXX_FLAGS})
+		target_compile_definitions(${LIB_NAME} PRIVATE HAVE_OPENMP)
+		if (CMAKE_COMPILER_IS_GNUCC)
+			target_link_libraries(${LIB_NAME} PUBLIC gomp)
+		endif()
+	endif()
+endif ()
+
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
@@ -202,11 +204,11 @@ install(FILES package.xml DESTINATION share/libnabo)
 #=============================================
 # to allow find_package() on libnabo
 #=============================================
-# 
+#
 # the following case be used in an external project requiring libnabo:
 #  ...
-#  find_package(libnabo) 
-#  include_directories(${libnabo_INCLUDE_DIRS}) 
+#  find_package(libnabo)
+#  include_directories(${libnabo_INCLUDE_DIRS})
 #  target_link_libraries(executableName ${libnabo_LIBRARIES})
 #  ...
 
@@ -220,21 +222,29 @@ export(PACKAGE libnabo)
 include(GNUInstallDirs)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
-install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}-config
+install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}-targets
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
 #install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${LIB_NAME})
+add_library(${PROJECT_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
 
 # This makes the project importable from the install directory
 # Put config file in per-project dir (name MUST match), can also
 # just go into 'cmake'.
-install(EXPORT ${PROJECT_NAME}-config DESTINATION share/${PROJECT_NAME}/cmake)
+install(
+	EXPORT ${PROJECT_NAME}-targets
+	DESTINATION share/${PROJECT_NAME}/cmake
+	NAMESPACE ${PROJECT_NAME}::
+)
 
 # This makes the project importable from the build directory
-export(TARGETS ${LIB_NAME} FILE ${PROJECT_NAME}-config.cmake)
+export(
+	TARGETS ${LIB_NAME}
+	FILE ${PROJECT_NAME}-targets.cmake
+	NAMESPACE ${PROJECT_NAME}::
+)
 
 
 # Create variable with the library location
