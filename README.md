@@ -53,7 +53,7 @@ Under Unix, assuming that [Eigen] and [Boost] are installed system-wide, you can
 	BUILD_DIR=${SRC_DIR}/build
 	mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
 	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
-	# if Eigen or Boost are not available system-wide, run at that point: 
+	# if Eigen or Boost are not available system-wide, run at that point:
 	#   cmake-gui .
 	# cmake-gui allows you to tell the location of Eigen or Boost
 	make
@@ -78,11 +78,11 @@ libnabo is easy to use. For example, assuming that you are working with floats a
 	using namespace Eigen;
 	...
 	NNSearchF* nns = NNSearchF::createKDTreeLinearHeap(M);
-	
+
 	const int K = 5;
 	VectorXi indices(K);
 	VectorXf dists2(K);
-	
+
 	nns->knn(q, indices, dists2, K);
 
 In this example, `M` is an [Eigen] (refering to the software, not to the math) matrix (column major, float) and `q` is an [Eigen] vector (float). Note that `M` **must stay alive** throughout the use of libnabo, otherwise the results of `knn` are undefined.
@@ -91,6 +91,10 @@ See `examples/trivial.cpp` for a compilable version of this example, and `exampl
 
 Running `make doc` in your build directory will generate a browsable documentation in `doc/html`.
 The main page `doc/html/index.html` contains a detailed overview of the usage of libnabo.
+
+You can find a complete CMake integration
+example in [examples/libnabo-cmake-example](examples/libnabo-cmake-example) to
+see how to look for, and link against this library.
 
 Python bindings
 ===============
@@ -119,7 +123,7 @@ The distribution of libnabo integrates a unit test module, based on CTest.
 Just type:
 
 	make test
-   
+
 ...in the build directory to run the tests.
 Their outputs are available in the `Testing` directory.
 These consist of validation and benchmarking tests.

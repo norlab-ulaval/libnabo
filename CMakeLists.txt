@@ -18,7 +18,7 @@ execute_process(
 )
 if (NOT GREP_VERSION_RESULT EQUAL 0)
 	message(SEND_ERROR "Cannot grep version number: ${GREP_VERSION_RESULT}")
-endif (NOT GREP_VERSION_RESULT EQUAL 0)
+endif ()
 string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -26,22 +26,25 @@ if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release CACHE STRING
 	  "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
 	  FORCE)
-else (NOT CMAKE_BUILD_TYPE)
+else ()
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("\n=================================================================================")
 		message("\n-- Build type: Debug. Performance will be terrible!")
 		message("-- Add -DCMAKE_BUILD_TYPE=Release to the CMake command line to get an optimized build.")
 		message("\n=================================================================================")
-	endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
-endif (NOT CMAKE_BUILD_TYPE)
+	endif ()
+endif ()
 
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_definitions(-O3)
-endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+endif()
 
 # Documentation
-set(DOXYFILE_LATEX false)
-include(UseDoxygen)
+option(LIBNABO_BUILD_DOXYGEN "Build libnabo doxygen documentation" ON)
+if (LIBNABO_BUILD_DOXYGEN)
+  set(DOXYFILE_LATEX false)
+  include(UseDoxygen)
+endif()
 
 # Switch on warnings.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -56,17 +59,17 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.3")
 		message(FATAL_ERROR "Your clang compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 3.3 or later is required")
 	endif ()
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+elseif ()
 	# using AppleClang
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.1")
 		message(FATAL_ERROR "Your XCode environment has version ${CMAKE_CXX_COMPILER_VERSION}, while version 5.1 or later is required")
 	endif ()
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+elseif ()
 	# using GCC
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8.2")
 		message(FATAL_ERROR "Your g++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version 4.8.2 or later is required")
 	endif ()
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+elseif ()
 	# using MSVC
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0.23506")
 		message(FATAL_ERROR "Your Microsoft Visual C++ compiler has version ${CMAKE_CXX_COMPILER_VERSION}, while version MSVC 2015 Update 1+ is required")
@@ -86,19 +89,6 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
 else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
-
-# openmp
-set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
-if (USE_OPEN_MP)
-	find_package(OpenMP)
-	if (OPENMP_FOUND)
-		add_definitions(-fopenmp -DHAVE_OPENMP)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		if (CMAKE_COMPILER_IS_GNUCC)
-			set(EXTRA_LIBS ${EXTRA_LIBS} gomp)
-		endif(CMAKE_COMPILER_IS_GNUCC)
-	endif(OPENMP_FOUND)
-endif (USE_OPEN_MP)
 
 # eigen 2 or 3
 find_path(EIGEN_INCLUDE_DIR Eigen/Core
@@ -123,10 +113,10 @@ if (USE_OPEN_CL)
 		find_library(OPENCL_LIBRARIES opencl64)
 		if (!OPENCL_LIBRARIES)
 			find_library(OPENCL_LIBRARIES opencl32)
-		endif (!OPENCL_LIBRARIES)
-	else (WIN32)
+		endif ()
+	else ()
 		find_library(OPENCL_LIBRARIES OpenCL ENV LD_LIBRARY_PATH)
-	endif (WIN32)
+	endif ()
 	if (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 		add_definitions(-DHAVE_OPENCL)
 		set(EXTRA_LIBS ${OPENCL_LIBRARIES} ${EXTRA_LIBS})
@@ -135,13 +125,11 @@ if (USE_OPEN_CL)
 		message("OpenCL enabled and found, enabling CL support")
 	else (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
 		message("OpenCL enabled but not found, disabling CL support")
-	endif (OPENCL_INCLUDE_DIR AND OPENCL_LIBRARIES)
-else (USE_OPEN_CL)
+	endif ()
+else ()
 	message("OpenCL disabled, not looking for it")
-endif (USE_OPEN_CL)
+endif ()
 
-# include all libs so far
-include_directories(${CMAKE_SOURCE_DIR} ${EIGEN_INCLUDE_DIR})
 
 # main nabo lib
 set(NABO_SRC
@@ -154,12 +142,34 @@ set(SHARED_LIBS FALSE CACHE BOOL "Set to TRUE to build shared library")
 if (SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
 	install(TARGETS ${LIB_NAME} LIBRARY DESTINATION lib)
-else (SHARED_LIBS)
-	add_library(${LIB_NAME} ${NABO_SRC})
-	add_definitions(-fPIC)
+else ()
+	add_library(${LIB_NAME} STATIC ${NABO_SRC})
+	if (NOT MSVC)
+		target_compile_options(${LIB_NAME} PRIVATE -fPIC)
+	endif()
 	install(TARGETS ${LIB_NAME} ARCHIVE DESTINATION lib)
-endif (SHARED_LIBS)
+endif ()
 set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION 1)
+
+target_include_directories(${LIB_NAME} PUBLIC
+	${EIGEN_INCLUDE_DIR}
+	$<INSTALL_INTERFACE:>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  )
+
+# openmp
+set(USE_OPEN_MP TRUE CACHE BOOL "Set to FALSE to not use OpenMP")
+if (USE_OPEN_MP)
+	find_package(OpenMP)
+	if (OPENMP_FOUND)
+		target_compile_options(${LIB_NAME} PRIVATE -fopenmp ${OpenMP_CXX_FLAGS})
+		target_compile_definitions(${LIB_NAME} PRIVATE HAVE_OPENMP)
+		if (CMAKE_COMPILER_IS_GNUCC)
+			target_link_libraries(${LIB_NAME} PUBLIC gomp)
+		endif()
+	endif()
+endif ()
+
 
 # create doc before installing
 set(DOC_INSTALL_TARGET "share/doc/${PROJECT_NAME}/api" CACHE STRING "Target where to install doxygen documentation")
@@ -172,9 +182,21 @@ endif (DOXYGEN_FOUND)
 
 enable_testing()
 
-add_subdirectory(examples)
-add_subdirectory(tests)
-add_subdirectory(python)
+
+option(LIBNABO_BUILD_EXAMPLES "Build libnabo examples" ON)
+if (LIBNABO_BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
+option(LIBNABO_BUILD_TESTS "Build libnabo tests" ON)
+if(LIBNABO_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
+
+option(LIBNABO_BUILD_PYTHON "Build libnabo python" ON)
+if(LIBNABO_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
 
 # Install catkin package.xml
 install(FILES package.xml DESTINATION share/libnabo)
@@ -182,11 +204,11 @@ install(FILES package.xml DESTINATION share/libnabo)
 #=============================================
 # to allow find_package() on libnabo
 #=============================================
-# 
+#
 # the following case be used in an external project requiring libnabo:
 #  ...
-#  find_package(libnabo) 
-#  include_directories(${libnabo_INCLUDE_DIRS}) 
+#  find_package(libnabo)
+#  include_directories(${libnabo_INCLUDE_DIRS})
 #  target_link_libraries(executableName ${libnabo_LIBRARIES})
 #  ...
 
@@ -196,6 +218,34 @@ install(FILES package.xml DESTINATION share/libnabo)
 
 # Register the local build in case one doesn't use "make install"
 export(PACKAGE libnabo)
+
+include(GNUInstallDirs)
+
+# 'make install' to the correct locations (provided by GNUInstallDirs).
+install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}-targets
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})  # This is for Windows
+#install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+add_library(${PROJECT_NAME}::${LIB_NAME} ALIAS ${LIB_NAME})
+
+# This makes the project importable from the install directory
+# Put config file in per-project dir (name MUST match), can also
+# just go into 'cmake'.
+install(
+	EXPORT ${PROJECT_NAME}-targets
+	DESTINATION share/${PROJECT_NAME}/cmake
+	NAMESPACE ${PROJECT_NAME}::
+)
+
+# This makes the project importable from the build directory
+export(
+	TARGETS ${LIB_NAME}
+	FILE ${PROJECT_NAME}-targets.cmake
+	NAMESPACE ${PROJECT_NAME}::
+)
+
 
 # Create variable with the library location
 set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
@@ -237,10 +287,12 @@ install(FILES
 #=============================================
 # Add uninstall target
 #=============================================
-configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-	IMMEDIATE @ONLY)
+if (NOT TARGET uninstall)
+  configure_file(
+	  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+	  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+	  IMMEDIATE @ONLY)
 
-add_custom_target(uninstall
-	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+  add_custom_target(uninstall
+	  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
