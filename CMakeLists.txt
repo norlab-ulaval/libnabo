@@ -90,6 +90,8 @@ else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
 
+include(GNUInstallDirs)
+
 # eigen 2 or 3
 find_path(EIGEN_INCLUDE_DIR Eigen/Core
 	/usr/local/include/eigen3
@@ -153,7 +155,7 @@ set_target_properties(${LIB_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERS
 
 target_include_directories(${LIB_NAME} PUBLIC
 	${EIGEN_INCLUDE_DIR}
-	$<INSTALL_INTERFACE:>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   )
 
@@ -218,8 +220,6 @@ install(FILES package.xml DESTINATION share/libnabo)
 
 # Register the local build in case one doesn't use "make install"
 export(PACKAGE libnabo)
-
-include(GNUInstallDirs)
 
 # 'make install' to the correct locations (provided by GNUInstallDirs).
 install(TARGETS ${LIB_NAME} EXPORT ${PROJECT_NAME}-targets
