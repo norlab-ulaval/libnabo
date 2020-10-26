@@ -18,7 +18,7 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 #	* catkin.
 #	* cmake.
 #	* ament (future).
-set(BUILD_TYPE "catkin")
+set(BUILD_TYPE "cmake")
 if (BUILD_TYPE STREQUAL "catkin")
   include(cmake/CatkinBuild.cmake)
 else()
