@@ -19,8 +19,11 @@
 	<run_depend>boost</run_depend>
 	<run_depend>catkin</run_depend>
 
+	<!-- For a pure-cmake build the package must be exported explicitly -->
+	<!-- Thus the following block of code must be un-commented -->
+	<!--
 	<export>
-		<!-- Specify that this is not really a ROS package -->
 		<build_type>cmake</build_type>
 	</export>
+	-->
 </package>

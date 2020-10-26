@@ -43,7 +43,7 @@ endif()
 option(LIBNABO_BUILD_DOXYGEN "Build libnabo doxygen documentation" ON)
 if (LIBNABO_BUILD_DOXYGEN)
   set(DOXYFILE_LATEX false)
-  include(UseDoxygen)
+  include(cmake/UseDoxygen)
 endif()
 
 # Switch on warnings.
@@ -253,7 +253,7 @@ set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
 # Create variable for the local build tree
 get_property(libnabo_include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 # Configure & generate config file for local build tree
-configure_file(libnaboConfig.cmake.in
+configure_file(cmake/libnaboConfig.cmake.in
 	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf" @ONLY)
 file(GENERATE
 	OUTPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
@@ -268,14 +268,14 @@ set(libnabo_library ${CMAKE_INSTALL_PREFIX}/lib/$<TARGET_FILE_NAME:${LIB_NAME}>)
 set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
 
 # We put the generated file for installation in a different repository (i.e., ./CMakeFiles/)
-configure_file(libnaboConfig.cmake.in
+configure_file(cmake/libnaboConfig.cmake.in
 	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf" @ONLY)
 file(GENERATE
 	OUTPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
 	INPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf")
 
 # The same versioning file can be used for both cases
-configure_file(libnaboConfigVersion.cmake.in
+configure_file(cmake/libnaboConfigVersion.cmake.in
 	"${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake" @ONLY)
 
 install(FILES
@@ -289,8 +289,8 @@ install(FILES
 #=============================================
 if (NOT TARGET uninstall)
   configure_file(
-	  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-	  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+	  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+	  "${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake"
 	  IMMEDIATE @ONLY)
 
   add_custom_target(uninstall
