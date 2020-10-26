@@ -132,14 +132,6 @@ else ()
 	message("OpenCL disabled, not looking for it")
 endif ()
 
-
-# main nabo lib
-set(NABO_SRC
-	nabo/nabo.cpp
-	nabo/brute_force_cpu.cpp
-	nabo/kdtree_cpu.cpp
-	nabo/kdtree_opencl.cpp
-)
 set(SHARED_LIBS FALSE CACHE BOOL "Set to TRUE to build shared library")
 if (SHARED_LIBS)
 	add_library(${LIB_NAME} SHARED ${NABO_SRC})
