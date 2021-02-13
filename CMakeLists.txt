@@ -93,14 +93,15 @@ endif ()
 include(GNUInstallDirs)
 
 # eigen 2 or 3
-find_path(EIGEN_INCLUDE_DIR Eigen/Core
-	/usr/local/include/eigen3
-	/usr/local/include/eigen2
-	/usr/local/include/eigen
-	/usr/include/eigen3
-	/usr/include/eigen2
-	/usr/include/eigen
-	/opt/local/include/eigen3
+find_path(EIGEN_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
+  HINTS  ENV EIGEN3_INC_DIR
+         ENV EIGEN3_DIR
+  PATHS  Eigen/Core
+         /usr/local/include
+         /usr/include
+         /opt/local/include
+  PATH_SUFFIXES include eigen3 eigen2 eigen
+  DOC "Directory containing the Eigen3 header files"
 )
 
 # optionally, opencl
