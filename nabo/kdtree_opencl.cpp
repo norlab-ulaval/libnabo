@@ -337,7 +337,7 @@ namespace Nabo
 	template<typename T, typename CloudType>
 	unsigned long OpenCLSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
 	{
-		assert(dists2.size()>0); 
+		assert(maxRadii.size()>0); 
 		knn(query, indices, dists2, k, epsilon, optionFlags, maxRadii[0]); 
 	}
 	
