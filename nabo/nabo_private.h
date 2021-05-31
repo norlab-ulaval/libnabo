@@ -250,6 +250,8 @@ namespace Nabo
 	
 	public:
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Index k, const T epsilon, const unsigned optionFlags, const T maxRadius) const;
+	private:
+		// Since the change of API, this function has different behavior from the CPU version. Uses only the first element of maxRadii vector. 
 		virtual unsigned long knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k = 1, const T epsilon = 0, const unsigned optionFlags = 0) const;
 	};
 	

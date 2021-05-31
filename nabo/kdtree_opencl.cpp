@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <queue>
 #include <algorithm>
+#include <mutex>
 // #include <map>
 
 
@@ -199,7 +200,7 @@ namespace Nabo
 		//! Create a new contexc for a given type of device
 		cl::Context& createContext(const cl_device_type deviceType)
 		{
-			std::lock_guard lock(mutex);
+			std::lock_guard<std::mutex> lock(mutex);
 			Devices::iterator it(devices.find(deviceType));
 			if (it == devices.end())
 			{
@@ -212,7 +213,7 @@ namespace Nabo
 		//! Return the cache for a given type of device
 		SourceCacher* getSourceCacher(const cl_device_type deviceType)
 		{
-			std::lock_guard lock(mutex);
+			std::lock_guard<std::mutex> lock(mutex);
 			Devices::iterator it(devices.find(deviceType));
 			if (it == devices.end())
 				throw runtime_error("Attempt to get source cacher before creating a context");
@@ -331,6 +332,13 @@ namespace Nabo
 		const size_t cloudCLSize(cloud.cols() * cloud.stride() * sizeof(T));
 		cloudCL = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, cloudCLSize, const_cast<T*>(&cloud.coeff(0,0)));
 		knnKernel.setArg(0, sizeof(cl_mem), &cloudCL);
+	}
+	
+	template<typename T, typename CloudType>
+	unsigned long OpenCLSearch<T, CloudType>::knn(const Matrix& query, IndexMatrix& indices, Matrix& dists2, const Vector& maxRadii, const Index k, const T epsilon, const unsigned optionFlags) const
+	{
+		assert(dists2.size()>0); 
+		knn(query, indices, dists2, k, epsilon, optionFlags, maxRadii[0]); 
 	}
 	
 	template<typename T, typename CloudType>
