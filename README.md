@@ -9,6 +9,8 @@ libnabo also optionally depends on [Boost], a C++ general library, for Python bi
 
 libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch) and is now maintained by [Simon Lynen](https://github.com/simonlynen).
 
+If you are interested in a pure-[Rust](https://www.rust-lang.org/) version, check [that repository](https://github.com/enlightware/nabo-rs) out.
+
 Download
 ========
 
