@@ -34,7 +34,6 @@ Prerequisites
 
 If your operating system does not provide it, you must get [Eigen], and [Boost] if you want to build the Python bindings.
 [Eigen] only needs to be downloaded and extracted.
-You also need `grep`, which is available in standard on Linux or Mac OS X, you can get the window version [here](http://gnuwin32.sourceforge.net/packages/grep.htm).
 
 Compilation options
 -------------------
