@@ -100,7 +100,12 @@ else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
 
+
 include(GNUInstallDirs)
+
+# Flags for choosing default packaging tools
+set(CPACK_SOURCE_GENERATOR "TGZ" CACHE STRING "CPack Default Source Generator")
+set(CPACK_GENERATOR        "DEB" CACHE STRING "CPack Default Binary Generator")
 
 # eigen 2 or 3
 find_path(EIGEN_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
@@ -307,3 +312,21 @@ if (NOT TARGET uninstall)
   add_custom_target(uninstall
 	  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif()
+
+
+#=============================================
+# Packaging
+#=============================================
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "libnabo")
+set(CPACK_PACKAGE_CONTACT "Simon Lynen, simon.lynen@gmail.com")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_DEBIAN_PACKAGE_NAME "libnabo-dev")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libeigen3-dev (>= 3.3.4-4)")
+if (USE_OPEN_MP)
+  if (OPENMP_FOUND)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libopenmpi2 (>= 2.1.1-8)")
+  endif()
+endif()
+include(CPack)
