@@ -49,6 +49,8 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_definitions(-O3)
 endif()
 
+set(CMAKE_DEBUG_POSTFIX "d")
+
 # Documentation
 option(LIBNABO_BUILD_DOXYGEN "Build libnabo doxygen documentation" ON)
 if (LIBNABO_BUILD_DOXYGEN)
