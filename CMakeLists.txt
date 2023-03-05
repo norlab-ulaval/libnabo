@@ -7,29 +7,12 @@ endif ()
 set(LIB_NAME nabo)
 project("lib${LIB_NAME}")
 
-# Extract version from header
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-if(UNIX)
-	execute_process(
-		COMMAND grep "NABO_VERSION " nabo/nabo.h
-		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-		RESULT_VARIABLE GREP_VERSION_RESULT
-		OUTPUT_VARIABLE PROJECT_VERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-elseif(WIN32)
-	execute_process(
-		COMMAND findstr "/c:NABO_VERSION " [[nabo\nabo.h]]
-		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-		RESULT_VARIABLE GREP_VERSION_RESULT
-		OUTPUT_VARIABLE PROJECT_VERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-endif()
-if (NOT GREP_VERSION_RESULT EQUAL 0)
-	message(SEND_ERROR "Cannot grep version number: ${GREP_VERSION_RESULT}")
-endif ()
-string(REGEX REPLACE ".*\"(.*)\".*" "\\1" PROJECT_VERSION "${PROJECT_VERSION}" )
+
+# Extract version from header
+file(READ "nabo/nabo.h" NABO_HEADER_CONTENT)
+string(REGEX MATCH "#define NABO_VERSION \"([0-9]+\.[0-9]+\.[0-9]+)\"" _ ${NABO_HEADER_CONTENT})
+set(PROJECT_VERSION ${CMAKE_MATCH_1})
 
 if (NOT CMAKE_BUILD_TYPE)
 	message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
