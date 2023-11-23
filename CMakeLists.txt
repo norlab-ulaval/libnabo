@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.8)
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.1")
 	cmake_policy(SET CMP0054 NEW)
@@ -13,6 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 file(READ "nabo/nabo.h" NABO_HEADER_CONTENT)
 string(REGEX MATCH "#define NABO_VERSION \"([0-9]+\.[0-9]+\.[0-9]+)\"" _ ${NABO_HEADER_CONTENT})
 set(PROJECT_VERSION ${CMAKE_MATCH_1})
+message(STATUS ${PROJECT_VERSION})
 
 if (NOT CMAKE_BUILD_TYPE)
 	message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
