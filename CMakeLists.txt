@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
+include(CMakePackageConfigHelpers)
+
 if (NOT CMAKE_VERSION VERSION_LESS "3.1")
 	cmake_policy(SET CMP0054 NEW)
 endif ()
@@ -83,6 +85,8 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
 else ()
 	set (CMAKE_CXX_STANDARD 11)
 endif ()
+
+#======================== External Dependencies ===============================
 
 include(GNUInstallDirs)
 
@@ -243,35 +247,35 @@ export(
 
 
 # Create variable with the library location
-set(libnabo_library $<TARGET_FILE:${LIB_NAME}>)
+set(libnabo_library $<TARGET_FILE:${PROJECT_NAME}::${LIB_NAME}>)
 
 # Create variable for the local build tree
 get_property(libnabo_include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 # Configure & generate config file for local build tree
-configure_file(libnaboConfig.cmake.in
-	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf" @ONLY)
-file(GENERATE
-	OUTPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
-	INPUT "${PROJECT_BINARY_DIR}/libnaboConfig.cmake.conf")
+configure_package_config_file(libnaboConfig.cmake.in
+	"${PROJECT_BINARY_DIR}/libnaboConfig.cmake"
+  		INSTALL_DESTINATION share/libnabo/cmake
+		PATH_VARS PROJECT_NAME
+		)
 
 # 2- installation build #
 
 # Change the library location for an install location
-set(libnabo_library ${CMAKE_INSTALL_PREFIX}/lib/$<TARGET_FILE_NAME:${LIB_NAME}>)
+set(libnabo_library $<TARGET_FILE:${PROJECT_NAME}::${LIB_NAME}>)
 
 # Change the include location for the case of an install location
 set(libnabo_include_dirs ${CMAKE_INSTALL_PREFIX}/include)
 
 # We put the generated file for installation in a different repository (i.e., ./CMakeFiles/)
-configure_file(libnaboConfig.cmake.in
-	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf" @ONLY)
-file(GENERATE
-	OUTPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
-	INPUT "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake.conf")
+configure_package_config_file(libnaboConfig.cmake.in
+	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
+  		INSTALL_DESTINATION share/libnabo/cmake
+		PATH_VARS PROJECT_NAME
+		)
 
 # The same versioning file can be used for both cases
-configure_file(libnaboConfigVersion.cmake.in
-	"${PROJECT_BINARY_DIR}/libnaboConfigVersion.cmake" @ONLY)
+write_basic_package_version_file(libnaboConfigVersion.cmake
+		COMPATIBILITY AnyNewerVersion)
 
 install(FILES
 	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnaboConfig.cmake"
