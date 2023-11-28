@@ -50,7 +50,7 @@ Add libnabo to your CMake project
 ```cmake
 find_package(libnabo REQUIRED)
 target_link_libraries(example PUBLIC ${libnabo_LIBRARIES})
-target_include_directories(example PUBLIC ${libnabo_DIRECTORIES})
+target_include_directories(example PUBLIC ${libnabo_INCLUDE_DIRS})
 ```
 
 Quick compilation and installation under Unix
