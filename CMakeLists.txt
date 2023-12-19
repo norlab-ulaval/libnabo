@@ -81,7 +81,10 @@ if (CMAKE_VERSION VERSION_LESS "3.1")
 		set (CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 	endif ()
 else ()
-	set (CMAKE_CXX_STANDARD 11)
+	if (NOT CMAKE_CXX_STANDARD)
+		set (CMAKE_CXX_STANDARD 14)
+	endif()
+	
 endif ()
 
 include(GNUInstallDirs)

@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "nabo/nabo.h"
 #include "helpers.h"
 //#include "experimental/nabo_experimental.h"
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
