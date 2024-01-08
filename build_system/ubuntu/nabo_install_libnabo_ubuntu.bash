@@ -194,7 +194,8 @@ if [[ ${BUILD_SYSTEM_CI_INSTALL} == FALSE ]]; then
     git tag --list
 
     # Remove prefix 'v' from version tag
-    GITHUB_TAG="${REPOSITORY_VERSION/v/}"
+#    GITHUB_TAG="${REPOSITORY_VERSION/v/}"
+    GITHUB_TAG="${REPOSITORY_VERSION}"
 
     git checkout tags/"${GITHUB_TAG}"
 
