@@ -22,7 +22,6 @@
       (Check [contributing/contributing_instructions.md](https://github.com/norlab-ulaval/libnabo/tree/develop/contributing/contributing_instructions.md)
       for local testing procedure using _libnabo-build-system_)
 
-[//]: # ( TODO: NMO-466 docs: write contributiong section in readme or add contributing.md)
 
 ### PR creation related
 
