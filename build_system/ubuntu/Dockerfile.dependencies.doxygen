@@ -1,0 +1,36 @@
+ARG PROJECT_HUB=norlabulaval
+ARG BASE_IMAGE=libnabo-dependencies
+ARG BASE_IMAGE_TAG
+FROM ${PROJECT_HUB}/${BASE_IMAGE}:${BASE_IMAGE_TAG:?err} AS libnabo-dependencies-full
+
+LABEL org.opencontainers.image.authors="luc.coupal.1@ulaval.ca"
+
+ARG IS_TEAMCITY_RUN
+ENV IS_TEAMCITY_RUN=${IS_TEAMCITY_RUN:-false}
+
+SHELL ["/bin/bash", "-c"]
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Required for norlab-build-system path resolution logic
+WORKDIR "${NBS_LIB_INSTALL_PATH}/${NBS_REPOSITORY_NAME}"
+COPY ./.git ./.git
+
+WORKDIR "${NBS_LIB_INSTALL_PATH}/${NBS_REPOSITORY_NAME}/build_system"
+
+COPY ./build_system/.env .
+
+COPY ./build_system/ubuntu/nabo_install_doc_dependencies_ubuntu.bash ./ubuntu/
+
+# ====Install Libnabo documentation related dependencies===========================================
+WORKDIR ./ubuntu
+
+RUN chmod +x nabo_install_doc_dependencies_ubuntu.bash
+
+RUN bash nabo_install_doc_dependencies_ubuntu.bash
+
+# ====End==========================================================================================
+WORKDIR "${NBS_LIB_INSTALL_PATH}/"
+RUN rm -r -f "./${NBS_REPOSITORY_NAME}"
+
+FROM libnabo-dependencies-full AS final
+CMD [ "bash" ]

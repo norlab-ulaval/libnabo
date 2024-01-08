@@ -19,10 +19,10 @@
 - [ ] I have commented hard-to-understand code
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] All tests pass locally with my changes 
-      (Check [README.md #Contributing](https://github.com/norlab-ulaval/libnabo/tree/develop#contributing)
-      for local testing procedure using _libpointmatcher-build-system_)
+      (Check [contributing/contributing_instructions.md](https://github.com/norlab-ulaval/libnabo/tree/develop/contributing/contributing_instructions.md)
+      for local testing procedure using _libnabo-build-system_)
 
-[//]: # ( TODO: write a contributing section in the readme or add a contributing.md)
+[//]: # ( TODO: NMO-466 docs: write contributiong section in readme or add contributing.md)
 
 ### PR creation related
 
@@ -35,23 +35,8 @@
 
 - [ ] I have included a quick summary of the changes
 - [ ] I have indicated the related issue's id with `# <issue-id>` if changes are of type `fix`
-- [ ] I have included a high-level list of changes and their corresponding type
-    - Types: `feat` `fix` `docs` `style` `refactor` `perf` `test` `build` `ci` `chore` `revert`
-    - Breaking changes: `<type>!`
-    - Reference:
-      see [commit_msg_reference.md](https://github.com/norlab-ulaval/libnabo/blob/develop/commit_msg_reference.md)
-      in the repository root for details
+- [ ] I have included a high-level list of changes and their corresponding types
+      (See [contributing/commit_msg_reference.md](https://github.com/norlab-ulaval/libnabo/blob/develop/contributing/commit_msg_reference.md)
+      for details)
 
 ---
-
-## Note for repository admins
-
-### Release PR related
-
-- Only repository admins have the privilege to `push/merge` on the default branch (ie: `master`)
-  and the `develop` branch.
-- Keep PR in `draft` mode until all the release reviewers are ready to push the release.
-- Once a PR from `release` -> `master` branch is created (not in draft mode),
-    - it triggers the _build-system_ test
-    - (in-progress) and it triggers the _semantic release automation_
-
