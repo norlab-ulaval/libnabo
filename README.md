@@ -1,5 +1,11 @@
 <div align="center">
 
+[//]: # ( ==== Description =========================================== )
+**libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.<br>
+It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.**
+<br>
+<br>
+
 [//]: # (====GitHub badges========================================================================)
 
 <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/norlab-ulaval/libnabo">
@@ -11,22 +17,15 @@
 <br>
 
 
-[//]: # ( ==== Description =========================================== )
-**libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.<br>
-It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.**
-<br>
-Its current CPU implementation is strongly inspired by [ANN], but with more compact data types.<br>
-On the average, libnabo is 5% to 20% faster than [ANN].
-<br>
-<br>
 
 </div>
-
+Its current CPU implementation is strongly inspired by [ANN], but with more compact data types.
+On the average, libnabo is 5% to 20% faster than [ANN].
 libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
 libnabo works with either version 2 or 3 of Eigen.
 libnabo also optionally depends on [Boost], a C++ general library, for Python bindings.
 
-libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch) and is now maintained by [Simon Lynen](https://github.com/simonlynen).
+libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch) and is now maintained by [NorLab](https://github.com/norlab-ulaval).
 
 If you are interested in a pure-[Rust](https://www.rust-lang.org/) version, check [that repository](https://github.com/enlightware/nabo-rs) out.
 
