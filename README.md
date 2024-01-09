@@ -1,29 +1,32 @@
-[//]: # ( ==== Logo ================================================== )
 <div align="center">
+
+[//]: # ( ==== Logo ================================================== )
 <br>
 <br>
 <a href="https://norlab.ulaval.ca">
-<img src="visual/norlab_logo_acronym_dark.png" width="200">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="/visual/norlab_logo_acronym_light.png">
+      <source media="(prefers-color-scheme: light)" srcset="/visual/norlab_logo_acronym_dark.png">
+      <img alt="Shows an the dark NorLab logo in light mode and light NorLab logo in dark mode." src="/visual/norlab_logo_acronym_dark.png" width="175">
+    </picture>
 </a>
+<br>
 <br>
 
 [//]: # ( ==== Title ================================================= )
 
 # _libnabo_
 
-</div>
 
 [//]: # ( ==== Hyperlink ============================================= )
-<div align="center">
-<p>
 <sup>
-<a href="https://http://132.203.26.125:8111">NorLab TeamCity GUI</a>
+<a href="http://132.203.26.125:8111">NorLab TeamCity GUI</a>
 (VPN/intranet access) &nbsp; • &nbsp;  
 <a href="https://hub.docker.com/repositories/norlabulaval">norlabulaval</a>
 (Docker Hub) &nbsp;
-
 </sup>
-</p>  
+<br>
+<br>
 
 [//]: # ( ==== Description =========================================== )
 **libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.**
@@ -36,10 +39,14 @@
 <img alt="GitHub forks" src="https://img.shields.io/github/forks/norlab-ulaval/libnabo">
 <img alt="GitHub License" src="https://img.shields.io/github/license/norlab-ulaval/libnabo">
 <img alt="GitHub release (with filter)" src="https://img.shields.io/github/v/release/norlab-ulaval/libnabo">
-<img src="https://img.shields.io/static/v1?label=JetBrains TeamCity&message=CI/CD&color=green?style=plastic&logo=teamcity" />
+<br>
+<a href="http://132.203.26.125:8111"><img src="https://img.shields.io/static/v1?label=JetBrains TeamCity&message=CI/CD&color=green?style=plastic&logo=teamcity" /></a>
+<a href="https://hub.docker.com/repository/docker/norlabulaval/libnabo/"> <img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/norlabulaval/libnabo?logo=docker"> </a>
 <br>
 <br>
+<hr style="color:lightgray;background-color:lightgray">
 </div>
+
 
 libnabo provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
 Its current CPU implementation is strongly inspired by [ANN], but with more compact data types. On the average, libnabo is 5% to 20% faster than [ANN].
