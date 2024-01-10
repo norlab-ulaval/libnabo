@@ -71,7 +71,9 @@ If you are interested in a pure-[Rust](https://www.rust-lang.org/) version, chec
 libnabo is tested on our build system under the following architecture and OS:
 
 - x86 and arm64/v8
-- Ubuntu bionic (18.04) focal (20.04) and jammy (22.04)
+- Ubuntu bionic (18.04) and focal (20.04) 
+
+[//]: # (- jammy &#40;22.04&#41;)
 
 Note:
 
