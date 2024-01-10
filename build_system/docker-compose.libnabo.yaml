@@ -5,14 +5,14 @@ services:
 
   # ====Pull-request related services==============================================================
   # ....Test logic related to libnabo install casses...............................................
-  _test_compilation:
-    image: ${NBS_DOCKERHUB_NAMESPACE:?err}/libnabo-compilation-test:${NBS_IMAGE_TAG:?err}
+  _integration_test:
+    image: ${NBS_DOCKERHUB_NAMESPACE:?err}/libnabo-integration-test:${NBS_IMAGE_TAG:?err}
     pull_policy: build
     build:
       context: ..
-      dockerfile: ${NBS_SUPERPROJECT_BUILD_SYSTEM_DIR:?err}/ubuntu/Dockerfile.libnabo.compilation_test
+      dockerfile: ${NBS_SUPERPROJECT_BUILD_SYSTEM_DIR:?err}/ubuntu/Dockerfile.libnabo.integration_test
       no_cache: true
-      target: test-compilation-auto-path-resolution
+      target: integration-test-compile-auto-path-resolution
       ## Mute 'platforms' while using arch virtualization with C++ build to prevent segmentation fault during nabo cmake install
 #      platforms:
 #        - "linux/amd64"
@@ -30,18 +30,18 @@ services:
     init: true  # Propagate exit code (See remark in task NMO-266)
     depends_on:
       - dependencies
-  test_compilation_prefixed_path:
-    extends: _test_compilation
+  integration_test_prefixed_path:
+    extends: _integration_test
     build:
-      target: test-compilation-prefixed-path
+      target: integration-test-compile-prefixed-path
     depends_on:
-      - _test_compilation
-  test_compilation_auto_path_resolution:
-    extends: _test_compilation
+      - _integration_test
+  integration_test_auto_path_resolution:
+    extends: _integration_test
     build:
-      target: test-compilation-auto-path-resolution
+      target: integration-test-compile-auto-path-resolution
     depends_on:
-      - _test_compilation
+      - _integration_test
 
   # ....Test logic related to libnabo codebase unit-test...........................................
   ci_PR:

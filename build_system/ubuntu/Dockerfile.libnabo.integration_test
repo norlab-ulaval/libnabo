@@ -47,7 +47,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ====Test compilation with automatic path resolution==============================================
-FROM libnabo-dependencies AS test-compilation-auto-path-resolution
+FROM libnabo-dependencies AS integration-test-compile-auto-path-resolution
 
 #RUN echo && echo ">> nproc=$(nproc)" && echo # ToDo: on task end >> mute this line
 
@@ -74,7 +74,7 @@ CMD [ "bash" ]
 
 # (Priority) ToDo: implement >> test casse with 'SHARED_LIBS' cmake flag
 
-FROM libnabo-dependencies AS test-compilation-prefixed-path
+FROM libnabo-dependencies AS integration-test-compile-prefixed-path
 
 #RUN echo && echo ">> nproc=$(nproc)" && echo # ToDo: on task end >> mute this line
 

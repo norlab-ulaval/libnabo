@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="bash nabo_crawl_libnabo_build_matrix.bash › build test_compilation_* (compilation test)" type="ShConfigurationType" folderName="[NABO] C | Execute compose over build matrix">
-    <option name="SCRIPT_TEXT" value="bash nabo_crawl_libnabo_build_matrix.bash --fail-fast --cmake-build-type-build-matrix-override Release --os-name-build-matrix-override ubuntu -- build test_compilation_prefixed_path test_compilation_auto_path_resolution" />
+  <configuration default="false" name="bash nabo_crawl_libnabo_build_matrix.bash › build integration_test_* (compilation test)" type="ShConfigurationType" folderName="[NABO] C | Execute compose over build matrix">
+    <option name="SCRIPT_TEXT" value="bash nabo_crawl_libnabo_build_matrix.bash --fail-fast --cmake-build-type-build-matrix-override Release --os-name-build-matrix-override ubuntu -- build integration_test_prefixed_path integration_test_auto_path_resolution" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />
