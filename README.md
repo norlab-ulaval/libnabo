@@ -41,7 +41,7 @@
 <img alt="GitHub release (with filter)" src="https://img.shields.io/github/v/release/norlab-ulaval/libnabo">
 <br>
 <a href="http://132.203.26.125:8111"><img src="https://img.shields.io/static/v1?label=JetBrains TeamCity&message=CI/CD&color=green?style=plastic&logo=teamcity" /></a>
-<a href="https://hub.docker.com/repository/docker/norlabulaval/libnabo/"> <img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/norlabulaval/libnabo?logo=docker"> </a>
+<a href="https://hub.docker.com/repository/docker/norlabulaval/libnabo/"> <img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/norlabulaval/libnabo?logo=docker&label=libnabo"> </a>
 <br>
 <br>
 <hr style="color:lightgray;background-color:lightgray">
