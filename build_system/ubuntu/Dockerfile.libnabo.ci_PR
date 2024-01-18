@@ -1,0 +1,56 @@
+ARG PROJECT_HUB=norlabulaval
+ARG BASE_IMAGE=libnabo-dependencies
+ARG BASE_IMAGE_TAG
+FROM ${PROJECT_HUB}/${BASE_IMAGE}:${BASE_IMAGE_TAG:?err} AS libnabo-dependencies
+
+LABEL org.opencontainers.image.authors="luc.coupal.1@ulaval.ca"
+
+ARG REPOSITORY_VERSION='latest'
+ENV REPOSITORY_VERSION=${REPOSITORY_VERSION}
+LABEL libnabo.version="${REPOSITORY_VERSION}"
+
+ARG NBS_LIB_INSTALL_PATH
+ARG NBS_REPOSITORY_NAME
+ENV NBS_LIB_INSTALL_PATH=${NBS_LIB_INSTALL_PATH:?'Build argument needs to be set and non-empty.'}
+ENV NBS_REPOSITORY_NAME=${NBS_REPOSITORY_NAME:?'Build argument needs to be set and non-empty.'}
+
+ARG CMAKE_BUILD_TYPE=RelWithDebInfo
+ARG INSTALL_SCRIPT_FLAG='--build-system-CI-install --compile-test'
+ENV CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+ENV INSTALL_SCRIPT_FLAG=${INSTALL_SCRIPT_FLAG}
+
+ARG IS_TEAMCITY_RUN
+ENV IS_TEAMCITY_RUN=${IS_TEAMCITY_RUN:-false}
+
+SHELL ["/bin/bash", "-c"]
+ARG DEBIAN_FRONTEND=noninteractive
+
+# ToDo: validate
+ENV TERM=${TERM:-"xterm-256color"}
+
+# ====Checkout libnabo repository==================================================================
+WORKDIR "${NBS_LIB_INSTALL_PATH}/${NBS_REPOSITORY_NAME}"
+
+# Copy all files from the checkout branch in the repository (except those in the .dockerignore)
+COPY . .
+
+
+# ==== Build libnabo checkout branch ==============================================================
+WORKDIR ./build_system/ubuntu
+
+RUN chmod +x nabo_install_libnabo_ubuntu.bash
+RUN chmod +x nabo_execute_nabo_unittest.bash
+RUN chmod +x entrypoint.bash
+
+
+RUN bash nabo_install_libnabo_ubuntu.bash \
+    --repository-version ${REPOSITORY_VERSION} \
+    --cmake-build-type ${CMAKE_BUILD_TYPE} \
+    ${INSTALL_SCRIPT_FLAG}
+
+# ==== Execute libnabo unit-test===================================================================
+RUN source nabo_execute_nabo_unittest.bash
+
+# ====End==========================================================================================
+ENTRYPOINT [ "./entrypoint.bash" ]
+CMD [ "bash" ]

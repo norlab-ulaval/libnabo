@@ -1,0 +1,39 @@
+services:
+
+  # ====Dependency related services================================================================
+  dependencies:
+    image: ${NBS_DOCKERHUB_NAMESPACE:?err}/libnabo-dependencies:${NBS_IMAGE_TAG:?err}
+    build:
+      context: ..
+      dockerfile: ${NBS_SUPERPROJECT_BUILD_SYSTEM_DIR:?err}/ubuntu/Dockerfile.dependencies
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64/v8"
+      args:
+        BASE_IMAGE: ${DEPENDENCIES_BASE_IMAGE:?err}
+        BASE_IMAGE_TAG: ${DEPENDENCIES_BASE_IMAGE_TAG:?err}
+        NBS_SUPERPROJECT_BUILD_SYSTEM_DIR: ${NBS_SUPERPROJECT_BUILD_SYSTEM_DIR:?err}
+        IS_TEAMCITY_RUN: ${IS_TEAMCITY_RUN}
+        NBS_LIB_INSTALL_PATH: ${NBS_LIB_INSTALL_PATH:?err}
+        NBS_REPOSITORY_NAME: ${NBS_REPOSITORY_NAME:?err}
+    tty: true
+    stdin_open: true
+    init: true  # Propagate exit code (See remark in task NMO-266)
+
+  dependencies-doc:
+    image: ${NBS_DOCKERHUB_NAMESPACE:?err}/libnabo-dependencies-doc:${NBS_IMAGE_TAG:?err}
+    build:
+      context: ..
+      dockerfile: ${NBS_SUPERPROJECT_BUILD_SYSTEM_DIR:?err}/ubuntu/Dockerfile.dependencies.doxygen
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64/v8"
+      args:
+        PROJECT_HUB: ${NBS_DOCKERHUB_NAMESPACE}
+        BASE_IMAGE: libnabo-dependencies
+        BASE_IMAGE_TAG: ${NBS_IMAGE_TAG}
+        IS_TEAMCITY_RUN: ${IS_TEAMCITY_RUN}
+    depends_on:
+      - dependencies
+    tty: true
+    stdin_open: true

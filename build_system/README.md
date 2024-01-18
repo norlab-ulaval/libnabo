@@ -1,0 +1,1 @@
+See  [contributing/contributing_instructions.md](/contributing/contributing_instructions.md) for instructions related to bug reporting, code contribution and for setting up the `libnabo-build-system` on your workstation to speed up your local development workflow. 
