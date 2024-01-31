@@ -174,6 +174,14 @@ libnabo provides the following compilation options, available through [CMake]:
 You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
 Please read the [CMake documentation] for more information.
 
+Add libnabo to your CMake project
+---------------------------------------------
+```cmake
+find_package(libnabo REQUIRED)
+target_link_libraries(example PUBLIC ${libnabo_LIBRARIES})
+target_include_directories(example PUBLIC ${libnabo_INCLUDE_DIRS})
+```
+
 Quick compilation and installation under Unix
 ---------------------------------------------
 
