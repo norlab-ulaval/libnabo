@@ -107,23 +107,7 @@ for instructions related to bug reporting, code contribution and for setting up
 the `libnabo-build-system`
 on your workstation to speed up your local development workflow.
 
-
 ---
-
-
-Download
-========
-
-Ubuntu builds are available on my PPA at: https://launchpad.net/~stephane.magnenat
-They provide a package with the shared library, another with the development headers and a third with the documentation.
-
-The source code is available from github, you can clone the git tree by doing:
-
-```shell
-git clone --recurse-submodules https://github.com/norlab-ulaval/libnabo.git
-```
-
-
 Docker images 
 ========
 Run the following commands to pull and run libnabo in a docker container 
@@ -146,33 +130,43 @@ bash nabo_install_docker_tools.bash
 Compilation
 ===========
 
-libnabo uses [CMake] as build system.
-The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows).
-You will find a nice introductory tutorial in [this video](http://www.youtube.com/watch?v=CLvZTyji_Uw).
-
-For conveniences, you can use the provided installer script for ubuntu
+For conveniences, you can use the provided build script for Unix
 ```shell
 bash libnabo_dependencies_installer.bash
 
 # Use the --help flag to see the list of optional flag
 bash libnabo_installer.bash [<optional flag>]
 ```
+If you want more control, you can follow these commands:
+```shell
+SRC_DIR=`pwd`
+BUILD_DIR=${SRC_DIR}/build
+mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
+cmake ${SRC_DIR}
+cmake --build ${BUILD_DIR}
+sudo cmake --build ${BUILD_DIR} --target install
+```
+These lines will compile libnabo in a `build` sub-directory and install it system-wide.
+
+To uninstall libnabo, simply run `sudo make uninstall` from your build directory.
+
+### Compilation options
+
+libnabo provides the following compilation options, available through [CMake]:
+
+ * `SHARED_LIBS` (boolean, default: `false`): if `true`, build a shared library, otherwise build a static library
+
+### Documentation
+
+You can generate the documentation by typing:
+
+	make doc
 
 Prerequisites
 -------------
 
 If your operating system does not provide it, you must get [Eigen], and [Boost] if you want to build the Python bindings.
 [Eigen] only needs to be downloaded and extracted.
-
-Compilation options
--------------------
-
-libnabo provides the following compilation options, available through [CMake]:
-
- * `SHARED_LIBS` (boolean, default: `false`): if `true`, build a shared library, otherwise build a static library
-
-You can specify them with a command-line tool, `ccmake`, or with a graphical tool, `cmake-gui`.
-Please read the [CMake documentation] for more information.
 
 Add libnabo to your CMake project
 ---------------------------------------------
@@ -181,30 +175,6 @@ find_package(libnabo REQUIRED)
 target_link_libraries(example PUBLIC ${libnabo_LIBRARIES})
 target_include_directories(example PUBLIC ${libnabo_INCLUDE_DIRS})
 ```
-
-Quick compilation and installation under Unix
----------------------------------------------
-
-Under Unix, assuming that [Eigen] and [Boost] are installed system-wide, you can compile (with optimisation and debug information) and install libnabo in `/usr/local` with the following commands run in the top-level directory of libnabo's sources:
-
-	SRC_DIR=`pwd`
-	BUILD_DIR=${SRC_DIR}/build
-	mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
-	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ${SRC_DIR}
-	# if Eigen or Boost are not available system-wide, run at that point:
-	#   cmake-gui .
-	# cmake-gui allows you to tell the location of Eigen or Boost
-	make
-	sudo make install
-
-These lines will compile libnabo in a `build` sub-directory and therefore keep your source tree clean.
-Note that you could compile libnabo anywhere you have write access, such as in `/tmp/libnabo`.
-This out-of-source build is a nice feature of [CMake].
-If [Eigen] or [Boost] are not installed system-wide, you might have to tell [CMake] where to find them (using `ccmake` or `cmake-gui`).
-
-You can generate the documentation by typing:
-
-	make doc
 
 Usage
 =====
