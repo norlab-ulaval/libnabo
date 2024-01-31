@@ -1,15 +1,115 @@
-libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
-It provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
-Its current CPU implementation is strongly inspired by [ANN], but with more compact data types.
-On the average, libnabo is 5% to 20% faster than [ANN].
+<div align="center">
 
-libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
-libnabo works with either version 2 or 3 of Eigen.
-libnabo also optionally depends on [Boost], a C++ general library, for Python bindings.
+[//]: # ( ==== Logo ================================================== )
+<br>
+<br>
+<a href="https://norlab.ulaval.ca">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="/visual/norlab_logo_acronym_light.png">
+      <source media="(prefers-color-scheme: light)" srcset="/visual/norlab_logo_acronym_dark.png">
+      <img alt="Shows an the dark NorLab logo in light mode and light NorLab logo in dark mode." src="/visual/norlab_logo_acronym_dark.png" width="175">
+    </picture>
+</a>
+<br>
+<br>
 
-libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch) and is now maintained by [Simon Lynen](https://github.com/simonlynen).
+[//]: # ( ==== Title ================================================= )
+
+# _libnabo_
+
+
+[//]: # ( ==== Hyperlink ============================================= )
+<sup>
+<a href="http://132.203.26.125:8111">NorLab TeamCity GUI</a>
+(VPN/intranet access) &nbsp; • &nbsp;
+<a href="https://hub.docker.com/repositories/norlabulaval">norlabulaval</a>
+(Docker Hub) &nbsp;
+</sup>
+<br>
+<br>
+
+[//]: # ( ==== Description =========================================== )
+**libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.**
+<br>
+<br>
+
+[//]: # (====GitHub badges========================================================================)
+
+<img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/norlab-ulaval/libnabo">
+<img alt="GitHub forks" src="https://img.shields.io/github/forks/norlab-ulaval/libnabo">
+<img alt="GitHub License" src="https://img.shields.io/github/license/norlab-ulaval/libnabo">
+<img alt="GitHub release (with filter)" src="https://img.shields.io/github/v/release/norlab-ulaval/libnabo">
+<a href="http://132.203.26.125:8111"><img src="https://img.shields.io/static/v1?label=JetBrains TeamCity&message=CI/CD&color=green?style=plastic&logo=teamcity" /></a>
+<a href="https://hub.docker.com/repository/docker/norlabulaval/libnabo/"> <img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/norlabulaval/libnabo?logo=docker&label=libnabo"> </a>
+<br>
+<br>
+<hr style="color:lightgray;background-color:lightgray">
+</div>
+
+
+libnabo provides a clean, legacy-free, scalar-type–agnostic API thanks to C++ templates.
+Its current CPU implementation is strongly inspired by [ANN], but with more compact data types. On the average, libnabo is 5% to 20% faster than [ANN].
+
+**Dependencies:**
+- libnabo depends on [Eigen], a modern C++ matrix and linear-algebra library.
+- libnabo works with either version 2 or 3 of Eigen.
+- libnabo also optionally depends on [Boost], a C++ general library, for Python bindings.
+
+**Credit:** 
+- libnabo was developed by [Stéphane Magnenat](http://stephane.magnenat.net) as part of his work at [ASL-ETH](http://www.asl.ethz.ch)
+- libnabo is now maintained by [NorLab](https://github.com/norlab-ulaval)
+
 
 If you are interested in a pure-[Rust](https://www.rust-lang.org/) version, check [that repository](https://github.com/enlightware/nabo-rs) out.
+
+---
+
+[//]: # (====Supported OS and aarch===============================================================)
+
+### Supported OS And Architecture
+libnabo is tested on our build system under the following architecture and OS:
+
+- x86 and arm64/v8
+- Ubuntu bionic (18.04) and focal (20.04) 
+
+[//]: # (- jammy &#40;22.04&#41;)
+
+Note:
+
+- libnabo reportedly works on MacOs OsX (latest) and Windows (latest)
+
+---
+
+[//]: # (====Release note=========================================================================)
+
+### ★ Version `1.1.0` Release Note 
+
+This release of _libnabo_ introduces the integration
+of [norlab-build-system (NBS)](https://github.com/norlab-ulaval/norlab-build-system) as a _git
+submodule_ for codebase development and testing.
+
+Execute the following to clone the repository with its submodule:
+
+```shell
+git clone --recurse-submodules https://github.com/norlab-ulaval/libnabo.git
+```
+
+If _libnabo_ was previously cloned, execute the following to fetch its new submodule
+
+```shell
+git submodule update --remote --recursive --init
+```
+
+### ★ Contributing Instructions
+
+See [contributing_instructions.md](contributing/contributing_instructions.md)
+for instructions related to bug reporting, code contribution and for setting up
+the `libnabo-build-system`
+on your workstation to speed up your local development workflow.
+
+
+---
+
 
 Download
 ========
@@ -19,8 +119,29 @@ They provide a package with the shared library, another with the development hea
 
 The source code is available from github, you can clone the git tree by doing:
 
-	git clone git://github.com/ethz-asl/libnabo.git
+```shell
+git clone --recurse-submodules https://github.com/norlab-ulaval/libnabo.git
+```
 
+
+Docker images 
+========
+Run the following commands to pull and run libnabo in a docker container 
+```shell
+docker pull norlabulaval/libnabo:latest-ubuntu-focal
+
+docker run -it --rm norlabulaval/libnabo:latest-ubuntu-focal
+```
+See available [libnabo image tags](https://hub.docker.com/repository/docker/norlabulaval/libnabo/) on dockerhub.
+
+To install docker related dependencies on ubuntu, execute the following
+
+```shell
+cd ./build_system/nabo_utility_script
+
+# Execute docker tools install script i.e. docker daemon, docker compose, docker buildx
+bash nabo_install_docker_tools.bash
+```
 
 Compilation
 ===========
@@ -28,6 +149,14 @@ Compilation
 libnabo uses [CMake] as build system.
 The complete compilation process depends on the system you are using (Linux, Mac OS X or Windows).
 You will find a nice introductory tutorial in [this video](http://www.youtube.com/watch?v=CLvZTyji_Uw).
+
+For conveniences, you can use the provided installer script for ubuntu
+```shell
+bash libnabo_dependencies_installer.bash
+
+# Use the --help flag to see the list of optional flag
+bash libnabo_installer.bash [<optional flag>]
+```
 
 Prerequisites
 -------------
@@ -154,11 +283,6 @@ If you use libnabo in the academic context, please cite this paper that evaluate
 		issn={2035-3928}
 	}
 
-
-Bug reporting
-=============
-
-Please use [github's issue tracker](http://github.com/ethz-asl/libnabo/issues) to report bugs.
 
 
 License

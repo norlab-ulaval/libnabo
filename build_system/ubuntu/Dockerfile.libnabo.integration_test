@@ -1,0 +1,107 @@
+ARG PROJECT_HUB=norlabulaval
+ARG BASE_IMAGE=libnabo-dependencies
+ARG BASE_IMAGE_TAG
+FROM ${PROJECT_HUB}/${BASE_IMAGE}:${BASE_IMAGE_TAG:?err} AS libnabo-dependencies
+
+LABEL org.opencontainers.image.authors="luc.coupal.1@ulaval.ca"
+
+ARG REPOSITORY_VERSION='latest'
+ENV REPOSITORY_VERSION=${REPOSITORY_VERSION}
+LABEL libnabo.version="${REPOSITORY_VERSION}"
+
+ARG NBS_LIB_INSTALL_PATH
+ARG NBS_REPOSITORY_NAME
+ENV NBS_LIB_INSTALL_PATH=${NBS_LIB_INSTALL_PATH:?'Build argument needs to be set and non-empty.'}
+ENV NBS_REPOSITORY_NAME=${NBS_REPOSITORY_NAME:?'Build argument needs to be set and non-empty.'}
+
+ARG CMAKE_BUILD_TYPE=RelWithDebInfo
+ARG INSTALL_SCRIPT_FLAG='--build-system-CI-install'
+ENV CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+ENV INSTALL_SCRIPT_FLAG=${INSTALL_SCRIPT_FLAG}
+
+ARG IS_TEAMCITY_RUN
+ENV IS_TEAMCITY_RUN=${IS_TEAMCITY_RUN:-false}
+
+SHELL ["/bin/bash", "-c"]
+ARG DEBIAN_FRONTEND=noninteractive
+
+# ToDo: validate
+ENV TERM=${TERM:-"xterm-256color"}
+
+# ====Checkout libnabo repository==================================================================
+WORKDIR "${NBS_LIB_INSTALL_PATH}/${NBS_REPOSITORY_NAME}"
+
+# Copy all files from the checkout branch in the repository (except those in the .dockerignore)
+COPY . .
+
+WORKDIR ./build_system/ubuntu
+
+RUN chmod +x nabo_install_libnabo_ubuntu.bash
+RUN chmod +x nabo_execute_nabo_unittest.bash
+RUN chmod +x entrypoint.bash
+
+# ....Install libpointmatcher missing dependecnies.................................................
+RUN apt-get update && \
+    apt-get install --assume-yes "${APT_FLAGS[@]}" \
+      libyaml-cpp-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# ====Test compilation with automatic path resolution==============================================
+FROM libnabo-dependencies AS integration-test-compile-auto-path-resolution
+
+#RUN echo && echo ">> nproc=$(nproc)" && echo # ToDo: on task end >> mute this line
+
+# .... Build libnabo checkout branch ..............................................................
+WORKDIR "${NBS_LIB_INSTALL_PATH}/${NBS_REPOSITORY_NAME}/build_system/ubuntu"
+
+RUN source nabo_install_libnabo_ubuntu.bash \
+            --repository-version ${REPOSITORY_VERSION} \
+            --cmake-build-type ${CMAKE_BUILD_TYPE} \
+            ${INSTALL_SCRIPT_FLAG}
+
+# .... Compile package dependent on libnabo .......................................................
+WORKDIR "${NBS_LIB_INSTALL_PATH}"
+RUN git clone https://github.com/norlab-ulaval/libpointmatcher.git \
+    && mkdir -p libpointmatcher/build && cd libpointmatcher/build \
+    && cmake -DCMAKE_BUILD_TYPE=Release .. \
+    && make -j $(nproc) \
+    && make install
+
+ENTRYPOINT [ "./entrypoint.bash" ]
+CMD [ "bash" ]
+
+# ====Test compilation with explicit path resolution===============================================
+
+# (Priority) ToDo: implement >> test casse with 'SHARED_LIBS' cmake flag
+
+FROM libnabo-dependencies AS integration-test-compile-prefixed-path
+
+#RUN echo && echo ">> nproc=$(nproc)" && echo # ToDo: on task end >> mute this line
+
+# .... Build libnabo checkout branch ..............................................................
+WORKDIR "${NBS_LIB_INSTALL_PATH}/${NBS_REPOSITORY_NAME}/build_system/ubuntu"
+
+RUN export APPEND_TO_CMAKE_FLAG=( "-D CMAKE_INSTALL_PREFIX=${NBS_LIB_INSTALL_PATH:?err}" ) \
+    && source nabo_install_libnabo_ubuntu.bash \
+    --repository-version ${REPOSITORY_VERSION} \
+    --cmake-build-type ${CMAKE_BUILD_TYPE} \
+    ${INSTALL_SCRIPT_FLAG}
+
+
+# .... Compile package dependent on libnabo .......................................................
+WORKDIR "${NBS_LIB_INSTALL_PATH}"
+RUN git clone https://github.com/norlab-ulaval/libpointmatcher.git \
+    && mkdir -p libpointmatcher/build && cd libpointmatcher/build \
+    && cmake -DCMAKE_BUILD_TYPE=Release .. \
+    && make -j $(nproc) \
+    && make install
+
+ENTRYPOINT [ "./entrypoint.bash" ]
+CMD [ "bash" ]
+
+# .................................................................................................
+## Alternate version
+#RUN chmod +x entrypoint_build_and_test_libnabo_checkout_branch.bash
+#RUN chmod +x entrypoint_build_libnabo_checkout_branch.bash
+#RUN source entrypoint_build_and_test_libnabo_checkout_branch.bash
+#RUN source entrypoint_build_libnabo_checkout_branch.bash
