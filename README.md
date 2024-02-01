@@ -267,3 +267,4 @@ libnabo is released under a permissive BSD license.
 [CMake documentation]: http://www.cmake.org/cmake/help/cmake2.6docs.html
 [Eigen]: http://eigen.tuxfamily.org
 [Boost]: http://www.boost.org
+
