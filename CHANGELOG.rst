@@ -2,8 +2,8 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.1 (2024-03-19)
+------------------
 
 * Update README.md
 * Set minimum required CMake version to 3.10.2
