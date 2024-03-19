@@ -2,6 +2,52 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
+* Update README.md
+* Set minimum required CMake version to 3.10.2
+* (origin/dev-feat-integrate-norlab-build-system-library-and-implement-linabo-build-system-NMO-405) style: renamed `.*test_compilation.*` services and target to `.*integration_test.*` for clarity.
+* doc(readme): mute ubuntu jammy from supported OS version until libpointmatcher build pass on jammy
+* ci: drop ubuntu jammy from build matrix
+* doc: add missing norlab light logo
+* doc: add missing norlab light logo
+* doc: update header with dynamic logo, fix hyperlink, add dockerhub badge and fix relative link
+* doc(pull_request_template.md): fix typo
+* doc(readme): add norlab logo to header and improve intro
+* test: add release crawler script bats test
+* build: add release crawler script and .env file
+* doc(readme): update header
+* build: update repo version format
+* doc: clean pr comment
+* feat: integrate norlab-build-system library and implement linabo-build-system [NMO-405]
+* build: Added norlab-shell-script-tools submodule to repository [NMO-405]
+* build: Added norlab-build-system submodule to repository [NMO-405]
+* chore: added a code owner designation file, a pull request template and a conventional commit reference file
+* Update README.md
+* Update README.md with cmake guide
+* Use CMakePackageConfigHelpers to generate config files. Fill libnabo_INCLUDE_DIRS and libnabo_LIBRARIES variables.
+* Fix Cmake Syntax invoked by Nabo's version regex. Updated min cmake version to 3.8
+* more robust extraction of version
+* Remove dependency on grep + Improve findstr command
+* Use findstr instead of grep on Windows
+* Date range and catch-all for authors
+* Upgrade all syntax to package format 3
+* format "3" specifier for condition flag
+* Keep catkin for ROS1
+* Create LICENSE file based on BSD license as per package.xml
+* catkin not required for pure cmake packages
+* Added link to Rust version.
+* Replace TABS with SPACES
+* Automaticaly find eigen3
+* Fix install-space include directories
+* fix missing eigen headers in python module
+* add complete cmake exported-targets usage example
+* option to disable doxygen; cmake clean up
+* better handling of STATIC build option
+* modernize cmake to have exported targets
+* Make library git submodule-friendly
+
 1.0.7 (2019-02-07)
 ------------------
 * Disabled cmake compile tests by default and on compilers that do not support them (#95)
