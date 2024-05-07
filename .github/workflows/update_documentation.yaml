@@ -4,13 +4,8 @@ on:
   push:
     branches:
       - master
-      - github-action-api-docs  # Modify this to match your master branch name
   
   workflow_dispatch:  # Allow manual triggering
-
-  release:
-    types:
-      - published
 
 jobs:
   build:
