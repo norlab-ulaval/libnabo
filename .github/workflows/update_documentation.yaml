@@ -8,6 +8,10 @@ on:
   
   workflow_dispatch:  # Allow manual triggering
 
+  release:
+    types:
+      - published
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,4 +37,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/doc/html  # Directory containing the HTML documentation
+          if: ${{ github.event.release.tag_name }}
+          destination_dir: ./releases/${{ github.event.release.tag_name }}
+          keep_files: false
+          commit_message: Release ${{ github.event.release.tag_name }}
+
 
