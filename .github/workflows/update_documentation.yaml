@@ -33,13 +33,7 @@ jobs:
           make doc
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/doc/html  # Directory containing the HTML documentation
-          if: ${{ github.event.release.tag_name }}
-          destination_dir: ./releases/${{ github.event.release.tag_name }}
-          keep_files: false
-          commit_message: Release ${{ github.event.release.tag_name }}
-
-
+          folder: ./build/doc
+          branch: gh-pages
