@@ -11,11 +11,17 @@ project("lib${LIB_NAME}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Extract version from header
-file(READ "nabo/nabo.h" NABO_HEADER_CONTENT)
-string(REGEX MATCH "#define NABO_VERSION \"([0-9]+\.[0-9]+\.[0-9]+)\"" _ ${NABO_HEADER_CONTENT})
-set(PROJECT_VERSION ${CMAKE_MATCH_1})
-message(STATUS ${PROJECT_VERSION})
+## Extract version from package.xml
+file(READ "package.xml" PACKAGE_XML_CONTENT)
+string(REGEX MATCH "<version>([^<]+)</version>" VERSION_MATCH ${PACKAGE_XML_CONTENT})
+# Extract the matched version from the captured group
+if(VERSION_MATCH)
+    # CMake variable ${CMAKE_MATCH_1} contains the matched version
+    set(PROJECT_VERSION ${CMAKE_MATCH_1})
+    message(STATUS "Found package version: ${PROJECT_VERSION}")
+else()
+    message(WARNING "Package version not found in package.xml")
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
 	message("-- No build type specified; defaulting to CMAKE_BUILD_TYPE=Release.")
