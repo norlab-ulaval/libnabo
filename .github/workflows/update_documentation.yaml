@@ -3,7 +3,8 @@ name: Generate and Deploy Doxygen Documentation
 on:
   push:
     branches:
-      - main  # Modify this to match your main branch name
+      - master
+      - github-action-api-docs  # Modify this to match your master branch name
   
   workflow_dispatch:  # Allow manual triggering
 
