@@ -1,0 +1,55 @@
+name: Generate and Deploy Doxygen Documentation
+
+on:
+  push:
+    branches:
+      - master
+  
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake doxygen graphviz libboost-all-dev libeigen3-dev
+
+      - name: Configure and Build Project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make doc
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v3
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./build/doc/html
+          destination: ./_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
