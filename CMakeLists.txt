@@ -20,7 +20,7 @@ if(VERSION_MATCH)
     set(PROJECT_VERSION ${CMAKE_MATCH_1})
     message(STATUS "Found package version: ${PROJECT_VERSION}")
 else()
-    message(WARNING "Package version not found in package.xml")
+    message(SEND_ERROR "Package version not found in package.xml")
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
