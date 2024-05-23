@@ -2,6 +2,18 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#137 <https://github.com/ethz-asl/libnabo/issues/137>`_ from norlab-ulaval/github-action-api-docs
+  Add a GitHub action to upload API documentation to a webpage
+* CMake read libnabo version from package.xml, instead of the header of nabo.h
+* Merge pull request `#136 <https://github.com/ethz-asl/libnabo/issues/136>`_ from norlab-ulaval/release
+  Mod docker compose services for running with docker-container driver
+* ci: update submodule to latest and mod service for docker-container driver
+* ci: force norlab-teamcity-server release build configuration
+  [skip release]
+* Contributors: Luc Coupal, RedLeaderOne, boxanm
+
 1.1.1 (2024-03-19)
 ------------------
 
