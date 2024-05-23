@@ -2,8 +2,8 @@
 Changelog for package libnabo
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.2 (2024-05-23)
+------------------
 * Merge pull request `#137 <https://github.com/ethz-asl/libnabo/issues/137>`_ from norlab-ulaval/github-action-api-docs
   Add a GitHub action to upload API documentation to a webpage
 * CMake read libnabo version from package.xml, instead of the header of nabo.h
