@@ -158,10 +158,10 @@ libnabo provides the following compilation options, available through [CMake]:
 
 ### Documentation
 
-You can generate the documentation by typing:
-
-	make doc
-
+You can access on https://norlab-ulaval.github.io/libnabo/. Alternatively, you can generate it locally by typing:
+```bash
+make doc
+```
 Prerequisites
 -------------
 

@@ -9,7 +9,7 @@
 # Arguments:
 #   --install-path </dir/abs/path/>     The directory where to install libnabo (absolute path)
 #                                           (default location defined in the .env)
-#   --repository-version 1.0.7         Install libnabo release tag version (default to master branch latest)
+#   --repository-version 1.1.2         Install libnabo release tag version (default to master branch latest)
 #   --compile-test                      Compile the libnabo unit-test
 #   --generate-doc                      Generate the libnabo doxygen documentation
 #                                           in /usr/local/share/doc/libnabo/api/html/index.html
