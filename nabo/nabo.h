@@ -208,9 +208,9 @@ namespace Nabo
 	//@{
 
 	//! version of the Nabo library as string
-	#define NABO_VERSION "1.1.1"
+	#define NABO_VERSION "1.1.2"
 	//! version of the Nabo library as an int
-	#define NABO_VERSION_INT 10101
+	#define NABO_VERSION_INT 10102
 
 	// TODO (c++14) Convert invalidIndex, invalidValue to constexpr templated variables.
 	template <typename IndexType>
