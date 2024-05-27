@@ -52,7 +52,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*!
 \mainpage libnabo
 
-from http://github.com/ethz-asl/libnabo by Stéphane Magnenat (http://stephane.magnenat.net),
+from http://github.com/norlab-ulaval/libnabo by Stéphane Magnenat (http://stephane.magnenat.net),
 ASL-ETHZ, Switzerland (http://www.asl.ethz.ch)
 
 libnabo is a fast K Nearest Neighbour library for low-dimensional spaces.
@@ -159,7 +159,7 @@ If you use libnabo in the academic context, please cite this paper that evaluate
 
 \section BugReporting Bug reporting
 
-Please use <a href="http://github.com/ethz-asl/libnabo/issues">github's issue tracker</a> to report bugs.
+Please use <a href="http://github.com/norlab-ulaval/libnabo/issues">github's issue tracker</a> to report bugs.
 
 \section License
 
