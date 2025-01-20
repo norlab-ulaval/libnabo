@@ -41,10 +41,37 @@ RUN chmod +x nabo_execute_nabo_unittest.bash
 RUN chmod +x entrypoint.bash
 
 # ....Install libpointmatcher missing dependecnies.................................................
-RUN apt-get update && \
-    apt-get install --assume-yes "${APT_FLAGS[@]}" \
-      libyaml-cpp-dev && \
+RUN <<EOF
+    apt-get update
+    apt-get install --assume-yes libyaml-cpp-dev software-properties-common
     rm -rf /var/lib/apt/lists/*
+EOF
+
+RUN <<EOF
+    # Retrieve ubuntu version number: DISTRIB_RELEASE
+    source /etc/lsb-release
+    echo -e "Ubuntu version is ${DISTRIB_RELEASE}"
+    if [[ ${DISTRIB_RELEASE} == '18.04' ]]; then
+      # Update Bionic outdated compiler
+      # Ref https://github.com/norlab-ulaval/libpointmatcher/pull/581#issuecomment-2284415233
+      add-apt-repository ppa:ubuntu-toolchain-r/test
+      apt-get update
+      apt-get install --assume-yes gcc-9 g++-9
+      rm -rf /var/lib/apt/lists/*
+      update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+
+      # Update cmake to the latest version
+      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
+      apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+      apt-get update
+      apt-get remove cmake
+      apt-get install --assume-yes cmake
+#      apt install --assume-yes cmake-curses-gui
+      rm -rf /var/lib/apt/lists/*
+
+      echo $(cmake --version)
+    fi
+EOF
 
 # ====Test compilation with automatic path resolution==============================================
 FROM libnabo-dependencies AS integration-test-compile-auto-path-resolution
@@ -61,6 +88,7 @@ RUN source nabo_install_libnabo_ubuntu.bash \
 
 # .... Compile package dependent on libnabo .......................................................
 WORKDIR "${NBS_LIB_INSTALL_PATH}"
+
 RUN git clone https://github.com/norlab-ulaval/libpointmatcher.git \
     && mkdir -p libpointmatcher/build && cd libpointmatcher/build \
     && cmake -DCMAKE_BUILD_TYPE=Release .. \
@@ -87,6 +115,29 @@ RUN export APPEND_TO_CMAKE_FLAG=( "-D CMAKE_INSTALL_PREFIX=${NBS_LIB_INSTALL_PAT
     --cmake-build-type ${CMAKE_BUILD_TYPE} \
     ${INSTALL_SCRIPT_FLAG}
 
+#RUN <<EOF
+#    # Retrieve ubuntu version number: DISTRIB_RELEASE
+#    source /etc/lsb-release
+#    echo -e "Ubuntu version is ${DISTRIB_RELEASE}"
+#    if [[ ${DISTRIB_RELEASE} == '18.04' ]]; then
+#      # Update Bionic outdated compiler
+#      # Ref https://github.com/norlab-ulaval/libpointmatcher/pull/581#issuecomment-2284415233
+#      add-apt-repository ppa:ubuntu-toolchain-r/test
+#      apt-get update
+#      apt-get install --assume-yes gcc-9 g++-9
+#      rm -rf /var/lib/apt/lists/*
+#      update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+#
+#      # Update cmake to the latest version
+#      wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
+#      apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+#      apt-get update
+#      apt install --assume-yes cmake-curses-gui
+#      rm -rf /var/lib/apt/lists/*
+#
+#      echo $(cmake --version)
+#    fi
+#EOF
 
 # .... Compile package dependent on libnabo .......................................................
 WORKDIR "${NBS_LIB_INSTALL_PATH}"
